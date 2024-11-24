@@ -3,6 +3,7 @@ from .models import User, Role, Permission, RolePermission
 
 #comment for test push project
 #comment for test push Ahmad project
+#comment for test push Ahmad project
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'phone_number', 'is_staff')
