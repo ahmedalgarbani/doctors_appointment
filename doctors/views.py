@@ -1,96 +1,143 @@
 # doctors/views.py
-from django.shortcuts import render
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
+from .forms import SpecialtiesForm, DoctorsForm, DoctorRatesForm, DoctorSchedulesForm
 
+# Index View
 def index(request):
     return render(request, 'doctors/index.html')
 
 # Specialties Views
-class SpecialtiesListView(ListView):
-    model = Specialties
-    template_name = 'doctors/specialties_list.html'
+def specialties_list(request):
+    specialties = Specialties.objects.all()
+    return render(request, 'doctors/specialties_list.html', {'object_list': specialties})
 
-class SpecialtiesCreateView(CreateView):
-    model = Specialties
-    fields = ['specialty_name']
-    template_name = 'doctors/specialties_form.html'
-    success_url = reverse_lazy('doctor:specialties_list')
+def specialties_create(request):
+    if request.method == 'POST':
+        form = SpecialtiesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:specialties_list'))
+    else:
+        form = SpecialtiesForm()
+    return render(request, 'doctors/specialties_form.html', {'form': form})
 
-class SpecialtiesUpdateView(UpdateView):
-    model = Specialties
-    fields = ['specialty_name']
-    template_name = 'doctors/specialties_form.html'
-    success_url = reverse_lazy('doctor:specialties_list')
+def specialties_update(request, pk):
+    specialty = get_object_or_404(Specialties, pk=pk)
+    if request.method == 'POST':
+        form = SpecialtiesForm(request.POST, instance=specialty)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:specialties_list'))
+    else:
+        form = SpecialtiesForm(instance=specialty)
+    return render(request, 'doctors/specialties_form.html', {'form': form})
 
-class SpecialtiesDeleteView(DeleteView):
-    model = Specialties
-    template_name = 'doctors/specialties_confirm_delete.html'
-    success_url = reverse_lazy('doctor:specialties_list')
+def specialties_delete(request, pk):
+    specialty = get_object_or_404(Specialties, pk=pk)
+    if request.method == 'POST':
+        specialty.delete()
+        return HttpResponseRedirect(reverse_lazy('doctor:specialties_list'))
+    return render(request, 'doctors/specialties_confirm_delete.html', {'object': specialty})
 
 # Doctors Views
-class DoctorsListView(ListView):
-    model = Doctors
-    template_name = 'doctors/doctors_list.html'
+def doctors_list(request):
+    doctors = Doctors.objects.all()
+    return render(request, 'doctors/doctors_list.html', {'object_list': doctors})
 
-class DoctorsCreateView(CreateView):
-    model = Doctors
-    fields = ['name', 'hospitel_id', 'specialty_id']
-    template_name = 'doctors/doctors_form.html'
-    success_url = reverse_lazy('doctor:doctors_list')
+def doctors_create(request):
+    if request.method == 'POST':
+        form = DoctorsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
+    else:
+        form = DoctorsForm()
+    return render(request, 'doctors/doctors_form.html', {'form': form})
 
-class DoctorsUpdateView(UpdateView):
-    model = Doctors
-    fields = ['name', 'hospitel_id', 'specialty_id']
-    template_name = 'doctors/doctors_form.html'
-    success_url = reverse_lazy('doctor:doctors_list')
+def doctors_update(request, pk):
+    doctor = get_object_or_404(Doctors, pk=pk)
+    if request.method == 'POST':
+        form = DoctorsForm(request.POST, instance=doctor)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
+    else:
+        form = DoctorsForm(instance=doctor)
+    return render(request, 'doctors/doctors_form.html', {'form': form})
 
-class DoctorsDeleteView(DeleteView):
-    model = Doctors
-    template_name = 'doctors/doctors_confirm_delete.html'
-    success_url = reverse_lazy('doctor:doctors_list')
+def doctors_delete(request, pk):
+    doctor = get_object_or_404(Doctors, pk=pk)
+    if request.method == 'POST':
+        doctor.delete()
+        return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
+    return render(request, 'doctors/doctors_confirm_delete.html', {'object': doctor})
 
 # DoctorRates Views
-class DoctorRatesListView(ListView):
-    model = DoctorRates
-    template_name = 'doctors/doctorrates_list.html'
+def doctorrates_list(request):
+    rates = DoctorRates.objects.all()
+    return render(request, 'doctors/doctorrates_list.html', {'object_list': rates})
 
-class DoctorRatesCreateView(CreateView):
-    model = DoctorRates
-    fields = ['doctor_id', 'hospitel_id', 'rate']
-    template_name = 'doctors/doctorrates_form.html'
-    success_url = reverse_lazy('doctor:doctorrates_list')
+def doctorrates_create(request):
+    if request.method == 'POST':
+        form = DoctorRatesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctorrates_list'))
+    else:
+        form = DoctorRatesForm()
+    return render(request, 'doctors/doctorrates_form.html', {'form': form})
 
-class DoctorRatesUpdateView(UpdateView):
-    model = DoctorRates
-    fields = ['doctor_id', 'hospitel_id', 'rate']
-    template_name = 'doctors/doctorrates_form.html'
-    success_url = reverse_lazy('doctor:doctorrates_list')
+def doctorrates_update(request, pk):
+    rate = get_object_or_404(DoctorRates, pk=pk)
+    if request.method == 'POST':
+        form = DoctorRatesForm(request.POST, instance=rate)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctorrates_list'))
+    else:
+        form = DoctorRatesForm(instance=rate)
+    return render(request, 'doctors/doctorrates_form.html', {'form': form})
 
-class DoctorRatesDeleteView(DeleteView):
-    model = DoctorRates
-    template_name = 'doctors/doctorrates_confirm_delete.html'
-    success_url = reverse_lazy('doctor:doctorrates_list')
+def doctorrates_delete(request, pk):
+    rate = get_object_or_404(DoctorRates, pk=pk)
+    if request.method == 'POST':
+        rate.delete()
+        return HttpResponseRedirect(reverse_lazy('doctor:doctorrates_list'))
+    return render(request, 'doctors/doctorrates_confirm_delete.html', {'object': rate})
 
 # DoctorSchedules Views
-class DoctorSchedulesListView(ListView):
-    model = DoctorSchedules
-    template_name = 'doctors/doctorschedules_list.html'
+def doctorschedules_list(request):
+    schedules = DoctorSchedules.objects.all()
+    return render(request, 'doctors/doctorschedules_list.html', {'object_list': schedules})
 
-class DoctorSchedulesCreateView(CreateView):
-    model = DoctorSchedules
-    fields = ['doctor_id', 'hospitel_id', 'day', 'start_time', 'end_time']
-    template_name = 'doctors/doctorschedules_form.html'
-    success_url = reverse_lazy('doctor:doctorschedules_list')
+def doctorschedules_create(request):
+    if request.method == 'POST':
+        form = DoctorSchedulesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+    else:
+        form = DoctorSchedulesForm()
+    return render(request, 'doctors/doctorschedules_form.html', {'form': form})
 
-class DoctorSchedulesUpdateView(UpdateView):
-    model = DoctorSchedules
-    fields = ['doctor_id', 'hospitel_id', 'day', 'start_time', 'end_time']
-    template_name = 'doctors/doctorschedules_form.html'
-    success_url = reverse_lazy('doctor:doctorschedules_list')
+def doctorschedules_update(request, pk):
+    schedule = get_object_or_404(DoctorSchedules, pk=pk)
+    if request.method == 'POST':
+        form = DoctorSchedulesForm(request.POST, instance=schedule)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+    else:
+        form = DoctorSchedulesForm(instance=schedule)
+    return render(request, 'doctors/doctorschedules_form.html', {'form': form})
 
-class DoctorSchedulesDeleteView(DeleteView):
-    model = DoctorSchedules
-    template_name = 'doctors/doctorschedules_confirm_delete.html'
-    success_url = reverse_lazy('doctor:doctorschedules_list')
+def doctorschedules_delete(request, pk):
+    schedule = get_object_or_404(DoctorSchedules, pk=pk)
+    if request.method == 'POST':
+        schedule.delete()
+        return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+    return render(request, 'doctors/doctorschedules_confirm_delete.html', {'object': schedule})
+
