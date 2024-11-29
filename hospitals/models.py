@@ -10,6 +10,7 @@ class Hospital(models.Model):
     def str(self):
         return self.name
 
+
 class HospitalDetail(models.Model):
     hospital = models.OneToOneField(Hospital, on_delete=models.CASCADE, related_name='details')
     description = models.TextField()
