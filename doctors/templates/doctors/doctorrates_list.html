@@ -1,0 +1,18 @@
+<!-- doctors/templates/doctors/doctorrates_list.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Doctor Rates</h1>
+  <a href="{% url 'doctor:doctorrates_add' %}">Add New Rate</a>
+  <ul>
+    {% for rate in object_list %}
+      <li>
+        Doctor: {{ rate.doctor_id.name }} - 
+        Hospitel: {{ rate.hospitel_id.name }} - 
+        Rate: {{ rate.rate }}
+        <a href="{% url 'doctor:doctorrates_edit' pk=rate.pk %}">Edit</a> |
+        <a href="{% url 'doctor:doctorrates_delete' pk=rate.pk %}">Delete</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
