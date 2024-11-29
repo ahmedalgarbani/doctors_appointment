@@ -2,6 +2,7 @@
 from django import forms
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
 
+
 class SpecialtiesForm(forms.ModelForm):
     class Meta:
         model = Specialties
