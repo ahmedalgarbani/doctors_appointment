@@ -1,0 +1,12 @@
+<!-- doctors/templates/doctors/specialties_list.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Specialties</h1>
+  <a href="{% url 'doctor:specialties_add' %}">اضافة</a>
+  <ul>
+    {% for specialty in object_list %}
+      <li>{{ specialty.specialty_name }} -   -  <a href="{% url 'doctor:specialties_edit' pk=specialty.pk %}">تعديل</a> |    <a href="{% url 'doctor:specialties_delete' pk=specialty.pk %}">حذف</a></li>
+    {% endfor %}
+  </ul>
+{% endblock %}

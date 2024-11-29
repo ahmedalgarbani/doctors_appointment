@@ -1,3 +1,38 @@
 from django.db import models
+# from hospitals.models import Hospitals
 
-# Create your models here.
+
+class Specialties(models.Model):
+    specialty_name = models.CharField(max_length=255)
+    
+
+    def __str__(self):
+        return self.specialty_name
+
+
+class Doctors(models.Model):
+    name = models.CharField(max_length=255)
+    # hospital_id = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
+    specialty_id = models.ForeignKey(Specialties, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+class DoctorRates(models.Model):
+    doctor_id = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    # hospital_id = models.ForeignKey(Hospitals, on_delete=models.CASCADE)
+    rate = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.doctor_id.name} - {self.rate}" 
+
+
+class DoctorSchedules(models.Model):
+    doctor_id = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    # hospital_id = models.ForeignKey(Hospitals, on_delete=models.CASCADE)
+    day = models.CharField(max_length=20)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.doctor_id.name} - {self.day}" 
