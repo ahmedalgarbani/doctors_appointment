@@ -1,120 +1,81 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
-      name="viewport"
-    />
-    <title>{% block title %}Blank Page{% endblock %}</title>
-
-    <!-- General CSS Files -->
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/bootstrap/css/bootstrap.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/fontawesome/css/all.min.css' %}"
-    />
-
-    <!-- CSS Libraries -->
-
-    <!-- Template CSS -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/components.css' %}" />
-
-    <!-- Additional CSS Libraries -->
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'css/dataTables.bootstrap4.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'css/buttons.bootstrap4.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'css/responsive.bootstrap4.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/jqvmap/dist/jqvmap.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/weather-icon/css/weather-icons.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'modules/summernote/summernote-bs4.css' %}"
-    />
-
-    <!-- General Scripts -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=UA-94034622-3"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "UA-94034622-3");
-    </script>
-  </head>
-
-  <body>
-    <div id="app">
-      <div class="main-wrapper main-wrapper-1">
-        <div class="navbar-bg"></div>
-
-        {% include "admin/layouts/topbar.html" %} {% include
-        "admin/layouts/sidebar.html" %}
-
-        <div class="main-content">
-          <section class="section">
-            {% block content %}
-            <!-- Content goes here -->
-            {% endblock %}
-          </section>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+        <meta name="keywords" content="practo clone, doccure, doctor appointment, Practo clone html template, doctor booking template">
+        <meta name="author" content="Practo Clone HTML Template - Doctor Booking Template">
+        <meta property="og:url" content="https://doccure.dreamstechnologies.com/html/">
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="Doctors Appointment HTML Website Templates | Doccure">
+        <meta property="og:description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+        <meta property="og:image" content="{% static 'admin/assets/img/preview-banner.jpg' %}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta property="twitter:domain" content="https://doccure.dreamstechnologies.com/html/">
+        <meta property="twitter:url" content="https://doccure.dreamstechnologies.com/html/">
+        <meta name="twitter:title" content="Doctors Appointment HTML Website Templates | Doccure">
+        <meta name="twitter:description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+        <meta name="twitter:image" content="{% static 'admin/assets/img/preview-banner.jpg' %}">
+        <title>{% block title %}Blank Page{% endblock %}</title>
+        
+        <!-- Favicon -->
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'admin/assets/img/favicon.png' %}">
+        
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="{% static 'admin/assets/css/bootstrap.rtl.min.css' %}">
+        
+        <!-- Fontawesome CSS -->
+        <link rel="stylesheet" href="{% static 'admin/assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+        <link rel="stylesheet" href="{% static 'admin/assets/plugins/fontawesome/css/all.min.css' %}">
+        
+        <!-- Feathericon CSS -->
+        <link rel="stylesheet" href="{% static 'admin/assets/css/feathericon.min.css' %}">
+        
+        <!-- Main CSS -->
+        <link rel="stylesheet" href="{% static 'admin/assets/css/custom.css' %}">
+        {% block extra_css %}
+        {% endblock %}
+    </head>
+    <body>
+    
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+        
+            <!-- Header -->
+            {% include "admin/layouts/topbar.html" %} 
+            <!-- /Header -->
+            
+            <!-- Sidebar -->
+            {% include "admin/layouts/sidebar.html" %}
+            <!-- /Sidebar -->
+            
+            <!-- Page Wrapper -->
+            <div class="page-wrapper">
+                <div class="content container-fluid">
+                    {% block content %}
+                    {% endblock %}
+                </div>			
+            </div>
+            <!-- /Page Wrapper -->
+        
         </div>
-      </div>
-    </div>
-
-    <!-- General JS Scripts -->
-    <script src="{% static 'modules/jquery.min.js' %}"></script>
-    <script src="{% static 'modules/popper.js' %}"></script>
-    <script src="{% static 'modules/bootstrap/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'modules/moment.min.js' %}"></script>
-    <script src="{% static 'js/stisla.js' %}"></script>
-
-    <!-- Additional JS Libraries -->
-    <script src="{% static 'modules/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js' %}"></script>
-    <script src="{% static 'modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js' %}"></script>
-    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/dataTables.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'js/dataTables.responsive.min.js' %}"></script>
-    <script src="{% static 'js/responsive.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'modules/simple-weather/jquery.simpleWeather.min.js' %}"></script>
-    <script src="{% static 'modules/chart.min.js' %}"></script>
-    <script src="{% static 'modules/jqvmap/dist/jquery.vmap.min.js' %}"></script>
-    <script src="{% static 'modules/summernote/summernote-bs4.js' %}"></script>
-
-    <!-- Page Specific JS File -->
-    <script src="{% static 'js/page/index-0.js' %}"></script>
-
-    <!-- Template JS File -->
-    <script src="{% static 'js/scripts.js' %}"></script>
-  </body>
+        <!-- /Main Wrapper -->
+        
+        <!-- jQuery -->
+        <script src="{% static 'admin/assets/js/jquery-3.7.1.min.js' %}"></script>
+        {% block extra_script %}
+        {% endblock %}
+        
+        <!-- Bootstrap Core JS -->
+        <script src="{% static 'admin/assets/js/bootstrap.bundle.min.js' %}"></script>
+        
+        <!-- Slimscroll JS -->
+        <script src="{% static 'admin/assets/plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>
+        
+        <!-- Custom JS -->
+        <script src="{% static 'admin/assets/js/script.js' %}"></script>
+        
+    </body>
 </html>
