@@ -1,0 +1,19 @@
+<!-- doctors/templates/doctors/doctorschedules_list.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Doctor Schedules</h1>
+  <a href="{% url 'doctor:doctorschedules_add' %}">Add New Schedule</a>
+  <ul>
+    {% for schedule in object_list %}
+      <li>
+        Doctor: {{ schedule.doctor_id.name }} - 
+        Hospitel: {{ schedule.hospitel_id.name }} - 
+        Day: {{ schedule.day }} - 
+        Time: {{ schedule.start_time }} to {{ schedule.end_time }}
+        <a href="{% url 'doctor:doctorschedules_edit' pk=schedule.pk %}">Edit</a> |
+        <a href="{% url 'doctor:doctorschedules_delete' pk=schedule.pk %}">Delete</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

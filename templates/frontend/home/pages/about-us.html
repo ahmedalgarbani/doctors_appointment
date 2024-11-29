@@ -1,0 +1,115 @@
+{% extends "frontend/layouts/master.html" %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+  <div class="container">
+    <div class="row align-items-center inner-banner">
+      <div class="col-md-12 col-12 text-center">
+        <h2 class="breadcrumb-title">About Us</h2>
+        <nav aria-label="breadcrumb" class="page-breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item" aria-current="page">About Us</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- About Us -->
+<section class="about-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 col-md-12">
+        <div class="about-img-info">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="about-inner-img">
+                <div class="about-img">
+                  <img
+                    src="assets/img/about-img1.jpg"
+                    class="img-fluid"
+                    alt="about-image"
+                  />
+                </div>
+                <div class="about-img">
+                  <img
+                    src="assets/img/about-img2.jpg"
+                    class="img-fluid"
+                    alt="about-image"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="about-inner-img">
+                <div class="about-box">
+                  <h4>Over 25+ Years Experience</h4>
+                </div>
+                <div class="about-img">
+                  <img
+                    src="assets/img/about-img3.jpg"
+                    class="img-fluid"
+                    alt="about-image"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 col-md-12">
+        <div class="section-inner-header about-inner-header">
+          <h6>About Our Company</h6>
+          <h2>We Are Always Ensure Best Medical Treatment For Your Health</h2>
+        </div>
+        <div class="about-content">
+          <div class="about-content-details">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+              reprehenderit in voluptate velit esse cillum dolore eu fugiat
+              nulla pariatur.
+            </p>
+            <p>
+              Sed ut perspiciatis unde omnis iste natus sit voluptatem
+              accusantium doloremque eaque ipsa quae architecto beatae vitae
+              dicta sunt explicabo.
+            </p>
+          </div>
+          <div class="about-contact">
+            <div class="about-contact-icon">
+              <span
+                ><img src="assets/img/icons/phone-icon.svg" alt="phone-image"
+              /></span>
+            </div>
+            <div class="about-contact-text">
+              <p>Need Emergency?</p>
+              <h4>+1 315 369 5943</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /About Us -->
+
+{% include "frontend/components/why-choose-us.html" %}
+
+{% include "frontend/components/way.html" %}
+
+{% include "frontend/components/doctors.html" %}
+
+{% include "frontend/components/testimonial.html" %} 
+
+{% include "frontend/components/faq.html" %}
+
+
+ {% endblock content %}
