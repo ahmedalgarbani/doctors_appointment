@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import User, Role, Permission, RolePermission
 
-#comment for test push project
 #comment for test push Ahmad project
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
