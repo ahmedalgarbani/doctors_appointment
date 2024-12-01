@@ -1,0 +1,698 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+    <meta name="keywords" content="practo clone, doccure, doctor appointment, Practo clone html template, doctor booking template">
+    <meta name="author" content="Practo Clone HTML Template - Doctor Booking Template">
+    <meta property="og:url" content="https://doccure.dreamstechnologies.com/html/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Doctors Appointment HTML Website Templates | Doccure">
+    <meta property="og:description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+    <meta property="og:image" content="{% static 'img/preview-banner.jpg' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="https://doccure.dreamstechnologies.com/html/">
+    <meta property="twitter:url" content="https://doccure.dreamstechnologies.com/html/">
+    <meta name="twitter:title" content="Doctors Appointment HTML Website Templates | Doccure">
+    <meta name="twitter:description" content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat.">
+    <meta name="twitter:image" content="{% static 'img/preview-banner.jpg' %}">
+    <title>{% block title %}Doccure{% endblock %}</title>
+	
+
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Feathericon CSS -->
+    <link rel="stylesheet" href="{% static 'css/feather.css' %}">
+
+    <!-- Datepicker CSS -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+
+    <!-- Owl Carousel CSS -->
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+
+    <!-- Animation CSS -->
+    <link rel="stylesheet" href="{% static 'css/aos.css' %}">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+
+</head>
+	<body>
+
+		<!-- Main Wrapper -->
+		<div class="main-wrapper">
+					
+			<!-- Header -->
+			<header class="header header-custom header-fixed header-one">
+				<div class="container">
+					<nav class="navbar navbar-expand-lg header-nav">
+						<div class="navbar-header">
+							<a id="mobile_btn" href="javascript:void(0);">
+								<span class="bar-icon">
+									<span></span>
+									<span></span>
+									<span></span>
+								</span>
+							</a>
+							<a href="{% url 'users:index' %}" class="navbar-brand logo">
+								<img src="{% static 'img/logo.png' %}" class="img-fluid" alt="Logo">
+							</a>
+						</div>
+						<div class="main-menu-wrapper">
+							<div class="menu-header">
+								<a href="{% url 'users:index' %}" class="menu-logo">
+									<img src="{% static 'img/logo.png' %}" class="img-fluid" alt="Logo">
+								</a>
+								<a id="menu_close" class="menu-close" href="javascript:void(0);">
+									<i class="fas fa-times"></i>
+								</a>
+							</div>
+							<ul class="main-nav">
+								<li class="has-submenu megamenu active">
+									<a href="javascript:void(0);">users:index <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu mega-submenu">
+										<li>
+											<div class="megamenu-wrapper">
+												<div class="row">
+													<div class="col-lg-2">
+														<div class="single-demo active">
+															<div class="demo-img">
+																<a href="{% url 'users:index' %}" class="inner-demo-img"><img src="{% static 'img/users:index-11.jpg' %}" class="img-fluid" alt="img"></a>
+															</div>
+															<div class="demo-info">
+																<a href="{% url 'users:index' %}" class="inner-demo-img">General users:index</a>
+															</div>
+														</div>
+													</div>
+													<!-- Repeat similar structure for other demo images -->
+													<div class="col-lg-2">
+														<div class="single-demo ">
+															<div class="demo-img">
+																{% comment %} <a href="{% url 'users:index-2' %}" class="inner-demo-img"><img src="{% static 'img/users:index-10.jpg' %}" class="img-fluid" alt="img"></a> {% endcomment %}
+															</div>
+															<div class="demo-info">
+																{% comment %} <a href="{% url 'users:index-2' %}" class="inner-demo-img">General users:index 2</a> {% endcomment %}
+															</div>
+														</div>
+													</div>
+													<!-- Continue for all other demo links -->
+												</div>
+											</div>
+										</li>
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="javascript:void(0);">Doctors <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										{% comment %} <li><a href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li> {% endcomment %}
+										{% comment %} <li><a href="{% url 'appointments' %}">Appointments</a></li> {% endcomment %}
+										{% comment %} <li><a href="{% url 'schedule_timings' %}">Schedule Timing</a></li> {% endcomment %}
+										{% comment %} <li><a href="{% url 'my_patients' %}">Patients List</a></li>
+										<li><a href="{% url 'patient_profile' %}">Patients Profile</a></li>
+										<li><a href="{% url 'chat_doctor' %}">Chat</a></li>
+										<li><a href="{% url 'invoices' %}">Invoices</a></li>
+										<li><a href="{% url 'doctor_profile_settings' %}">Profile Settings</a></li>
+										<li><a href="{% url 'reviews' %}">Reviews</a></li> {% endcomment %}
+										{% comment %} <li><a href="{% url 'users:doctor_register' %}">Doctor Register</a></li> {% endcomment %}
+										<li class="has-submenu">
+											{% comment %} <a href="{% url 'doctor_blog' %}">Blog</a> {% endcomment %}
+											<ul class="submenu">
+												{% comment %} <li><a href="{% url 'doctor_blog' %}">Blog</a></li>
+												<li><a href="{% url 'blog_details' %}">Blog view</a></li>
+												<li><a href="{% url 'doctor_add_blog' %} ">Add Blog</a></li> {% endcomment %}
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="javascript:void(0);">Patients <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Doctors</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'map_grid' %}">Map Grid</a></li>
+												<li><a href="{% url 'map_list' %}">Map List</a></li> {% endcomment %}
+											</ul>
+										</li>
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Search Doctor</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'search' %}">Search Doctor 1</a></li>
+												<li><a href="{% url 'search_2' %}">Search Doctor 2</a></li> {% endcomment %}
+											</ul>
+										</li>
+										{% comment %} <li><a href="">Doctor Profile</a></li> {% endcomment %}
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Booking</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'booking' %}">Booking 1</a></li>
+												<li><a href="{% url 'booking_2' %}">Booking 2</a></li> {% endcomment %}
+											</ul>
+										</li>
+										{% comment %} <li><a href="{% url 'checkout' %}">Checkout</a></li>
+										<li><a href="{% url 'booking_success' %}">Booking Success</a></li>
+										<li><a href="{% url 'patient_dashboard' %}">Patient Dashboard</a></li>
+										<li><a href="{% url 'favourites' %}">Favourites</a></li>
+										<li><a href="{% url 'chat' %}">Chat</a></li>
+										<li><a href="{% url 'profile_settings' %}">Profile Settings</a></li>
+										<li><a href="{% url 'change_password' %}">Change Password</a></li> {% endcomment %}
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="javascript:void(0);">Pharmacy <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										{% comment %} <li><a href="{% url 'pharmacy_index' %}">Pharmacy</a></li>
+										<li><a href="{% url 'pharmacy_details' %}">Pharmacy Details</a></li>
+										<li><a href="{% url 'pharmacy_search' %}">Pharmacy Search</a></li>
+										<li><a href="{% url 'product_all' %}">Product</a></li>
+										<li><a href="{% url 'product_description' %}">Product Description</a></li>
+										<li><a href="{% url 'cart' %}">Cart</a></li>
+										<li><a href="{% url 'product_checkout' %}">Product Checkout</a></li>
+										<li><a href="{% url 'payment_success' %}">Payment Success</a></li>
+										<li><a href="{% url 'pharmacy_register' %}">Pharmacy Register</a></li> {% endcomment %}
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="javascript:void(0);">Pages <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										{% comment %} <li><a href="{% url 'about_us' %}">About Us</a></li>
+										<li><a href="{% url 'contact_us' %}">Contact Us</a></li> {% endcomment %}
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Call</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'voice_call' %}">Voice Call</a></li>
+												<li><a href="{% url 'video_call' %}">Video Call</a></li> {% endcomment %}
+											</ul>
+										</li>
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Invoices</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href ="{% url 'invoices' %}">Invoices</a></li>
+												<li><a href="{% url 'invoice_view' %}">Invoice View</a></li> {% endcomment %}
+											</ul>
+										</li>
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Authentication</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'login_email' %}">Login Email</a></li>
+												<li><a href="{% url 'login_phone' %}">Login Phone</a></li>
+												<li><a href="{% url 'doctor_signup' %}">Doctor Signup</a></li>
+												<li><a href="{% url 'patient_signup' %}">Patient Signup</a></li>
+												<li><a href="{% url 'forgot_password' %}">Forgot Password 1</a></li>
+												<li><a href="{% url 'forgot_password_2' %}">Forgot Password 2</a></li>
+												<li><a href="{% url 'login_email_otp' %}">Email OTP</a></li>
+												<li><a href="{% url 'login_phone_otp' %}">Phone OTP</a></li> {% endcomment %}
+											</ul>
+										</li>
+										<li class="has-submenu">
+											<a href="javascript:void(0);">Error Pages</a>
+											<ul class="submenu inner-submenu">
+												{% comment %} <li><a href="{% url 'error_404' %}">404 Error</a></li>
+												<li><a href="{% url 'error_500' %}">500 Error</a></li> {% endcomment %}
+											</ul>
+										</li>
+										{% comment %} <li><a href="{% url 'blank_page' %}">Starter Page</a></li>
+										<li><a href="{% url 'pricing' %}">Pricing Plan</a></li>
+										<li><a href="{% url 'faq' %}">FAQ</a></li>
+										<li><a href="{% url 'maintenance' %}">Maintenance</a></li>
+										<li><a href="{% url 'coming_soon' %}">Coming Soon</a></li>
+										<li><a href="{% url 'terms_condition' %}">Terms & Condition</a></li>
+										<li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+										<li><a href="{% url 'components' %}">Components</a></li> {% endcomment %}
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="#">Blog <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										{% comment %} <li><a href="{% url 'blog_list' %}">Blog List</a></li>
+										<li><a href="{% url 'blog_grid' %}">Blog Grid</a></li>
+										<li><a href="{% url 'blog_details' %}">Blog Details</a></li> {% endcomment %}
+									</ul>
+								</li>
+								<li class="has-submenu">
+									<a href="#">Admin <i class="fas fa-chevron-down"></i></a>
+									<ul class="submenu">
+										{% comment %} <li><a href="{% url 'admin_index' %}" target="_blank">Admin</a></li>
+										<li><a href="{% url 'pharmacy_admin' %}" target="_blank">Pharmacy Admin</a></li> {% endcomment %}
+									</ul>
+								</li>
+								<li class="searchbar">
+									<a href="javascript:void(0);"><i class="feather-search"></i></a>
+									<div class="togglesearch">
+									    <form action="">
+											<div class="input-group">
+												<input type="text" class="form-control" placeholder="Search...">
+												<button type="submit" class="btn">Search</button>
+											</div>
+										</form>
+									</div>
+								</li>
+								<li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
+								<li class="register-btn">
+									<a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
+								</li>
+								<li class="register-btn">
+									<a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
+								</li>
+							</ul>
+						</div>
+					
+					</nav>
+				</div>
+			</header>
+			<!-- /Header -->
+			{% block content %}
+
+			<!-- users:index Banner -->
+			<section class="banner-section">
+				<div class="container">
+					<div class="row align-items-center">
+						<div class="col-lg-6">
+							<div class="banner-content aos" data-aos="fade-up">
+								<h1>Consult <span>Best Doctors</span> Your Nearby Location.</h1>
+								<img src="{% static 'img/icons/header-icon.svg' %}" class="header-icon" alt="header-icon">
+								<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,</p>
+								{% comment %} <a href="{% url 'booking' %}" class="btn">Start a Consult</a> {% endcomment %}
+								<div class="banner-arrow-img">
+									<img src="{% static 'img/down-arrow-img.png' %}" class="img-fluid" alt="down-arrow">
+								</div>
+							</div>
+							<div class="search-box-one aos" data-aos="fade-up">
+								<form action=""> 
+									<div class="search-input search-line">
+										<i class="feather-search bficon"></i>
+										<div class="mb-0">
+											<input type="text" class="form-control" placeholder="Search doctors, clinics, hospitals, etc">
+										</div>
+									</div>
+									<div class="search-input search-map-line">
+										<i class="feather-map-pin"></i>
+										<div class="mb-0">
+											<input type="text" class="form-control" placeholder="Location"> 
+											<a class="current-loc-icon current_location" href="javascript:void(0);">
+												<i class="feather-crosshair"></i>
+											</a>
+										</div>
+									</div>
+									<div class="search-input search-calendar-line">
+										<i class="feather-calendar"></i>
+										<div class="mb-0">
+											<input type="text" class="form-control datetimepicker" placeholder="Date">
+										</div>
+									</div>
+									<div class="form-search-btn">
+										<button class="btn" type="submit">Search</button>
+									</div>
+								</form>
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<div class="banner-img aos" data-aos="fade-up">
+								<img src="{% static 'img/banner-img.png' %}" class="img-fluid" alt="patient-image">
+								<div class="banner-img1">
+									<img src="{% static 'img/banner-img1.png' %}" class="img-fluid" alt="checkup-image">
+								</div>
+								<div class="banner-img2">
+									<img src="{% static 'img/banner-img2.png' %}" class="img-fluid" alt="doctor-slide">
+								</div>
+								<div class="banner-img3">
+									<img src="{% static 'img/banner-img3.png' %}" class="img-fluid" alt="doctors-list">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<!-- /users:index Banner -->
+
+			<!-- Specialities Section -->
+			<section class="specialities-section-one">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-6 aos" data-aos="fade-up">
+							<div class="section-header-one section-header-slider">
+								<h2 class="section-title">Specialities</h2>
+							</div>
+						</div>
+						<div class="col-md-6 aos" data-aos="fade-up">
+							<div class="owl-nav slide-nav-1 text-end nav-control"></div>
+						</div>
+					</div>
+					<div class="owl-carousel specialities-slider-one owl-theme aos" data-aos="fade-up">
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-01.svg' %}" alt="heart-image"></span>
+								</div>
+								<p>Cardiology</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-02.svg' %}" alt="brain-image"></span>
+								</div>
+								<p>Neurology</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-03.svg' %}" alt="kidney-image"></span>
+								</div>
+								<p>Urology</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-04.svg' %}" alt="bone-image"></span>
+								</div>
+								<p>Orthopedic</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-05.svg' %}" alt="dentist"></span>
+								</div>
+								<p>Dentist</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-06.svg' %}" alt="eye-image"></span>
+								</div>
+								<p>Ophthalmology</p>
+							</div>
+						</div>
+						<div class="item">
+							<div class="specialities-item">
+								<div class="specialities-img">
+									<span><img src="{% static 'img/specialities/specialities-02.svg' %}" alt="brain-image"></span>
+								</div>
+								<p>Neurology</p>
+							</div>
+						</div>
+					</div>
+					<div class="specialities-btn aos" data-aos="fade-up">
+						<a href="" class="btn">
+							See All Specialities
+						</a>
+					</div>
+				</div>
+			</section>
+			<!-- /Specialities Section -->
+
+			<!-- Doctors Section -->
+			<section class="doctors-section">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-6 aos" data-aos="fade-up">
+							<div class="section-header-one section-header-slider">
+								<h2 class="section-title">Best Doctors</h2>
+							</div>
+						</div>
+						<div class="col-md-6 aos" data-aos="fade-up">
+							<div class="owl-nav slide-nav-2 text-end nav-control"></div>
+						</div>
+					</div>
+					<div class="owl-carousel doctor-slider-one owl-theme aos" data-aos="fade-up">
+
+						<!-- Doctor Item -->
+						<div class="item">
+							<div class="doctor-profile-widget">
+								<div class="doc-pro-img">
+									<a href="">
+										<div class="doctor-profile-img">
+											<img src="{% static 'img/doctors/doctor-03.jpg' %}" class="img-fluid" alt="Ruby Perrin">
+										</div>
+									</a>
+									<div class="doctor-amount">
+										<span>$ 200</span>
+									</div>
+								</div>
+								<div class="doc-content">
+									<div class="doc-pro-info">
+										<div class="doc-pro-name">
+											<a href="">Dr. Ruby Perrin</a>
+											<p>Cardiology</p>
+										</div>
+										<div class="reviews-ratings">
+											<p>
+												<span><i class="fas fa-star"></i> 4.5</span> (35)
+											</p>
+										</div>
+									</div>
+									<div class="doc-pro-location">
+										<p><i class="feather-map-pin"></i> Newyork, USA</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- /Doctor Item -->
+
+
+
+					</div>
+				</div>
+			</section>
+			<!-- /Doctors Section -->
+
+			<!-- Pricing -->
+			<section class="pricing-section">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12 text-center aos" data-aos="fade-up">
+							<div class="section-header-one">
+								<h2 class="section-title">Pricing Plan</h2>
+							</div>
+						</div>
+					</div>
+					<div class="row justify-content-center align-items-center">
+						<div class="col-lg-4 col-sm-12 aos" data-aos="fade-up">
+							<div class="card pricing-card">
+								<div class="card-body">
+									<div class="pricing-header">
+										<div class="pricing-header-info">
+											<div class="pricing-icon">
+												<span>
+													<img src="{% static 'img/icons/price-icon1.svg' %}" alt="icon">
+												</span>
+											</div>
+											<div class="pricing-title">
+												<p>For individuals</p>
+												<h4>Basic</h4>
+											</div>
+										</div>
+										<div class="pricing-header-text">
+											<p>Lorem ipsum dolor consectetur adipiscing elit,sed do eiusmod tempor</p>
+										</div>
+									</div>
+									<div class="pricing-info">
+										<div class="pricing-amount">
+											<h2>$99 <span>/monthly</span></h2>
+											<h6>What’s included</h6>
+										</div>
+										<div class="pricing-list">
+											<ul>
+												<li>Lorem ipsum dolor amet, consectetur</li>
+												<li>Lorem ipsum amet, consectetur</li>
+												<li>Lorem ipsum dolor amet, consectetur</li>
+												<li>Lorem ipsum amet, consectetur</li>
+											</ul>
+										</div>
+										<div class="pricing-btn">
+											<a href="" class="btn">Choose Plan</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+			</section>
+			<!-- /Pricing -->
+
+
+
+
+
+
+			{% endblock %}
+
+			<!-- Footer -->
+			<footer class="footer footer-one">
+				<div class="footer-top aos" data-aos="fade-up">
+					<div class="container">
+						<div class="row">
+							<div class="col-lg-3 col-md-4">
+								<div class="footer-widget footer-about">
+									<div class="footer-logo">
+										<a href="{% url 'users:index' %}"><img src="{% static 'img/logo.png' %}" alt="logo"></a>
+									</div>
+									<div class="footer-about-content">
+										<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.</p>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="row">
+									<div class="col-lg-3 col-md-4">
+										<div class="footer-widget footer-menu">
+											<h2 class="footer-title">For Patients</h2>
+											<ul>
+												<li><a href="">Search for Doctors</a></li>
+												<li><a href="{% url 'users:login' %}">Login</a></li>
+												<li><a href="{% url 'users:signup' %}">Register</a></li>
+											</ul>
+										</div>
+									</div>
+									<div class="col-lg-3 col-md-4">
+										<div class="footer-widget footer-menu">
+											<h2 class="footer-title">For Doctors</h2>
+											<ul>
+												<li><a href="">Appointments</a></li>
+												<li><a href="">Chat</a></li>
+												<li><a href="">Login</a></li>
+											</ul>
+										</div>
+									</div>
+									<div class="col-lg-6 col-md-4">
+										<div class="footer-widget footer-contact">
+											<h2 class="footer-title">Contact Us</h2>
+											<div class="footer-contact-info">
+												<div class="footer-address">
+													<p><i class="feather-map-pin"></i> 3556 Beech Street, USA</p>
+												</div>
+												<div class="footer-address">
+													<p><i class="feather-phone-call"></i> +1 315 369 5943</p>
+												</div>
+												<div class="footer-address mb-0">
+													<p><i class="feather-mail"></i> doccure@example.com</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-3 col-md-7">
+								<div class="footer-widget">
+									<h2 class="footer-title">Join Our Newsletter</h2>
+									<div class="subscribe-form">
+										<form action="#">
+											<input type="email" class="form-control" placeholder="Enter Email">
+											<button type="submit" class="btn">Submit</button>
+										</form>
+									</div>
+									<div class="social-icon">
+										<ul>
+											<li>
+												<a href="javascript:void(0);"><i class="fab fa-facebook"></i></a>
+											</li>
+											<li>
+												<a href="javascript:void(0);"><i class="fab fa-instagram"></i></a>
+											</li>
+											<li>
+												<a href="javascript:void(0);"><i class="fab fa-twitter"></i></a>
+											</li>
+											<li>
+												<a href="javascript:void(0);"><i class="fab fa-linkedin-in"></i></a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="footer-bottom">
+					<div class="container">
+						<!-- Copyright -->
+						<div class="copyright">
+							<div class="row">
+								<div class="col-md-6 col-lg-6">
+									<div class="copyright-text">
+										<p class="mb-0"> Copyright © 2024 <a href="https://themeforest.net/user/dreamstechnologies/portfolio" target="_blank">Dreamstechnologies.</a> All Rights Reserved</p>
+									</div>
+								</div>
+								<div class="col-md-6 col-lg-6">
+									<!-- Copyright Menu -->
+									<div class="copyright-menu">
+										<ul class="policy-menu">
+											<li><a href="">Privacy Policy</a></li>
+											<li><a href="">Terms and Conditions</a></li>
+										</ul>
+									</div>
+									<!-- /Copyright Menu -->
+								</div>
+							</div>
+						</div>
+						<!-- /Copyright -->                    
+					</div>
+				</div>
+			</footer>
+			<!-- /Footer -->
+		<!-- Cursor -->
+		<div class="mouse-cursor cursor-outer"></div>
+		<div class="mouse-cursor cursor-inner"></div>
+		<!-- /Cursor -->	
+
+		</div>		
+		<!-- /Main Wrapper -->
+
+		<!-- ScrollToTop -->
+		<div class="progress-wrap active-progress">
+			<svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+				<path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919px, 307.919px; stroke-dashoffset: 228.265px;"></path>
+			</svg>
+		</div>
+		<!-- /ScrollToTop -->
+
+		<!-- jQuery -->
+		<script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+
+		<!-- Bootstrap Bundle JS -->
+		<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+		<!-- Feather Icon JS -->
+		<script src="{% static 'js/feather.min.js' %}"></script>
+
+		<!-- Datepicker JS -->
+		<script src="{% static 'js/moment.min.js' %}"></script>
+		<script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+
+		<!-- Owl Carousel JS -->
+		<script src="{% static 'js/owl.carousel.min.js' %}"></script>
+
+		<!-- Slick JS -->
+		<script src="{% static 'js/slick.js' %}"></script>
+
+		<!-- Animation JS -->
+		<script src="{% static 'js/aos.js' %}"></script>
+
+		<!-- Counter JS -->
+		<script src="{% static 'js/counter.js' %}"></script>
+
+		<!-- BacktoTop JS -->
+		<script src="{% static 'js/backToTop.js' %}"></script>
+
+		<!-- Custom JS -->
+		<script src="{% static 'js/script.js' %}"></script>
+	</body>
+</html>

@@ -1,0 +1,24 @@
+from django.urls import path
+from django.views.generic import TemplateView
+from . import views
+
+app_name = 'users'
+
+urlpatterns = [
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+    
+    path('signup/', TemplateView.as_view(template_name='frontend/auth/signup.html'), name='signup'),
+
+    path('patient-signup/', views.patient_signup, name='patient_signup'),
+    path('register/step1/', views.register_step1, name='register_step1'),  
+    path('register/step2/', views.register_step2, name='register_step2'),
+    path('register/step3/', views.register_step3, name='register_step3'),
+    path('register/step4/', views.register_step4, name='register_step4'),
+    path('register/step5/', views.register_step5, name='register_step5'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    # path('signup/', views.SignUpView.as_view(), name='signup'),
+    # path('', views.IndexView.as_view(), name='index'),  # المسار الرئيسي
+    # path('doctor-register/', views.doctor_register, name='doctor_register'),  # تسجيل الأطباء (مثال)
+]
