@@ -1,13 +1,8 @@
-# doctors/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
 from .forms import SpecialtiesForm, DoctorsForm, DoctorRatesForm, DoctorSchedulesForm
-
-# Index View
-def index(request):
-    return render(request, 'doctors/index.html')
 
 # Specialties Views
 def specialties_list(request):
@@ -37,10 +32,8 @@ def specialties_update(request, pk):
 
 def specialties_delete(request, pk):
     specialty = get_object_or_404(Specialties, pk=pk)
-    if request.method == 'POST':
-        specialty.delete()
-        return HttpResponseRedirect(reverse_lazy('doctor:specialties_list'))
-    return render(request, 'doctors/specialties_confirm_delete.html', {'object': specialty})
+    specialty.delete()
+    return HttpResponseRedirect(reverse_lazy('doctor:specialties_list'))
 
 # Doctors Views
 def doctors_list(request):
@@ -70,10 +63,8 @@ def doctors_update(request, pk):
 
 def doctors_delete(request, pk):
     doctor = get_object_or_404(Doctors, pk=pk)
-    if request.method == 'POST':
-        doctor.delete()
-        return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
-    return render(request, 'doctors/doctors_confirm_delete.html', {'object': doctor})
+    doctor.delete()
+    return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
 
 # DoctorRates Views
 def doctorrates_list(request):
@@ -103,10 +94,8 @@ def doctorrates_update(request, pk):
 
 def doctorrates_delete(request, pk):
     rate = get_object_or_404(DoctorRates, pk=pk)
-    if request.method == 'POST':
-        rate.delete()
-        return HttpResponseRedirect(reverse_lazy('doctor:doctorrates_list'))
-    return render(request, 'doctors/doctorrates_confirm_delete.html', {'object': rate})
+    rate.delete()
+    return HttpResponseRedirect(reverse_lazy('doctor:doctorrates_list'))
 
 # DoctorSchedules Views
 def doctorschedules_list(request):
@@ -136,8 +125,5 @@ def doctorschedules_update(request, pk):
 
 def doctorschedules_delete(request, pk):
     schedule = get_object_or_404(DoctorSchedules, pk=pk)
-    if request.method == 'POST':
-        schedule.delete()
-        return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
-    return render(request, 'doctors/doctorschedules_confirm_delete.html', {'object': schedule})
-
+    schedule.delete()
+    return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))

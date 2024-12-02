@@ -1,18 +1,37 @@
-<!-- doctors/templates/doctors/doctorrates_list.html -->
-{% extends 'base_generic.html' %}
+{% extends 'base.html' %}
+
+{% block title %}قائمة تقييمات الأطباء{% endblock %}
 
 {% block content %}
-  <h1>Doctor Rates</h1>
-  <a href="{% url 'doctor:doctorrates_add' %}">Add New Rate</a>
-  <ul>
-    {% for rate in object_list %}
-      <li>
-        Doctor: {{ rate.doctor_id.name }} - 
-        Hospitel: {{ rate.hospitel_id.name }} - 
-        Rate: {{ rate.rate }}
-        <a href="{% url 'doctor:doctorrates_edit' pk=rate.pk %}">Edit</a> |
-        <a href="{% url 'doctor:doctorrates_delete' pk=rate.pk %}">Delete</a>
-      </li>
-    {% endfor %}
-  </ul>
+  <h1>قائمة تقييمات الأطباء</h1>
+  <a href="{% url 'doctor:doctorrates_add' %}">إضافة تقييم</a>
+  <table>
+    <thead>
+      <tr>
+        <th>الطبيب</th>
+        <th>المستشفى</th>
+        <th>التقييم</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doctorrate in object_list %}
+        <tr>
+          <td>{{ doctorrate.doctor.name }}</td>
+          <td>{{ doctorrate.hospital.name }}</td>
+          <td>{{ doctorrate.rate }}</td>
+          <td>
+            <a href="{% url 'doctor:doctorrates_edit' doctorrate.pk %}">تعديل</a> |
+            <a href="{% url 'doctor:doctorrates_delete' doctorrate.pk %}" onclick="return confirm('هل أنت متأكد أنك تريد حذف هذا التقييم؟');">
+              حذف
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">لا توجد تقييمات للأطباء حالياً</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
