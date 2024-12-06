@@ -1,3 +1,4 @@
+{% load static %}
 <section class="app-section">
     <div class="container">
         <div class="app-bg">
@@ -10,17 +11,17 @@
                         </div>
                         <div class="app-scan aos" data-aos="fade-up">
                             <p>Scan the QR code to get the app now</p>
-                            <img src="assets/img/scan-img.png" alt="scan-image">
+                            <img src="{% static 'img/scan-img.png' %}" alt="scan-image">
                         </div>
                         <div class="google-imgs aos" data-aos="fade-up">
-                            <a href="javascript:void(0);"><img src="assets/img/google-play.png" alt="img"></a>
-                            <a href="javascript:void(0);"><img src="assets/img/app-store.png" alt="img"></a>
+                            <a href="javascript:void(0);"><img src="{% static 'img/google-play.png' %}" alt="img"></a>
+                            <a href="javascript:void(0);"><img src="{% static 'img/app-store.png' %}" alt="img"></a>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12 aos" data-aos="fade-up">
                     <div class="mobile-img">
-                        <img src="assets/img/mobile-img.png" class="img-fluid" alt="img">
+                        <img src="{% static 'img/mobile-img.png' %}" class="img-fluid" alt="img">
                     </div>
                 </div>
             </div>

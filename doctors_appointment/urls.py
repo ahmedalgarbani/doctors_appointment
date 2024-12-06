@@ -23,5 +23,6 @@ from reports import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
+    path('bookings/', include(('bookings.urls', 'bookings'), namespace='doctor')),
 
 ]

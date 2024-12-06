@@ -1,3 +1,4 @@
+{% load static %}
 <section class="faq-section">
     <div class="container">
         <div class="row">
@@ -11,10 +12,10 @@
         <div class="row align-items-center">
             <div class="col-lg-6 col-md-12 aos" data-aos="fade-up">
                 <div class="faq-img">
-                    <img src="assets/img/faq-img.png" class="img-fluid" alt="img">
+                    <img src="{% static 'img/faq-img.png' %}" class="img-fluid" alt="img">
                     <div class="faq-patients-count">
                         <div class="faq-smile-img">
-                            <img src="assets/img/icons/smiling-icon.svg" alt="icon">
+                            <img src="{% static 'img/icons/smiling-icon.svg' %}" alt="icon">
                         </div>
                         <div class="faq-patients-content">
                             <h4><span class="count-digit">95</span>k+</h4>
