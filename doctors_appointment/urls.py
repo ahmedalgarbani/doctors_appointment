@@ -22,10 +22,15 @@ from django.urls import path, include
 from reports import views
 from django.views.generic import TemplateView
 
+from django.views.generic import TemplateView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('bookings/', include(('bookings.urls', 'bookings'), namespace='doctor')),
+    path('', TemplateView.as_view(template_name='frontend/home/index.html'), name='home'),
+    # path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
+    path('users/', include('users.urls', namespace='users')),
     path('', TemplateView.as_view(template_name='frontend/home/index.html'), name='home'),
     # path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
