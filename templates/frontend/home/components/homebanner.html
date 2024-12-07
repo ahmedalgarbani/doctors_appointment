@@ -7,23 +7,23 @@
                     <h1>Consult <span>Best Doctors</span> Your Nearby Location.</h1>
                     <img src="{% static 'img/icons/header-icon.svg' %}" class="header-icon" alt="header-icon">
                     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,</p>
-                    <a href="booking.html" class="btn">Start a Consult</a>
+                    {% comment %} <a href="{% url 'booking' %}" class="btn">Start a Consult</a> {% endcomment %}
                     <div class="banner-arrow-img">
                         <img src="{% static 'img/down-arrow-img.png' %}" class="img-fluid" alt="down-arrow">
                         <img src="{% static 'img/about-img3.jpg' %}" class="img-fluid" alt="down-arrow">
                     </div>
                 </div>
                 <div class="search-box-one aos" data-aos="fade-up">
-                    <form action="search-2.html"> 
+                    <form action=""> 
                         <div class="search-input search-line">
                             <i class="feather-search bficon"></i>
-                            <div class=" mb-0">
+                            <div class="mb-0">
                                 <input type="text" class="form-control" placeholder="Search doctors, clinics, hospitals, etc">
                             </div>
                         </div>
                         <div class="search-input search-map-line">
                             <i class="feather-map-pin"></i>
-                            <div class=" mb-0">
+                            <div class="mb-0">
                                 <input type="text" class="form-control" placeholder="Location"> 
                                 <a class="current-loc-icon current_location" href="javascript:void(0);">
                                     <i class="feather-crosshair"></i>
@@ -32,7 +32,7 @@
                         </div>
                         <div class="search-input search-calendar-line">
                             <i class="feather-calendar"></i>
-                            <div class=" mb-0">
+                            <div class="mb-0">
                                 <input type="text" class="form-control datetimepicker" placeholder="Date">
                             </div>
                         </div>
@@ -59,3 +59,4 @@
         </div>
     </div>
 </section>
+<!-- /users:index Banner -->

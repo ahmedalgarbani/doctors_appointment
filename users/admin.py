@@ -1,21 +1,27 @@
 from django.contrib import admin
-from .models import User, Role, Permission, RolePermission
-#yasser test
-#comment for test push project
-#comment for test push Ahmad project
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'phone_number', 'is_staff')
-    search_fields = ('username', 'email')
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
 
-@admin.register(Role)
-class RoleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'mobile_number', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'gender', 'city', 'state')
+    search_fields = ('username', 'email', 'mobile_number')
 
-@admin.register(Permission)
-class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+    fieldsets = (
+        (None, {'fields': ('username', 'password', 'email', 'mobile_number', 'profile_picture')}),
+        ('Personal Info', {'fields': ('gender', 'is_pregnant', 'pregnancy_term', 'age', 'blood_group', 'weight', 'height')}),
+        ('Family Data', {'fields': ('family_data',)}),
+        ('Location', {'fields': ('city', 'state')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')}),
+    )
 
-@admin.register(RolePermission)
-class RolePermissionAdmin(admin.ModelAdmin):
-    list_display = ('role', 'permission')
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'mobile_number', 'password1', 'password2', 'is_staff', 'is_active'),
+        }),
+    )
+
+    ordering = ('username',)
+
+admin.site.register(CustomUser, CustomUserAdmin)
