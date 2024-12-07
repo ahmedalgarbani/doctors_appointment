@@ -1,6 +1,3 @@
-*.log
-
-node_modules/
+#ignore static file --- ahead of time
 static/
 
-*.env
