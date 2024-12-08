@@ -1,7 +1,7 @@
 from django import forms
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
 
-
+#a
 class SpecialtiesForm(forms.ModelForm):
     class Meta:
         model = Specialties
