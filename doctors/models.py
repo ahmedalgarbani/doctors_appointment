@@ -12,7 +12,7 @@ class Specialties(models.Model):
 # نموذج الأطباء
 class Doctors(models.Model):
     name = models.CharField(max_length=255)
-    hospital = models.ForeignKey(Hospitals, on_delete=models.CASCADE)
+    hospital = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
     specialty = models.ForeignKey(Specialties, on_delete=models.CASCADE)
 
     def __str__(self):
