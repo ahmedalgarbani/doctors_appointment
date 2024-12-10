@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}قائمة الأطباء{% endblock %}
+
+{% block content %}
+  <h1>قائمة الأطباء</h1>
+  <a href="{% url 'doctor:doctors_add' %}">إضافة طبيب</a>
+  <table>
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>المستشفى</th>
+        <th>التخصص</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doctor in object_list %}
+        <tr>
+          <td>{{ doctor.name }}</td>
+          <td>{{ doctor.hospital.name }}</td>
+          <td>{{ doctor.specialty.specialty_name }}</td>
+          <td>
+            <a href="{% url 'doctor:doctors_edit' doctor.pk %}">تعديل</a> |
+            <a href="{% url 'doctor:doctors_delete' doctor.pk %}" onclick="return confirm('هل أنت متأكد أنك تريد حذف هذا الطبيب؟');">
+              حذف
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">لا توجد بيانات للأطباء حالياً</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
