@@ -1,24 +1,26 @@
-
 from django import forms
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
 
-#ahmed
+#a
 class SpecialtiesForm(forms.ModelForm):
     class Meta:
         model = Specialties
-        fields = ['specialty_name']
+        fields = '__all__'
+
 
 class DoctorsForm(forms.ModelForm):
     class Meta:
         model = Doctors
-        fields = ['name',  'specialty_id']
+        fields = '__all__'
+
 
 class DoctorRatesForm(forms.ModelForm):
     class Meta:
         model = DoctorRates
-        fields = ['doctor_id', 'rate']
+        fields = '__all__'
+
 
 class DoctorSchedulesForm(forms.ModelForm):
     class Meta:
         model = DoctorSchedules
-        fields = ['doctor_id',  'day', 'start_time', 'end_time']
+        fields = '__all__'

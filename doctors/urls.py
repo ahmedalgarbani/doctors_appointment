@@ -4,10 +4,8 @@ from . import views
 app_name = 'doctor'
 
 urlpatterns = [
-    path('', views.index, name='doctor_home'),
-
     # Specialties URLs
-    path('specialties/', views.specialties_list, name='specialties_list'),
+    path('', views.specialties_list, name='specialties_list'),
     path('specialties/add/', views.specialties_create, name='specialties_add'),
     path('specialties/edit/<int:pk>/', views.specialties_update, name='specialties_edit'),
     path('specialties/delete/<int:pk>/', views.specialties_delete, name='specialties_delete'),

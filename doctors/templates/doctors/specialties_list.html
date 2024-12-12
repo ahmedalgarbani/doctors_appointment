@@ -1,12 +1,33 @@
-<!-- doctors/templates/doctors/specialties_list.html -->
-{% extends 'base_generic.html' %}
+{% extends 'base.html' %}
+
+{% block title %}قائمة التخصصات{% endblock %}
 
 {% block content %}
-  <h1>Specialties</h1>
-  <a href="{% url 'doctor:specialties_add' %}">اضافة</a>
-  <ul>
-    {% for specialty in object_list %}
-      <li>{{ specialty.specialty_name }} -   -  <a href="{% url 'doctor:specialties_edit' pk=specialty.pk %}">تعديل</a> |    <a href="{% url 'doctor:specialties_delete' pk=specialty.pk %}">حذف</a></li>
-    {% endfor %}
-  </ul>
+  <h1>قائمة التخصصات</h1>
+  <a href="{% url 'doctor:specialties_add' %}">إضافة تخصص</a>
+  <table>
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for specialty in object_list %}
+        <tr>
+          <td>{{ specialty.specialty_name }}</td>  <!-- تأكد من أن هذه هي الحقول الصحيحة -->
+          <td>
+            <a href="{% url 'doctor:specialties_edit' specialty.pk %}">تعديل</a> |
+            <a href="{% url 'doctor:specialties_delete' specialty.pk %}" onclick="return confirm('هل أنت متأكد أنك تريد حذف هذا التخصص؟');">
+              حذف
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+      <tr>
+        <td colspan="2">لا توجد تخصصات حالياً</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

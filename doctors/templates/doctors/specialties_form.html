@@ -1,11 +1,11 @@
-<!-- doctors/templates/doctors/specialties_form.html -->
-{% extends 'base_generic.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-  <h1>{% if object %}Edit{% else %}Add{% endif %} Specialty</h1>
-  <form method="post">
+  <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Specialty</h1>
+  <form method="POST">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Save</button>
   </form>
+  <a href="{% url 'doctor:specialties_list' %}">Back to list</a>
 {% endblock %}
