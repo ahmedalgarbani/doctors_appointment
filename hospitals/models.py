@@ -10,11 +10,8 @@ class Hospitals(models.Model):
     def __str__(self):
         return self.name
 
-<<<<<<< HEAD
 
-=======
 # تفاصيل المستشفى
->>>>>>> 659b275dd6b5e72e7d81997a898028a6b2492728
 class HospitalDetail(models.Model):
     hospital = models.OneToOneField(Hospitals, on_delete=models.CASCADE, related_name='details')
     description = models.TextField()

@@ -1,12 +1,9 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
 
-
-name_app = 'bookings'
-
+app_name = 'bookings'
 
 urlpatterns = [
     
-    path('', views.index, name='bookings_index'),
-
+   
 ]

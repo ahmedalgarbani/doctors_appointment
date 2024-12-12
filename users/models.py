@@ -1,11 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-class Roles(models.Model):
-    role_name = models.CharField(max_length=100)
-    role_desc = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.role_name
 
 class CustomUser(AbstractUser):
     mobile_number = models.CharField(max_length=15, unique=True)
@@ -40,6 +35,17 @@ class CustomUser(AbstractUser):
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
     )
+
+    def __str__(self):
+        return self.username
+from django.db import models
+
+class Roles(models.Model):
+    role_name = models.CharField(max_length=100)
+    role_desc = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.role_name
 
 class Permissions(models.Model):
     permission_name = models.CharField(max_length=100)
