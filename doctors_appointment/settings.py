@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
     'payments',
     'doctors',
     'bookings',
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'registrations',
     'notifications',
     'reports',
+    'patients',
 ]
 
 MIDDLEWARE = [

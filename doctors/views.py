@@ -4,10 +4,11 @@ from django.http import HttpResponseRedirect
 from .models import Specialties, Doctors, DoctorRates, DoctorSchedules
 from .forms import SpecialtiesForm, DoctorsForm, DoctorRatesForm, DoctorSchedulesForm
 
+
 # Specialties Views
 def specialties_list(request):
     specialties = Specialties.objects.all()
-    return render(request, 'frontend/dashboard/doctor/sections/specialties_list.html', {'object_list': specialties})
+    return render(request, 'frontend/dashboard/doctor/index.html', {'object_list': specialties})
 
 def specialties_create(request):
     if request.method == 'POST':
