@@ -1,20 +1,18 @@
 from django.contrib import admin
-from .models import User, Role, Permission, RolePermission
+from .models import Users, Roles, Permissions, RolePermissions
 
-#comment for test push Ahmad project
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'phone_number', 'is_staff')
-    search_fields = ('username', 'email')
+@admin.register(Users)
+class UsersAdmin(admin.ModelAdmin):
+    list_display = ['username', 'email', 'phone_number', 'role']
 
-@admin.register(Role)
-class RoleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+@admin.register(Roles)
+class RolesAdmin(admin.ModelAdmin):
+    list_display = ['role_name', 'role_desc']
 
-@admin.register(Permission)
-class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+@admin.register(Permissions)
+class PermissionsAdmin(admin.ModelAdmin):
+    list_display = ['permission_name', 'permission_code']
 
-@admin.register(RolePermission)
-class RolePermissionAdmin(admin.ModelAdmin):
-    list_display = ('role', 'permission')
+@admin.register(RolePermissions)
+class RolePermissionsAdmin(admin.ModelAdmin):
+    list_display = ['role', 'permission']

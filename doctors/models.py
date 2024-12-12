@@ -14,6 +14,7 @@ class Doctors(models.Model):
     name = models.CharField(max_length=255)
     hospital = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
     specialty = models.ForeignKey(Specialties, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='doctor_images/', blank=True, null=True)  
 
     def __str__(self):
         return self.name

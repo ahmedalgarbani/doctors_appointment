@@ -1,36 +1,29 @@
-# from django.db import models
-# from django.contrib.auth.models import AbstractUser
-# #----ahmed----develop
-# class User(AbstractUser):
-#     phone_number = models.CharField(max_length=15, blank=True, null=True)
-#     address = models.TextField(blank=True, null=True)
+from django.db import models
 
-#     def __str__(self):
-#         return self.username
+class Roles(models.Model):
+    role_name = models.CharField(max_length=100)
+    role_desc = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.role_name
 
-# class Role(models.Model):
-#     name = models.CharField(max_length=50, unique=True)
-#     description = models.TextField(blank=True, null=True)
+class Permissions(models.Model):
+    permission_name = models.CharField(max_length=100)
+    permission_code = models.CharField(max_length=50)
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.permission_name
 
+class RolePermissions(models.Model):
+    role = models.ForeignKey(Roles, on_delete=models.CASCADE)
+    permission = models.ForeignKey(Permissions, on_delete=models.CASCADE)
 
-# class Permission(models.Model):
-#     name = models.CharField(max_length=100, unique=True)
-#     description = models.TextField(blank=True, null=True)
+class Users(models.Model):
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    email = models.EmailField(blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    role = models.ForeignKey(Roles, on_delete=models.CASCADE)
 
-#     def __str__(self):
-#         return self.name
-
-
-# class RolePermission(models.Model):
-#     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="permissions")
-#     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
-
-#     class Meta:
-#         unique_together = ('role', 'permission')
-
-#     def __str__(self):
-#         return f"{self.role.name} - {self.permission.name}"
+    def __str__(self):
+        return self.username
