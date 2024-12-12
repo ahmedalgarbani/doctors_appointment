@@ -103,6 +103,12 @@
       <!-- /Footer -->
     </div>
     <!-- /Main Wrapper -->
+
+
+
+
+    {% block extra_js %}
+    {% endblock extra_js %}
 	<!-- jQuery -->
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
 		
@@ -133,5 +139,6 @@
 
   <!-- Custom JS -->
   <script src="{% static 'js/script.js' %}"></script>
+
   </body>
 </html>
