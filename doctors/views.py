@@ -6,7 +6,7 @@ from .forms import SpecialtiesForm, DoctorsForm, DoctorRatesForm, DoctorSchedule
 
 # Index View
 def index(request):
-    return render(request, 'frontend/dashboard/doctor/index.html')
+    return render(request, 'frontend/dashboard/patient/index.html')
 
 # Specialties Views
 def specialties_list(request):
