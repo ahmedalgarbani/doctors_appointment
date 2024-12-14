@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'registrations',
     'notifications',
     'reports',
+    'reviews',
     'dashboard',
     'patients',
 ]

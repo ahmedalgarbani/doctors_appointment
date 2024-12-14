@@ -45,8 +45,8 @@ class PaymentMethod(BaseModel):
     )
     currency = models.CharField(
       default='RYL',
+      max_length=25,
         verbose_name=_("العملة"),
-        related_name='payment_methods'
     )
     transfer_number = models.CharField(
         max_length=66,
@@ -113,8 +113,8 @@ class Payment(BaseModel):
     )
     payment_currency = models.CharField(
       default='RYL',
+      max_length=25,
         verbose_name=_("العملة"),
-        related_name='payment_methods'
     )
     payment_note = models.TextField(
         max_length=300,

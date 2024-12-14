@@ -18,8 +18,10 @@ class Doctor(BaseModel):
     full_name = models.CharField(max_length=255)
     birthday = models.DateField()
     phone_number = models.CharField(max_length=20)  
-    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors')
-    specialty = models.ForeignKey(Specialty, on_delete=models.CASCADE)
+    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors', null=True,  
+        blank=True)
+    specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True,  
+        blank=True)
     photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True)
     email = models.EmailField(unique=True)  
     sub_title = models.CharField(max_length=255)
@@ -35,7 +37,8 @@ class Doctor(BaseModel):
 # نموذج مواعيد الأطباء
 class DoctorSchedules(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='schedules')
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.CASCADE, related_name='doctor_schedules')
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True,  
+        blank=True)
     day = models.CharField(max_length=20)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -47,4 +50,4 @@ class DoctorSchedules(models.Model):
     class Meta:
         verbose_name = "جدول الطبيب"
         verbose_name_plural = "جداول الأطباء"
-        ordering = ['doctor', 'day', 'start_time']
+        ordering = [ 'day', 'start_time']

@@ -1,5 +1,5 @@
 from django.db import models
-from hospitals import BaseModel
+from hospitals.models import BaseModel
 
 class Patients(BaseModel):
     user = models.ForeignKey(

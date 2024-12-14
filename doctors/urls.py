@@ -16,11 +16,6 @@ urlpatterns = [
     path('doctors/edit/<int:pk>/', views.doctors_update, name='doctors_edit'),
     path('doctors/delete/<int:pk>/', views.doctors_delete, name='doctors_delete'),
 
-    # DoctorRates URLs
-    path('doctorrates/', views.doctorrates_list, name='doctorrates_list'),
-    path('doctorrates/add/', views.doctorrates_create, name='doctorrates_add'),
-    path('doctorrates/edit/<int:pk>/', views.doctorrates_update, name='doctorrates_edit'),
-    path('doctorrates/delete/<int:pk>/', views.doctorrates_delete, name='doctorrates_delete'),
 
     # DoctorSchedules URLs
     path('doctorschedules/', views.doctorschedules_list, name='doctorschedules_list'),

@@ -3,19 +3,19 @@ from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
-class Bookings(models.Model):
+class Booking(models.Model):
     patient = models.ForeignKey(
         'users.Users',
         on_delete=models.CASCADE,
         related_name='patient_bookings'
     )
     doctor = models.ForeignKey(
-        'doctors.Doctors',
+        'doctors.Doctor',
         on_delete=models.CASCADE,
         related_name='doctor_bookings'  
     )
     hospital = models.ForeignKey(
-        'hospitals.Hospitals',
+        'hospitals.Hospital',
         on_delete=models.CASCADE,
         related_name='hospital_bookings' 
     )
