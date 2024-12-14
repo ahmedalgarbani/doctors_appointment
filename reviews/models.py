@@ -5,24 +5,27 @@ from doctors.models import Doctor
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from django.core.validators import MinValueValidator, MaxValueValidator
+from hospitals.models import BaseModel
 
-class Review():
+class Review(BaseModel):
     hospital = models.ForeignKey(
         Hospital, 
         on_delete=models.CASCADE,
         verbose_name=_("المستشفى"),
-        related_name='reviews'
+        related_name='reviews',
+        null=True,  
+        blank=True  
     )
     doctor = models.ForeignKey(
         Doctor, 
         on_delete=models.CASCADE,
         verbose_name=_("الدكتور"),
-        related_name='reviews'
+        related_name='reviews',
+        null=True,  
+        blank=True  
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
+        get_user_model(),
         verbose_name=_("صاحب المراجعة"),
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -47,6 +50,7 @@ class Review():
         default=False,
         help_text=_("هل قام المستخدم بالحجز في المستشفى؟")
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = _("مراجعة")
@@ -60,7 +64,7 @@ class Review():
         ]
 
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.hospital.name} ({self.rating} نجوم)"
+        return f"{self.user.get_full_name()} - {self.hospital.name if self.hospital else 'غير محدد'} ({self.rating} نجوم)"
 
     def clean(self):
         super().clean()
@@ -70,5 +74,3 @@ class Review():
                 self.has_reservation = True
             else:
                 raise ValidationError(_("لا يمكنك كتابة مراجعة لمستشفى او طبيب لم تقم بالحجز عنده"))
-
-

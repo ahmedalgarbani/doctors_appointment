@@ -2,7 +2,6 @@ from django.db import models
 from django.utils.text import slugify
 from django.conf import settings
 from django.urls import reverse
-
 from django.utils.translation import gettext_lazy as _
 
 class BaseModel(models.Model):
@@ -81,8 +80,7 @@ class HospitalDetail(BaseModel):
     hospital = models.OneToOneField(Hospital, on_delete=models.CASCADE, related_name='details')
     description = models.TextField()
     specialty = models.ForeignKey('doctors.Specialty', on_delete=models.CASCADE)
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE,related_name='doctors')
-    photo = models.ImageField(upload_to='hospital_images/', blank=True, null=True)  
+    photo = models.ImageField(upload_to='hospital_images/', blank=True, null=True)
     sub_title = models.CharField(max_length=255)
     about = models.TextField()
     status = models.BooleanField(default=True)
@@ -91,12 +89,20 @@ class HospitalDetail(BaseModel):
     def __str__(self):
         return f"Details for {self.hospital.name}"
 
+
 # أرقام الهواتف
 class PhoneNumber(BaseModel):
-    name = models.CharField(max_length=14)
+    number = models.CharField(max_length=14)  
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='phone_numbers')
-    
+    phone_type = models.CharField(  
+        max_length=50,
+        choices=[
+            ('landline', _("هاتف أرضي")),
+            ('mobile', _("هاتف محمول"))
+        ],
+        default='mobile',
+        verbose_name=_("نوع الهاتف")
+    )
+
     def __str__(self):
-        return f"{self.name} - {self.hospital.name}"
-
-
+        return f"{self.number} ({self.phone_type}) - {self.hospital.name}"

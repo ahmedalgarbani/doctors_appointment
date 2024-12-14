@@ -2,9 +2,6 @@ from django.db import models
 from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
-# Create your models here.
-
-
 # ------------PaymentStatus-------------
 
 class PaymentStatus(BaseModel):
@@ -71,7 +68,7 @@ class PaymentMethod(BaseModel):
 
     def __str__(self):
         status = _("مفعّل") if self.activate_state else _("معطّل")
-        return f"{self.method_name} - {self.currency.currency_symbol} ({status})"
+        return f"{self.method_name} - {self.currency} ({status})"
 
 
 # ------------Payment-------------
@@ -144,7 +141,7 @@ class Payment(BaseModel):
         ordering = ['-payment_date']
 
     def __str__(self):
-        return f"فاتورة رقم {self.id} - {self.booking.guest.name if self.booking.guest else 'غير محدد'} - {self.payment_totalamount} {self.payment_currency.currency_symbol}"
+        return f"فاتورة رقم {self.id} - {self.booking.guest.name if self.booking.guest else 'غير محدد'} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
         if self.payment_subtotal and self.payment_discount:

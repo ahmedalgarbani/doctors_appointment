@@ -4,9 +4,21 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Bookings(models.Model):
-    patient = models.ForeignKey('users.Users', on_delete=models.CASCADE, related_name='patient_bookings')
-    doctor = models.ForeignKey('doctors.Doctors', on_delete=models.CASCADE)
-    hospital = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
+    patient = models.ForeignKey(
+        'users.Users',
+        on_delete=models.CASCADE,
+        related_name='patient_bookings'
+    )
+    doctor = models.ForeignKey(
+        'doctors.Doctors',
+        on_delete=models.CASCADE,
+        related_name='doctor_bookings'  
+    )
+    hospital = models.ForeignKey(
+        'hospitals.Hospitals',
+        on_delete=models.CASCADE,
+        related_name='hospital_bookings' 
+    )
     date = models.DateField()
     time = models.TimeField()
     amount = models.DecimalField(
@@ -20,6 +32,13 @@ class Bookings(models.Model):
         verbose_name=_("حالة الحجز"),
         related_name='bookings'
     )
+    created_at = models.DateTimeField(auto_now_add=True)  
+    updated_at = models.DateTimeField(auto_now=True)     
+
+    class Meta:
+        verbose_name = _("حجز")
+        verbose_name_plural = _("الحجوزات")
+        ordering = ['-date', '-time'] 
 
 
 class BookingStatus(BaseModel):
@@ -28,7 +47,8 @@ class BookingStatus(BaseModel):
         verbose_name=_("اسم الحالة")
     )
     status_code = models.IntegerField(
-        verbose_name=_("رمز الحالة")
+        verbose_name=_("رمز الحالة"),
+        unique=True  
     )
 
     class Meta:
