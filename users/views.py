@@ -6,13 +6,35 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib.auth import login
 from .models import CustomUser
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
+from django.urls import reverse
+from django.contrib import messages
 
+def login_view(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
 
-class LoginView(auth_views.LoginView):
-    template_name = 'frontend/auth/login.html'
+        if user is not None:
+            login(request, user)
 
-    def get_success_url(self):
-        return reverse_lazy('users:dashboard')
+            if user.user_type == 'admin':
+                return redirect(reverse('users :admin_dashboard'))
+            elif user.user_type == 'doctor':
+                return redirect(reverse('users : doctor_dashboard'))
+            elif user.user_type == 'patient':
+                return redirect(reverse('users:patient_dashboard'))
+            else:
+                messages.error(request, "User type is not recognized.")
+                return redirect(reverse('users:login'))
+        else:
+            messages.error(request, "Invalid email or password.")
+            return redirect(reverse('users:login'))
+
+    return render(request, 'frontend/auth/login.html')
+
 
 
 class LogoutView(auth_views.LogoutView):
@@ -117,8 +139,18 @@ def register_step5(request):
         )
         user.save()
         login(request, user)
-        return redirect('users:dashboard')
+        return redirect('users:patient_dashboard')
     return render(request, 'frontend/auth/patient-register-step5.html')
 
-def dashboard(request):
-    return render(request, 'frontend/dashboard/patient/index.html', {'user': request.user})
+
+
+def patient_dashboard(request):
+    return render(request, 'frontend/dashboard/patient/index.html')
+
+
+def admin_dashboard(request):
+    return render(request, 'frontend/dashboard/admin/index.html')
+
+# @login_required
+# def doctor_dashboard(request):
+#     return render(request, 'frontend/dashboard/doctor/index.html')
