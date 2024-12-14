@@ -1,4 +1,6 @@
 from django.db import models
+from hospitals.models import BaseModel
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Bookings(models.Model):
@@ -7,4 +9,32 @@ class Bookings(models.Model):
     hospital = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
     date = models.DateField()
     time = models.TimeField()
-    status = models.CharField(max_length=50)
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("المبلغ")
+    )
+    status = models.ForeignKey(
+        'bookings.BookingStatus',
+        on_delete=models.CASCADE,
+        verbose_name=_("حالة الحجز"),
+        related_name='bookings'
+    )
+
+
+class BookingStatus(BaseModel):
+    booking_status_name = models.CharField(
+        max_length=50,
+        verbose_name=_("اسم الحالة")
+    )
+    status_code = models.IntegerField(
+        verbose_name=_("رمز الحالة")
+    )
+
+    class Meta:
+        verbose_name = _("حالة الحجز")
+        verbose_name_plural = _("حالات الحجز")
+        ordering = ['status_code']
+
+    def __str__(self):
+        return f"{self.booking_status_name} ({self.status_code})"

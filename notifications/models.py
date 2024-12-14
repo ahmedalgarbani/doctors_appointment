@@ -7,3 +7,4 @@ class Notifications(models.Model):
     send_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50)
     notification_type = models.CharField(max_length=50)
+    
