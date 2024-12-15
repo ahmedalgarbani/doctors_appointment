@@ -56,30 +56,33 @@
       content="{% static 'img/preview-banner.jpg' %}"
     />
 
-    <!-- Favicons -->
-    <link href="{% static 'img/favicon.png' %}" rel="icon" />
+   <!-- Favicon -->
+		<link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
+		
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+				
+		<!-- Fontawesome CSS -->
+		<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+		<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}" />
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Fontawesome CSS -->
-    <link
-      rel="stylesheet"
-      href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'plugins/fontawesome/css/all.min.css' %}"
-    />
+		<!-- Feathericon CSS -->
+    	<link rel="stylesheet" href="{% static 'css/feather.css' %}">
 
-    <!-- Feathericon CSS -->
-    <link rel="stylesheet" href="{% static 'css/feather.css' %}" />
+    	<!-- Datepicker CSS -->
+		<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
 
-    <!-- Apex Css -->
-    <link rel="stylesheet" href="{% static 'plugins/apex/apexcharts.css' %}" />
+		<!-- Owl Carousel CSS -->
+		<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
 
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
+		<!-- Animation CSS -->
+		<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+		
+		<!-- Main CSS -->
+		<link rel="stylesheet" href="{% static 'css/custom.css' %}">
   </head>
   <body>
     <!-- Main Wrapper -->
@@ -90,7 +93,9 @@
 
 
       <!-- Page Content -->
-      {% block content %} {% endblock content %}
+      {% block content %}
+      
+      {% endblock content %}
       <!-- /Page Content -->
 
       <!-- Footer -->
@@ -99,20 +104,41 @@
     </div>
     <!-- /Main Wrapper -->
 
-    <!-- jQuery -->
-    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
 
-    <!-- Bootstrap Core JS -->
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
-    <!-- Sticky Sidebar JS -->
-    <script src="{% static 'plugins/theia-sticky-sidebar/ResizeSensor.js' %}"></script>
-    <script src="{% static 'plugins/theia-sticky-sidebar/theia-sticky-sidebar.js' %}"></script>
 
-    <!-- Apex JS -->
-    <script src="{% static 'plugins/apex/apexcharts.min.js' %}"></script>
+    {% block extra_js %}
+    {% endblock extra_js %}
+	<!-- jQuery -->
+  <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+		
+  <!-- Bootstrap Bundle JS -->
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  
+  <!-- Feather Icon JS -->
+  <script src="{% static 'js/feather.min.js' %}"></script>
 
-    <!-- Custom JS -->
-    <script src="{% static 'js/script.js' %}"></script>
+  <!-- Datepicker JS -->
+  <script src="{% static 'js/moment.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+
+  <!-- Owl Carousel JS -->
+  <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+
+  <!-- Slick JS -->
+  <script src="{% static 'js/slick.js' %}"></script>
+
+  <!-- Animation JS -->
+  <script src="{% static 'assets/js/aos.js' %}"></script>
+
+  <!-- Counter JS -->
+  <script src="{% static 'js/counter.js' %}"></script>
+
+  <!-- BacktoTop JS -->
+  <script src="{% static 'js/backToTop.js' %}"></script>
+
+  <!-- Custom JS -->
+  <script src="{% static 'js/script.js' %}"></script>
+
   </body>
 </html>

@@ -1,38 +1,53 @@
 from django.db import models
-# from hospitals.models import Hospitals
+from hospitals.models import BaseModel
 
-
-class Specialties(models.Model):
-    specialty_name = models.CharField(max_length=255)
-    
-
-    def __str__(self):
-        return self.specialty_name
-
-
-class Doctors(models.Model):
+# نموذج التخصصات
+class Specialty(BaseModel):
     name = models.CharField(max_length=255)
-    # hospital_id = models.ForeignKey('hospitals.Hospitals', on_delete=models.CASCADE)
-    specialty_id = models.ForeignKey(Specialties, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='specialty/', blank=True, null=True)
+    show_at_home = models.BooleanField(default=True)
+    status = models.BooleanField(default=True)
+    
 
     def __str__(self):
         return self.name
 
-class DoctorRates(models.Model):
-    doctor_id = models.ForeignKey(Doctors, on_delete=models.CASCADE)
-    # hospital_id = models.ForeignKey(Hospitals, on_delete=models.CASCADE)
-    rate = models.DecimalField(max_digits=10, decimal_places=2)
+
+# نموذج الأطباء
+class Doctor(BaseModel):
+    full_name = models.CharField(max_length=255)
+    birthday = models.DateField()
+    phone_number = models.CharField(max_length=20)  
+    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors', null=True,  
+        blank=True)
+    specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True,  
+        blank=True)
+    photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True)
+    email = models.EmailField(unique=True)  
+    sub_title = models.CharField(max_length=255)
+    about = models.TextField()
+    status = models.BooleanField(default=True)
+    show_at_home = models.BooleanField(default=True)
+    
 
     def __str__(self):
-        return f"{self.doctor_id.name} - {self.rate}" 
+        return self.full_name
 
 
+# نموذج مواعيد الأطباء
 class DoctorSchedules(models.Model):
-    doctor_id = models.ForeignKey(Doctors, on_delete=models.CASCADE)
-    # hospital_id = models.ForeignKey(Hospitals, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='schedules')
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True,  
+        blank=True)
     day = models.CharField(max_length=20)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    available_slots = models.PositiveIntegerField(default=0)  
 
     def __str__(self):
-        return f"{self.doctor_id.name} - {self.day}" 
+        return f"{self.doctor.full_name} - {self.day}"
+
+    class Meta:
+        verbose_name = "جدول الطبيب"
+        verbose_name_plural = "جداول الأطباء"
+        ordering = [ 'day', 'start_time']

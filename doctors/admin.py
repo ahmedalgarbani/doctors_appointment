@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import Doctors, Specialties, DoctorRates, DoctorSchedules
+from .models import Doctor, Specialty, DoctorSchedules
 
-admin.site.register(Doctors)
-admin.site.register(Specialties)
-admin.site.register(DoctorRates)
+admin.site.register(Doctor)
+admin.site.register(Specialty)
 admin.site.register(DoctorSchedules)

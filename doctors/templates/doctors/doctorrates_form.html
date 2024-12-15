@@ -1,9 +1,8 @@
-<!-- doctors/templates/doctors/doctorrates_form.html -->
-{% extends 'base_generic.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-  <h1>{% if object %}Edit{% else %}Add{% endif %} Doctor Rate</h1>
-  <form method="post">
+  <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Rating</h1>
+  <form method="POST">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Save</button>
