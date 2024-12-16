@@ -165,6 +165,20 @@ class PartnersSectionAdmin(admin.ModelAdmin):
         }),
     )
 
+from django.contrib import admin
+from .models import SocialMediaLink
+
+@admin.register(SocialMediaLink)
+class SocialMediaLinkAdmin(admin.ModelAdmin):
+    list_display = ('name', 'link', 'icon', 'status') 
+    list_filter = ('status',) 
+    search_fields = ('name', 'link', 'icon')  
+    ordering = ('name',)  
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'link', 'icon', 'status') 
+        }),
+    )
 
 admin.site.register(PartnersSection, PartnersSectionAdmin)
 admin.site.register(AppSection, AppSectionAdmin)

@@ -29,7 +29,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('bookings/', include(('bookings.urls', 'bookings'), namespace='doctor')),
-    path('users/', include('users.urls', namespace='users')),
     path('', include(('home.urls','home'),namespace='home'), name='home'),
     # path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),

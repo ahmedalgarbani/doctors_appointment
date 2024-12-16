@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import HomeBanner,WorkSection,AppSection,FAQSection,TestimonialSection,PartnersSection
+from .models import HomeBanner,WorkSection,AppSection,FAQSection,TestimonialSection,PartnersSection,SocialMediaLink
 from doctors.models import Specialty
 import logging
 logger = logging.getLogger(__name__)
@@ -49,6 +49,12 @@ def index(request):
     except Exception as e:
         logger.error(f'Failed to retrieve partners section: {str(e)}')
 
+    try:
+        socialMediaLinks = SocialMediaLink.objects.filter(status=True)
+        logger.info('Retrieved socialmedia section')
+    except Exception as e:
+        logger.error(f'Failed to retrieve socialmedia section: {str(e)}')
+
     ctx = {
         'homeBanner':homeBanner,
         'specialities':specialities,
@@ -56,7 +62,8 @@ def index(request):
         'appSection':appSection,
         'faqSection':faqSection,
         'testimonialSection':testimonialSection,
-        'partnersSection':partnersSection
+        'partnersSection':partnersSection,
+        'socialMediaLinks':socialMediaLinks
     }
     logger.info('Context created successfully')
     return render(request,'frontend/home/index.html',ctx)

@@ -129,3 +129,12 @@ class PartnersSection(models.Model):
     show_at_home = models.BooleanField(default=True)
     def __str__(self):
         return f"parteners {self.pertner_image}"        
+    
+class SocialMediaLink(models.Model):
+    name = models.CharField(max_length=100)
+    link = models.CharField(max_length=255)
+    icon = models.CharField(max_length=100)
+    status = models.BooleanField(default=True)
+    def __str__(self):
+        return f"socialmedia {self.name}"        
+    
