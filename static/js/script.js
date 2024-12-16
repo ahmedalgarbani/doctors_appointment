@@ -356,7 +356,7 @@ Version      : 1.3
 
 	if ($('.owl-carousel.specialities-slider-one').length > 0) {
 		$('.owl-carousel.specialities-slider-one').owlCarousel({
-			loop: true,
+			loop: $('.owl-carousel.specialities-slider-one').length > 4,
 			margin: 24,
 			dots: false,
 			nav: true,
@@ -384,11 +384,12 @@ Version      : 1.3
 		})
 	}
 
-	// Doctors Slider
+	
+		// Doctors Slider
 
 	if ($('.owl-carousel.doctor-slider-one').length > 0) {
 		$('.owl-carousel.doctor-slider-one').owlCarousel({
-			loop: true,
+			loop: $('.owl-carousel.doctor-slider-one').length > 4,
 			margin: 24,
 			dots: false,
 			nav: true,

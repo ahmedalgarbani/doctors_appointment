@@ -30,6 +30,11 @@ db.sqlite3
 db.sqlite3-journal
 media/
 static/
+static
+/static
+./static
+/static/
+
 staticfiles/
 
 # IDE - VSCode
@@ -67,8 +72,8 @@ Thumbs.db
 
 # Project specific
 media/
-static/admin/
-static/rest_framework/
+admin/
+rest_framework/
 local_settings.py
 production_settings.py
 

@@ -18,8 +18,8 @@ class Doctor(BaseModel):
     full_name = models.CharField(max_length=255)
     birthday = models.DateField()
     phone_number = models.CharField(max_length=20)  
-    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors', null=True,  
-        blank=True)
+    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors',  
+        )
     specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True,  
         blank=True)
     photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True)

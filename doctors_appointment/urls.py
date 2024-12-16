@@ -21,17 +21,20 @@ from django.contrib import admin
 from django.urls import path, include
 from reports import views
 from django.views.generic import TemplateView
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('dashboard/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('bookings/', include(('bookings.urls', 'bookings'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
-    path('', TemplateView.as_view(template_name='frontend/home/index.html'), name='home'),
+    path('', include(('home.urls','home'),namespace='home'), name='home'),
     # path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
