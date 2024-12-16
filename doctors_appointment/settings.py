@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,6 +49,9 @@ INSTALLED_APPS = [
     'reviews',
     'dashboard',
     'patients',
+    'home',
+    'blog',
+    'menu_generator',
 ]
 
 MIDDLEWARE = [
@@ -73,10 +77,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-
-
-
-                
             ],
         },
     },
@@ -90,16 +90,20 @@ WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 
 DATABASES = {
 	'default': {
-		'ENGINE': 'django.db.backends.mysql',
-		'NAME': 'doctor_appointment',
-		'USER': 'root',
-		'PASSWORD': '',
-		'HOST':'localhost',
-		'PORT':'3306',
-	}
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'doctor_appointment',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'isolation_level': 'read committed',
+        },
+    }
 
 
-    # 'sqllite': {
+    # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
@@ -138,12 +142,98 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+
+STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, '/static')
+
+
+
+
+
+
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+####################################################################################
+# Example: settings.py
+####################################################################################
+
+NAV_MENU_TOP = [
+    {
+        "name": "FAQ",
+        "url": "/",
+    },
+    {
+        "name": "About",
+        "url": "/about",
+    },
+    {
+        "name": "Pricing Plan",
+        "url": "/about",
+    },
+    {
+        "name": "Pages",
+        "url": "/",
+        
+        "submenu": [
+            {
+                "name": "About Us",
+                "url": "/",
+            },
+            {
+                "name": "Contact Us",
+                "url": "/",
+
+            },
+            {
+                "name": "Terms & Condition",
+                "url": "/",
+
+            },
+            {
+                "name": "Privacy Policy",
+                "url": "/",
+
+            }
+        ],
+    },
+    {
+        "name": "Blog",
+        "url": "/blog",
+    },
+]
+
+
+
+FOOTER_MENU_ONE = [
+    {
+        "name": "Contact Us",
+    },
+]
+
+FOOTER_MENU_RIGHT = [
+    {
+        "name": "Address",
+        "url": "/address",
+    },
+]

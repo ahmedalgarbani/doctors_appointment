@@ -64,22 +64,19 @@
                             <button type="submit" class="btn">Submit</button>
                         </form>
                     </div>
+                    {% if socialMediaLinks %}
                     <div class="social-icon">
                         <ul>
+                            {% for socialMediaLinks in socialMediaLinks %}
                             <li>
-                                <a href="javascript:void(0);"><i class="fab fa-facebook"></i></a>
+                                <a href="{{ socialMediaLinks.link }}"><i class="fab fa-{{socialMediaLinks.icon}}"></i></a>
                             </li>
-                            <li>
-                                <a href="javascript:void(0);"><i class="fab fa-instagram"></i></a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);"><i class="fab fa-twitter"></i></a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);"><i class="fab fa-linkedin-in"></i></a>
-                            </li>
+                            {% endfor %}
+                          
                         </ul>
                     </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>

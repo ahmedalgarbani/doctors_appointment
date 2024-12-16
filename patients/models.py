@@ -1,9 +1,11 @@
 from django.db import models
 from hospitals.models import BaseModel
+from django.conf import settings
+
 
 class Patients(BaseModel):
     user = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='patients',
         verbose_name="المستخدم"
