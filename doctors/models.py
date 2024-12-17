@@ -51,3 +51,34 @@ class DoctorSchedules(models.Model):
         verbose_name = "جدول الطبيب"
         verbose_name_plural = "جداول الأطباء"
         ordering = [ 'day', 'start_time']
+
+
+from django.db import models
+
+class DoctorPricing(models.Model):
+    doctor = models.ForeignKey(
+        'doctors.Doctor', 
+        on_delete=models.CASCADE, 
+        related_name='pricing'
+    )
+    hospital = models.ForeignKey(
+        'hospitals.Hospital', 
+        on_delete=models.SET_NULL, 
+        related_name='doctor_prices', 
+        null=True, 
+        blank=True
+    )
+    amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name="السعر"
+    )
+
+    def __str__(self):
+        hospital_name = self.hospital.name if self.hospital else "No Hospital"
+        return f"{self.doctor.full_name} - {hospital_name} - {self.amount}"
+
+    class Meta:
+        verbose_name = "جدول اسعار الطبيب"
+        verbose_name_plural = "جداول اسعار الأطباء"
+
