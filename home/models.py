@@ -1,7 +1,6 @@
 from django.db import models
-import os
-from PIL import Image
-from django.core.exceptions import ValidationError
+from ckeditor.fields import RichTextField
+from hospitals.models import BaseModel
 # Create your models here.
 
 
@@ -9,7 +8,7 @@ from django.core.exceptions import ValidationError
 class HomeBanner(models.Model):
     title = models.CharField(max_length=255)  
     subtitle = models.TextField(blank=True, null=True)  
-    header_icon = models.ImageField(upload_to='home/components/homebanner/icons/',      blank=True, null=True)  
+    header_icon = models.ImageField(upload_to='home/components/homebanner/icons/', blank=True, null=True)  
     main_image = models.ImageField(upload_to='home/components/homebanner/', blank=True, null=True)  
     sub_image1 = models.ImageField(upload_to='home/components/homebanner/', blank=True, null=True)  
     sub_image2 = models.ImageField(upload_to='home/components/homebanner/', blank=True, null=True)  
@@ -138,3 +137,44 @@ class SocialMediaLink(models.Model):
     def __str__(self):
         return f"socialmedia {self.name}"        
     
+
+class PrivacyPolicy(BaseModel):
+    name = models.CharField(default='privacypolicy', max_length=150)
+    content = RichTextField()
+    def __str__(self):
+        return f"privacy_policy {self.name}" 
+    
+           
+class TermsConditions(BaseModel):
+    name = models.CharField(default='terms and conditions', max_length=150)
+    content = RichTextField()
+    def __str__(self):
+        return f"terms_conditions {self.name}"        
+
+class Setting(models.Model):
+    STATUS_LEFT = 0
+    STATUS_RIGHT = 1
+
+    STATUS_CHOICES = [
+        (STATUS_LEFT,'left'),
+        (STATUS_RIGHT, 'right'),
+    ]
+    site_name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255)
+    default_currency = models.CharField(max_length=100)
+    color = models.CharField(max_length=100)
+    currency_icon = models.CharField(max_length=10)
+    default_language = models.CharField(max_length=100)
+    currency_Icon_position = models.IntegerField(
+        choices=STATUS_CHOICES,
+        default=STATUS_LEFT,
+    )
+    logo = models.ImageField(upload_to='home/components/setting/',null=True,blank=True)
+    favicon = models.ImageField(upload_to='home/components/setting/',null=True,blank=True)
+    footer_logo = models.ImageField(upload_to='home/components/setting/',null=True,blank=True)
+    seo_title = models.CharField(max_length=255)
+    seo_description = models.TextField()
+    seo_keywords = models.TextField()
+
+    def __str__(self):
+        return f"setting {self.site_name}"

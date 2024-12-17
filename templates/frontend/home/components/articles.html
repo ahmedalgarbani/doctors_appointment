@@ -1,4 +1,5 @@
 {% load static %}
+{% if posts %}
 <section class="articles-section">
     <div class="container">
         <div class="row">
@@ -9,13 +10,14 @@
             </div>
         </div>
         <div class="row">
+            {% for post in posts.all|slice:":4" %}
             <div class="col-lg-6 col-md-6 d-flex aos" data-aos="fade-up">
                 <div class="articles-grid w-100">
                     <div class="articles-info">
                         <div class="articles-left">
-                            <a href="blog-details.html">
+                            <a href="{{ post.get_absolute_url }}">
                                 <div class="articles-img">
-                                    <img src="{% static 'img/blog/blog-11.jpg' %}" class="img-fluid" alt="John Doe">
+                                    <img src="{{ post.image.url }}" class="img-fluid" alt="John Doe">
                                 </div>
                             </a>
                         </div>
@@ -23,112 +25,24 @@
                             <div class="articles-content">
                                 <ul class="articles-list nav">
                                     <li>
-                                        <i class="feather-user"></i> John Doe
+                                        <i class="feather-user"></i> {{post.author.username}}
                                     </li>
                                     <li>
-                                        <i class="feather-calendar"></i> 13 Aug, 2023
+                                        <i class="feather-calendar"></i>{{ post.created_at|date:"F j, Y" }}
                                     </li>
                                 </ul>
                                 <h4>
-                                    <a href="blog-details.html">Doccure – Making your clinic painless visit?</a>
+                                    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
                                 </h4>
-                                <p>Sed perspiciatis unde omnis iste natus error sit voluptatem accusantium </p>
-                                <a href="blog-details.html" class="btn">View Blog</a>
+                                <p>{{ post.content|truncatechars:70 }} </p>
+                                <a href="{{ post.get_absolute_url }}" class="btn">View Blog</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-6 d-flex aos" data-aos="fade-up">
-                <div class="articles-grid w-100">
-                    <div class="articles-info">
-                        <div class="articles-left">
-                            <a href="blog-details.html">
-                                <div class="articles-img">
-                                    <img src="{% static 'img/blog/blog-12.jpg' %}" class="img-fluid" alt="Darren Elder">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="articles-right">
-                            <div class="articles-content">
-                                <ul class="articles-list nav">
-                                    <li>
-                                        <i class="feather-user"></i> Darren Elder
-                                    </li>
-                                    <li>
-                                        <i class="feather-calendar"></i> 10 Sep, 2023
-                                    </li>
-                                </ul>
-                                <h4>
-                                    <a href="blog-details.html">What are the benefits of Online Doctor Booking?</a>
-                                </h4>
-                                <p>Sed perspiciatis unde omnis iste natus error sit voluptatem accusantium </p>
-                                <a href="blog-details.html" class="btn">View Blog</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 d-flex aos" data-aos="fade-up">
-                <div class="articles-grid w-100">
-                    <div class="articles-info">
-                        <div class="articles-left">
-                            <a href="blog-details.html">
-                                <div class="articles-img">
-                                    <img src="{% static 'img/blog/blog-13.jpg' %}" class="img-fluid" alt="Ruby Perrin">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="articles-right">
-                            <div class="articles-content">
-                                <ul class="articles-list nav">
-                                    <li>
-                                        <i class="feather-user"></i> Ruby Perrin
-                                    </li>
-                                    <li>
-                                        <i class="feather-calendar"></i> 30 Oct, 2023
-                                    </li>
-                                </ul>
-                                <h4>
-                                    <a href="blog-details.html">Benefits of consulting with an Online Doctor</a>
-                                </h4>
-                                <p>Sed perspiciatis unde omnis iste natus error sit voluptatem accusantium </p>
-                                <a href="blog-details.html" class="btn">View Blog</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 d-flex aos" data-aos="fade-up">
-                <div class="articles-grid w-100">
-                    <div class="articles-info">
-                        <div class="articles-left">
-                            <a href="blog-details.html">
-                                <div class="articles-img">
-                                    <img src="{% static 'img/blog/blog-14.jpg' %}" class="img-fluid" alt="Sofia Brient">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="articles-right">
-                            <div class="articles-content">
-                                <ul class="articles-list nav">
-                                    <li>
-                                        <i class="feather-user"></i> Sofia Brient
-                                    </li>
-                                    <li>
-                                        <i class="feather-calendar"></i> 08 Nov, 2023
-                                    </li>
-                                </ul>
-                                <h4>
-                                    <a href="blog-details.html">5 Great reasons to use an Online Doctor</a>
-                                </h4>
-                                <p>Sed perspiciatis unde omnis iste natus error sit voluptatem accusantium </p>
-                                <a href="blog-details.html" class="btn">View Blog</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
+{% endif %}

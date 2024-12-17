@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'home',
     'blog',
     'menu_generator',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [
@@ -185,7 +186,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 NAV_MENU_TOP = [
     {
         "name": "FAQ",
-        "url": "/",
+        "url": "/faq",
     },
     {
         "name": "About",
@@ -211,12 +212,12 @@ NAV_MENU_TOP = [
             },
             {
                 "name": "Terms & Condition",
-                "url": "/",
+                "url": "/terms-condition",
 
             },
             {
                 "name": "Privacy Policy",
-                "url": "/",
+                "url": "/privacy-policy",
 
             }
         ],
@@ -241,3 +242,14 @@ FOOTER_MENU_RIGHT = [
         "url": "/address",
     },
 ]
+
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+            'blockQuote', 'undo', 'redo'
+        ],
+        'language': 'en',
+    },
+}

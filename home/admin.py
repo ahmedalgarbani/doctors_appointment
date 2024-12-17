@@ -1,13 +1,82 @@
 from django.contrib import admin
-from .models import WorkSection, WorkStep,HomeBanner,AppSection,PartnersSection, TestimonialSection, Testimonial
-from django.db.models import Max
+from django import forms
+from django.utils.html import format_html
+from .models import *
 
-# Register your models here.
+# Custom Form for SettingAdmin
+class SettingAdminForm(forms.ModelForm):
+    class Meta:
+        model = Setting
+        fields = '__all__'
+        widgets = {
+            'color': forms.TextInput(attrs={'type': 'color'}),
+        }
+
+@admin.register(Setting)
+class SettingAdmin(admin.ModelAdmin):
+    form = SettingAdminForm  
+    list_display = (
+        'site_name', 
+        'default_currency', 
+        'currency_icon', 
+        'currency_Icon_position', 
+        'logo_preview', 
+        'favicon_preview',
+        'seo_title',
+    )
+    list_filter = ('currency_Icon_position', 'default_language')
+    search_fields = ('site_name', 'default_currency', 'seo_title')
+    readonly_fields = ('logo_preview', 'favicon_preview', 'footer_logo_preview')
+
+    fieldsets = (
+        ('Site Information', {
+            'fields': (
+                'site_name', 'description', 'default_currency', 
+                'default_language', 'color', 'currency_icon', 'currency_Icon_position'
+            )
+        }),
+        ('Logos & Icons', {
+            'fields': ('logo', 'logo_preview', 'favicon', 'favicon_preview', 'footer_logo', 'footer_logo_preview'),
+        }),
+        ('SEO Settings', {
+            'fields': ('seo_title', 'seo_description', 'seo_keywords'),
+        }),
+      
+    )
+
+    def logo_preview(self, obj):
+        if obj.logo:
+            return format_html('<img src="{}" style="height:50px;"/>', obj.logo.url)
+        return "No Logo"
+    logo_preview.short_description = "Logo Preview"
+
+    def favicon_preview(self, obj):
+        if obj.favicon:
+            return format_html('<img src="{}" style="height:20px;"/>', obj.favicon.url)
+        return "No Favicon"
+    favicon_preview.short_description = "Favicon Preview"
+
+    def footer_logo_preview(self, obj):
+        if obj.footer_logo:
+            return format_html('<img src="{}" style="height:50px;"/>', obj.footer_logo.url)
+        return "No Footer Logo"
+    footer_logo_preview.short_description = "Footer Logo Preview"
+
+
+
 
 @admin.register(HomeBanner)
 class HomeBannerAdmin(admin.ModelAdmin):
     list_display = ('title', 'header_icon', 'main_image')
     search_fields = ('title',)
+@admin.register(TermsConditions)
+class TermsConditionsAdmin(admin.ModelAdmin):
+    search_fields = ('content',)
+
+
+@admin.register(PrivacyPolicy)
+class PrivacyPolicyAdmin(admin.ModelAdmin):
+    search_fields = ('content',)
 
 
 class WorkStepInline(admin.TabularInline):
@@ -165,8 +234,6 @@ class PartnersSectionAdmin(admin.ModelAdmin):
         }),
     )
 
-from django.contrib import admin
-from .models import SocialMediaLink
 
 @admin.register(SocialMediaLink)
 class SocialMediaLinkAdmin(admin.ModelAdmin):

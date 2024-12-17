@@ -34,36 +34,12 @@ class BaseModel(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
+        
     )
-    slug = models.SlugField(
-        unique=True,
-        max_length=255,
-        verbose_name=_("Slug"),
-        blank=True
-    )
+  
 
     class Meta:
         abstract = True
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self.generate_unique_slug()
-        super(BaseModel, self).save(*args, **kwargs)
-
-    def generate_unique_slug(self):
-        base_slug = slugify(self.name) if hasattr(self, 'name') and self.name else slugify(str(self.id) if self.id else str(self))
-        slug = base_slug
-        num = 1
-
-        model_class = self.__class__
-        while model_class.objects.filter(slug=slug).exists():
-            slug = f'{base_slug}-{num}'
-            num += 1
-
-        return slug
-
-    def get_absolute_url(self):
-        return reverse(f"{self.__class__.__name__.lower()}_detail", kwargs={"slug": self.slug})
 
 
 # نموذج المستشفيات
