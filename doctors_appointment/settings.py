@@ -10,12 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-<<<<<<< HEAD
-import os
-=======
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -41,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
     'users',
     'payments',
     'doctors',
@@ -56,8 +51,6 @@ INSTALLED_APPS = [
     'home',
     'blog',
     'menu_generator',
-=======
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
 ]
 
 MIDDLEWARE = [
@@ -75,11 +68,8 @@ ROOT_URLCONF = 'doctors_appointment.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-<<<<<<< HEAD
         'DIRS': [BASE_DIR/ 'templates'],
-=======
         'DIRS': [],
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,7 +89,6 @@ WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-<<<<<<< HEAD
 	'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'doctor_appointment',
@@ -121,17 +110,12 @@ DATABASES = {
 }
 
 
+
 AUTH_USER_MODEL='users.CustomUser'
 
-=======
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+    
 
 
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -164,7 +148,6 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-<<<<<<< HEAD
 
 
 STATIC_URL = '/static/'
@@ -187,17 +170,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 
-=======
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'static/'
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-<<<<<<< HEAD
 
 
 
@@ -265,5 +241,3 @@ FOOTER_MENU_RIGHT = [
         "url": "/address",
     },
 ]
-=======
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
