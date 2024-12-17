@@ -1,5 +1,4 @@
 from django.contrib import admin
-<<<<<<< HEAD
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
 from .models import Hospital, HospitalAccountRequest, HospitalDetail, PhoneNumber
@@ -96,7 +95,3 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
 admin.site.register(Hospital)
 admin.site.register(PhoneNumber)
-=======
-
-# Register your models here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

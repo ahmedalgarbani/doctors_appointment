@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect
@@ -130,8 +129,3 @@ def register_step5(request):
 
 def dashboard(request):
     return render(request, 'frontend/dashboard/patient/index.html', {'user': request.user})
-=======
-from django.shortcuts import render
-
-# Create your views here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
