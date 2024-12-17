@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Hospital, HospitalAccountRequest
@@ -91,3 +92,8 @@ def hospital_request_status(request, request_id):
     return render(request, 'frontend/auth/hospital-request-status.html', {
         'request': hospital_request
     })
+=======
+from django.shortcuts import render
+
+# Create your views here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

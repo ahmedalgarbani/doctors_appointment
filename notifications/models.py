@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
 from hospitals.models import BaseModel
 from django.conf import settings
@@ -52,3 +53,7 @@ class Notifications(BaseModel):
 
     def __str__(self):
         return f"Notification from {self.sender} to {self.user} - {self.notification_type}"
+=======
+
+# Create your models here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

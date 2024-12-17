@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.utils.text import slugify
 from django.conf import settings
 from django.urls import reverse
@@ -200,3 +201,7 @@ class HospitalAccountRequest(BaseModel):
         if notes:
             self.notes = notes
         self.save()
+=======
+
+# Create your models here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

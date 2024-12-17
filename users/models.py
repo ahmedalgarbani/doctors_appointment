@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.contrib.auth.models import AbstractUser
 
 
@@ -31,3 +32,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+=======
+
+# Create your models here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

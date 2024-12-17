@@ -1,4 +1,5 @@
 from django.contrib import admin
+<<<<<<< HEAD
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 
@@ -25,3 +26,7 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('username',)
 
 admin.site.register(CustomUser, CustomUserAdmin)
+=======
+
+# Register your models here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
