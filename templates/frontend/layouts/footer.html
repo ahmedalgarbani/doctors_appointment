@@ -8,10 +8,10 @@
             <div class="col-lg-3 col-md-4">
                 <div class="footer-widget footer-about">
                     <div class="footer-logo">
-                        <a href=""><img src="{% static 'img/logo.png' %}" alt="logo"></a>
+                        <a href="/"><img src="{{ setting.footer_logo.url }}" alt="logo"></a>
                     </div>
                     <div class="footer-about-content">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.</p>
+                        <p>{{ setting.description }}</p>
                     </div>
                 </div>
             </div>
@@ -19,24 +19,15 @@
                 <div class="row">
                     <div class="col-lg-3 col-md-4">
                         <div class="footer-widget footer-menu">
-                            <h2 class="footer-title">For Patients</h2>
+                            <h2 class="footer-title">For YOU</h2>
                             <ul>
-                                <li><a href="">Search for Doctors</a></li>
+                                <li><a href="/#bannerSection">Search for Doctors</a></li>
                                 <li><a href="{% url 'users:login' %}">Login</a></li>
                                 <li><a href="{% url 'users:signup' %}">Register</a></li>
                             </ul>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-4">
-                        <div class="footer-widget footer-menu">
-                            <h2 class="footer-title">For Doctors</h2>
-                            <ul>
-                                <li><a href="">Appointments</a></li>
-                                <li><a href="">Chat</a></li>
-                                <li><a href="">Login</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                    
                     <div class="col-lg-6 col-md-4">
                         <div class="footer-widget footer-contact">
                             <h2 class="footer-title">Contact Us</h2>
@@ -89,15 +80,15 @@
             <div class="row">
                 <div class="col-md-6 col-lg-6">
                     <div class="copyright-text">
-                        <p class="mb-0"> Copyright © 2024 <a href="https://themeforest.net/user/dreamstechnologies/portfolio" target="_blank">Dreamstechnologies.</a> All Rights Reserved</p>
+                        <p class="mb-0"> Copyright © {% now "Y" %}  <a href="/">{{ setting.site_name }}</a> All Rights Reserved</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-6">
                     <!-- Copyright Menu -->
                     <div class="copyright-menu">
                         <ul class="policy-menu">
-                            <li><a href="">Privacy Policy</a></li>
-                            <li><a href="">Terms and Conditions</a></li>
+                            <li><a href="/privacy-policy">Privacy Policy</a></li>
+                            <li><a href="/terms-condition">Terms and Conditions</a></li>
                         </ul>
                     </div>
                     <!-- /Copyright Menu -->
