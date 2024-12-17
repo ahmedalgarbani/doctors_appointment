@@ -65,11 +65,6 @@ class SettingAdmin(admin.ModelAdmin):
 
 
 
-
-
-
-
-
 @admin.register(HomeBanner)
 class HomeBannerAdmin(admin.ModelAdmin):
     list_display = ('title', 'header_icon', 'main_image')
