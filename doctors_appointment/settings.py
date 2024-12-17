@@ -181,7 +181,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 NAV_MENU_TOP = [
     {
         "name": "FAQ",
-        "url": "/",
+        "url": "/faq",
     },
     {
         "name": "About",

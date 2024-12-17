@@ -7,6 +7,7 @@ app_name = 'home'
 
 urlpatterns = [
     path('', views.index, name='home'),
+    path('faq', views.faq_page, name='faq'),
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
 ]
 

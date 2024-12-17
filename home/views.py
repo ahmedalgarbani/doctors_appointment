@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import HomeBanner,WorkSection,AppSection,FAQSection,TestimonialSection,PartnersSection,SocialMediaLink
 from doctors.models import Specialty
 import logging
+from blog.models import Post
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -55,6 +56,12 @@ def index(request):
     except Exception as e:
         logger.error(f'Failed to retrieve socialmedia section: {str(e)}')
 
+    try:
+        posts = Post.objects.filter(status=True)
+        logger.info('Retrieved latest artichal section')
+    except Exception as e:
+        logger.error(f'Failed to retrieve latest artichal section: {str(e)}')
+
     ctx = {
         'homeBanner':homeBanner,
         'specialities':specialities,
@@ -63,7 +70,16 @@ def index(request):
         'faqSection':faqSection,
         'testimonialSection':testimonialSection,
         'partnersSection':partnersSection,
-        'socialMediaLinks':socialMediaLinks
+        'socialMediaLinks':socialMediaLinks,
+        'posts':posts
     }
     logger.info('Context created successfully')
     return render(request,'frontend/home/index.html',ctx)
+
+def faq_page(request):
+    faqs = FAQSection.objects.first()
+
+    ctx = {
+        'faqs':faqs
+    }
+    return render(request,'frontend/home/pages/faq.html',ctx)
