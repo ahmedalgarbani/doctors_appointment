@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from hospitals.models import BaseModel
 
 # نموذج التخصصات
@@ -51,3 +52,7 @@ class DoctorSchedules(models.Model):
         verbose_name = "جدول الطبيب"
         verbose_name_plural = "جداول الأطباء"
         ordering = [ 'day', 'start_time']
+=======
+
+# Create your models here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

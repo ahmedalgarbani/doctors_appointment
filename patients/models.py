@@ -54,7 +54,7 @@ class Patients(BaseModel):
 
 class Favourites(BaseModel):
     user = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='favourites',
         verbose_name="المستخدم"

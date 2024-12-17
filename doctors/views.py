@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
@@ -103,3 +104,8 @@ def doctorschedules_delete(request, pk):
     schedule = get_object_or_404(DoctorSchedules, pk=pk)
     schedule.delete()
     return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+=======
+from django.shortcuts import render
+
+# Create your views here.
+>>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972
