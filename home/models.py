@@ -175,7 +175,6 @@ class Setting(models.Model):
     seo_title = models.CharField(max_length=255)
     seo_description = models.TextField()
     seo_keywords = models.TextField()
-    google_map_link = models.TextField()
 
     def __str__(self):
         return f"setting {self.site_name}"

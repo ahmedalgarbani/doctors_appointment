@@ -41,9 +41,7 @@ class SettingAdmin(admin.ModelAdmin):
         ('SEO Settings', {
             'fields': ('seo_title', 'seo_description', 'seo_keywords'),
         }),
-        ('Google Map', {
-            'fields': ('google_map_link',),
-        }),
+      
     )
 
     def logo_preview(self, obj):
