@@ -11,10 +11,14 @@ from . import views
 
 
 class LoginView(auth_views.LoginView):
-    template_name = 'frontend\auth\login.html'
+    template_name = 'frontend/auth/login.html'
 
     def get_success_url(self):
-        return reverse_lazy('frontend\dashboard\patient\index.html')
+        if self.request.user.is_authenticated:
+            if self.request.user.user_type == 'hospital_manager':
+                return reverse_lazy('dashboard:doctor_index')  
+            return reverse_lazy('dashboard:patient_index')  
+        return reverse_lazy('users:login')
 
 
 class LogoutView(auth_views.LogoutView):
@@ -22,7 +26,7 @@ class LogoutView(auth_views.LogoutView):
 
 
 class IndexView(TemplateView):
-    template_name = 'frontend\home\index.html'
+    template_name = 'frontend/home/index.html'
 
 
 def patient_signup(request):

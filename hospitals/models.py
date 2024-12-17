@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.conf import settings
 from django.urls import reverse
+from users.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 
 class BaseModel(models.Model):
@@ -68,7 +69,7 @@ class BaseModel(models.Model):
 # نموذج المستشفيات
 class Hospital(BaseModel):
     name = models.CharField(max_length=100)
-    hospital_manager_id = models.IntegerField(null=True, blank=True)
+    hospital_manager = models.OneToOneField(CustomUser, null=True, blank=True, on_delete=models.CASCADE)
     location = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -106,3 +107,96 @@ class PhoneNumber(BaseModel):
 
     def __str__(self):
         return f"{self.number} ({self.phone_type}) - {self.hospital.name}"
+
+
+# طلبات فتح حساب المستشفى
+class HospitalAccountRequest(BaseModel):
+    STATUS_CHOICES = [
+        ('pending', _('قيد الانتظار')),
+        ('approved', _('تمت الموافقة')),
+        ('rejected', _('مرفوض')),
+    ]
+
+    hospital_name = models.CharField(
+        max_length=100,
+        verbose_name=_("اسم المستشفى")
+    )
+    manager_full_name = models.CharField(
+        max_length=255,
+        verbose_name=_("اسم مدير المستشفى")
+    )
+    manager_email = models.EmailField(
+        verbose_name=_("البريد الإلكتروني للمدير")
+    )
+    manager_phone = models.CharField(
+        max_length=20,
+        verbose_name=_("رقم هاتف المدير")
+    )
+    manager_password = models.CharField(
+        max_length=128,
+        verbose_name=_("كلمة المرور"),
+        help_text=_("كلمة المرور التي سيتم استخدامها لحساب مدير المستشفى")
+    )
+    hospital_location = models.CharField(
+        max_length=255,
+        verbose_name=_("موقع المستشفى")
+    )
+    commercial_record = models.FileField(
+        upload_to='hospital_documents/',
+        verbose_name=_("السجل التجاري"),
+        help_text=_("يرجى رفع نسخة من السجل التجاري للمستشفى")
+    )
+    medical_license = models.FileField(
+        upload_to='hospital_documents/',
+        verbose_name=_("الترخيص الطبي"),
+        help_text=_("يرجى رفع نسخة من الترخيص الطبي للمستشفى")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name=_("حالة الطلب")
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("ملاحظات"),
+        help_text=_("ملاحظات إضافية حول الطلب")
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_hospital_requests',
+        verbose_name=_("تمت المراجعة بواسطة")
+    )
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("تاريخ المراجعة")
+    )
+
+    class Meta:
+        verbose_name = _("طلب فتح حساب مستشفى")
+        verbose_name_plural = _("طلبات فتح حساب مستشفى")
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.hospital_name} - {self.get_status_display()}"
+
+    def approve_request(self, reviewed_by):
+        from django.utils import timezone
+        self.status = 'approved'
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        self.save()
+
+    def reject_request(self, reviewed_by, notes=None):
+        from django.utils import timezone
+        self.status = 'rejected'
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        if notes:
+            self.notes = notes
+        self.save()

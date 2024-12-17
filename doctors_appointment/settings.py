@@ -95,7 +95,7 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '54321',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'isolation_level': 'read committed',
@@ -109,6 +109,8 @@ DATABASES = {
     # }
 }
 
+
+AUTH_USER_MODEL='users.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -152,8 +154,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, '/static')
 
 
 
-
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
 
 
 

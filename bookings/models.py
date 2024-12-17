@@ -1,11 +1,12 @@
 from django.db import models
+from doctors_appointment import settings
 from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Booking(models.Model):
     patient = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='patient_bookings'
     )

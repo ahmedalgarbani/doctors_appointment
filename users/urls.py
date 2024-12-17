@@ -18,6 +18,8 @@ urlpatterns = [
     path('register/step5/', views.register_step5, name='register_step5'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
+
+
     # path('signup/', views.SignUpView.as_view(), name='signup'),
     # path('', views.IndexView.as_view(), name='index'),  # المسار الرئيسي
     # path('doctor-register/', views.doctor_register, name='doctor_register'),  # تسجيل الأطباء (مثال)

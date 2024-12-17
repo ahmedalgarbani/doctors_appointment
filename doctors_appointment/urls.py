@@ -32,6 +32,7 @@ urlpatterns = [
     path('', include(('home.urls','home'),namespace='home'), name='home'),
     # path('', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
+    path('hospital/', include('hospitals.urls', namespace='hospitals')),
 
 ]
 

@@ -1,0 +1,83 @@
+{% extends 'frontend\layouts\master.html' %}
+{% load static %}
+
+{% block title %}تم تقديم الطلب بنجاح{% endblock %}
+
+{% block content %}
+<div class="content success-page-cont">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <!-- Success Card -->
+                <div class="card success-card">
+                    <div class="card-body">
+                        <div class="success-cont">
+                            <i class="fas fa-check"></i>
+                            <h3>تم تقديم طلبك بنجاح!</h3>
+                            <p>شكراً لك على تقديم طلب فتح حساب مستشفى جديد. سيتم مراجعة طلبك من قبل فريقنا وسنقوم بالرد عليك في أقرب وقت ممكن.</p>
+                            <div class="success-information">
+                                <p><strong>ماذا يحدث الآن؟</strong></p>
+                                <ul>
+                                    <li>سيقوم فريقنا بمراجعة المعلومات والوثائق المقدمة</li>
+                                    <li>سيتم إرسال بريد إلكتروني إليك بتحديثات حالة طلبك</li>
+                                    <li>في حال الموافقة، ستتلقى تعليمات إنشاء حساب المستشفى</li>
+                                </ul>
+                            </div>
+                            <div class="btn-section mt-4">
+                                <a href="{% url 'home:home' %}" class="btn btn-primary btn-lg">العودة للرئيسية</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Success Card -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add custom CSS -->
+{% block custom_css %}
+<style>
+    .success-card {
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        margin-top: 50px;
+    }
+    .success-cont i {
+        font-size: 80px;
+        color: #15c39a;
+        margin-bottom: 20px;
+    }
+    .success-cont h3 {
+        font-size: 24px;
+        color: #272b41;
+        margin-bottom: 20px;
+    }
+    .success-information {
+        text-align: right;
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    .success-information ul {
+        list-style-type: none;
+        padding-right: 20px;
+    }
+    .success-information ul li {
+        position: relative;
+        margin-bottom: 10px;
+    }
+    .success-information ul li:before {
+        content: "•";
+        color: #15c39a;
+        font-weight: bold;
+        position: absolute;
+        right: -20px;
+    }
+</style>
+{% endblock %}
+{% endblock %}
