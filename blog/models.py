@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.db import models
 from django.contrib.auth.models import User
 
+from doctors_appointment import settings
+
 # Create your models here.
 
 
@@ -43,7 +45,7 @@ class Post(BaseModel):
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
     image = models.ImageField(upload_to=author_directory_path, blank=True, null=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     categories = models.ForeignKey('Category', on_delete=models.CASCADE, related_name="posts")
     tags = models.ManyToManyField('Tag', related_name="posts")
     status = models.BooleanField(default=False)
@@ -57,7 +59,7 @@ class Post(BaseModel):
 
 class Comment(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_comments")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user_comments")
     content = models.TextField()
     status = models.BooleanField(default=False)
 

@@ -52,8 +52,9 @@ class DoctorSchedules(models.Model):
         verbose_name_plural = "جداول الأطباء"
         ordering = [ 'day', 'start_time']
 
+# Create your models here.
 
-from django.db import models
+
 
 class DoctorPricing(models.Model):
     doctor = models.ForeignKey(
