@@ -1,27 +1,35 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, Roles, Permissions, RolePermissions, Users
 
-class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'mobile_number', 'is_staff', 'is_active')
-    list_filter = ('is_staff', 'is_active', 'gender', 'city', 'state')
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'mobile_number', 'gender', 'is_pregnant', 'age', 'blood_group', 'city', 'state')
     search_fields = ('username', 'email', 'mobile_number')
-
-    fieldsets = (
-        (None, {'fields': ('username', 'password', 'email', 'mobile_number', 'profile_picture')}),
-        ('Personal Info', {'fields': ('gender', 'is_pregnant', 'pregnancy_term', 'age', 'blood_group', 'weight', 'height')}),
-        ('Family Data', {'fields': ('family_data',)}),
-        ('Location', {'fields': ('city', 'state')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')}),
-    )
-
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'mobile_number', 'password1', 'password2', 'is_staff', 'is_active'),
-        }),
-    )
-
-    ordering = ('username',)
+    list_filter = ('gender', 'is_pregnant', 'blood_group')
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+class RolesAdmin(admin.ModelAdmin):
+    list_display = ('role_name', 'role_desc')
+    search_fields = ('role_name',)
+
+admin.site.register(Roles, RolesAdmin)
+
+class PermissionsAdmin(admin.ModelAdmin):
+    list_display = ('permission_name', 'permission_code')
+    search_fields = ('permission_name',)
+
+admin.site.register(Permissions, PermissionsAdmin)
+
+class RolePermissionsAdmin(admin.ModelAdmin):
+    list_display = ('role', 'permission')
+    search_fields = ('role__role_name', 'permission__permission_name')
+    list_filter = ('role', 'permission')
+
+admin.site.register(RolePermissions, RolePermissionsAdmin)
+
+class UsersAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'phone_number', 'role')
+    search_fields = ('username', 'email', 'phone_number')
+    list_filter = ('role',)
+
+admin.site.register(Users, UsersAdmin)

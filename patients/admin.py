@@ -3,8 +3,8 @@ from .models import Patients, Favourites
 
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'user', 'birth_date', 'gender', 'phone_number', 'email', 'join_date')
-    list_filter = ('gender', 'join_date')
+    list_display = ('full_name', 'user', 'birth_date', 'gender', 'phone_number', 'email', 'blood_group', 'join_date')
+    list_filter = ('gender', 'join_date', 'blood_group') 
     search_fields = ('full_name', 'email', 'phone_number')
 
 @admin.register(Favourites)

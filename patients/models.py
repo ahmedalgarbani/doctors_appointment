@@ -1,9 +1,11 @@
 from django.db import models
 from hospitals.models import BaseModel
+from django.conf import settings
+
 
 class Patients(BaseModel):
     user = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='patients',
         verbose_name="المستخدم"
@@ -45,9 +47,24 @@ class Patients(BaseModel):
         null=True,
         verbose_name="ملاحظات"
     )
+    blood_group = models.CharField(
+        max_length=3,
+        choices=[
+            ('A+', 'A+'),
+            ('A-', 'A-'),
+            ('B+', 'B+'),
+            ('B-', 'B-'),
+            ('AB+', 'AB+'),
+            ('AB-', 'AB-'),
+            ('O+', 'O+'),
+            ('O-', 'O-')
+        ],
+        verbose_name="زمرة الدم"
+    )
 
     def __str__(self):
         return self.full_name
+
 
 
 class Favourites(BaseModel):

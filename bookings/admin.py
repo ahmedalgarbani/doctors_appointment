@@ -2,28 +2,28 @@ from django.contrib import admin
 from .models import Booking, BookingStatus
 
 
-# تخصيص إدارة نموذج BookingStatus
 @admin.register(BookingStatus)
 class BookingStatusAdmin(admin.ModelAdmin):
-    list_display = ('booking_status_name', 'status_code')  # الحقول الظاهرة
-    search_fields = ('booking_status_name',)  # الحقول القابلة للبحث
-    ordering = ('status_code',)  # ترتيب السجلات
+    list_display = ('booking_status_name', 'status_code')
+    search_fields = ('booking_status_name',) 
+    ordering = ('status_code',) 
 
 
-# تخصيص إدارة نموذج Booking
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('patient', 'doctor', 'hospital', 'date', 'time', 'amount', 'status')  
-    list_filter = ('status', 'hospital', 'date')  # تصفية حسب الحقول
+    list_display = (
+        'patient', 'doctor', 'hospital', 'date', 'time', 'amount', 'status', 'purpose', 'type'
+    )  
+    list_filter = ('status', 'hospital', 'date', 'purpose', 'type')
     search_fields = ('patient__username', 'doctor__full_name', 'hospital__name')  
-    date_hierarchy = 'date'  # شريط زمني حسب التاريخ
-    ordering = ('-date', '-time')  # ترتيب الحجوزات
+    date_hierarchy = 'date'
+    ordering = ('-date', '-time')
     fieldsets = (
         ('تفاصيل الحجز', {
-            'fields': ('patient', 'doctor', 'hospital', 'date', 'time', 'amount', 'status')
+            'fields': ('patient', 'doctor', 'hospital', 'date', 'time', 'amount', 'status', 'purpose', 'type')
         }),
         ('معلومات إضافية', {
             'fields': ('created_at', 'updated_at')
         }),
     )
-    readonly_fields = ('created_at', 'updated_at')  # منع تعديل الحقول الزمنية
+    readonly_fields = ('created_at', 'updated_at')  
