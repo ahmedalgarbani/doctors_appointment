@@ -5,7 +5,7 @@ from . import views
 app_name = 'users'
 
 urlpatterns = [
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('login/', views.login_view , name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     
     path('signup/', TemplateView.as_view(template_name='frontend/auth/signup.html'), name='signup'),
@@ -16,9 +16,10 @@ urlpatterns = [
     path('register/step3/', views.register_step3, name='register_step3'),
     path('register/step4/', views.register_step4, name='register_step4'),
     path('register/step5/', views.register_step5, name='register_step5'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-
-
+    path('patient-dashboard/', views.patient_dashboard, name='patient_dashboard'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('patient-dashboard/',views.patient_dashboard, name='patient_dashboard'),
+    # path('doctor_dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
 
     # path('signup/', views.SignUpView.as_view(), name='signup'),
     # path('', views.IndexView.as_view(), name='index'),  # المسار الرئيسي
