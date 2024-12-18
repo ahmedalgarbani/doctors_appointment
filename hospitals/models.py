@@ -41,20 +41,32 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+class City(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+    status = models.BooleanField(default=True)
+    def __str__(self):
+        return self.name
+  
+
 
 # نموذج المستشفيات
 class Hospital(BaseModel):
     name = models.CharField(max_length=100)
     hospital_manager = models.OneToOneField(CustomUser, null=True, blank=True, on_delete=models.CASCADE)
     location = models.CharField(max_length=255, null=True, blank=True)
-
+    slug = models.SlugField(max_length=200, unique=True)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("المدينة"))  
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('home:hospitals:hospital_detail', args=[self.slug])
 
 
 # تفاصيل المستشفى
 class HospitalDetail(BaseModel):
-    hospital = models.OneToOneField(Hospital, on_delete=models.CASCADE, related_name='details')
+    hospital = models.OneToOneField('hospitals.Hospital', on_delete=models.CASCADE, related_name='details')
     description = models.TextField()
     specialty = models.ForeignKey('doctors.Specialty', on_delete=models.CASCADE)
     photo = models.ImageField(upload_to='hospital_images/', blank=True, null=True)
@@ -64,7 +76,7 @@ class HospitalDetail(BaseModel):
     show_at_home = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Details for {self.hospital.name}"
+        return f"Details for {self.hospital.description}"
 
 
 # أرقام الهواتف

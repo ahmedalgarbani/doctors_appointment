@@ -21,3 +21,10 @@ class DoctorSchedulesForm(forms.ModelForm):
     class Meta:
         model = DoctorSchedules
         fields = '__all__'
+
+
+
+
+
+
+

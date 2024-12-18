@@ -8,7 +8,6 @@ class CustomUser(AbstractUser):
         ('hospital_manager','Hospital Manager'),
         ('patients','patients'),]
     
-
     user_type=models.CharField(max_length=20,choices=USER_TYPE_CHOICES)
     mobile_number = models.CharField(max_length=15, unique=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)

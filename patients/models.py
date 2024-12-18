@@ -1,7 +1,7 @@
 from django.db import models
 from hospitals.models import BaseModel
 from django.conf import settings
-
+from hospitals.models import BaseModel
 
 class Patients(BaseModel):
     user = models.ForeignKey(
@@ -53,23 +53,25 @@ class Patients(BaseModel):
 
 
 class Favourites(BaseModel):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    patient = models.ForeignKey(  # Link directly to Patients
+        Patients,
         on_delete=models.CASCADE,
         related_name='favourites',
-        verbose_name="المستخدم"
+        verbose_name="المريض"
     )
     doctor = models.ForeignKey(
         'doctors.Doctor',
         on_delete=models.CASCADE,
-        related_name='favourites',
+        related_name='favourited_by',
         verbose_name="الطبيب"
     )
 
     class Meta:
         verbose_name = "المفضلات"
         verbose_name_plural = "المفضلات"
-        unique_together = ('user', 'doctor')  
+        constraints = [
+            models.UniqueConstraint(fields=['patient', 'doctor'], name='unique_patient_doctor')
+        ]
 
     def __str__(self):
-        return f"{self.user} - {self.doctor}"
+        return f"{self.patient.full_name} - {self.doctor}"

@@ -15,17 +15,26 @@
                     </div>
                 </div>
                 <div class="search-box-one aos" data-aos="fade-up">
-                    <form action=""> 
-                        <div class="search-input search-line">
+                    <form action="{% url 'home:search_view' %}" method="GET">
+                          <div class="search-input search-line">
                             <i class="feather-search bficon"></i>
                             <div class="mb-0">
-                                <input type="text" class="form-control" placeholder="Search doctors, clinics, hospitals, etc">
+                                <input type="text" name="doctor_name" class="form-control" placeholder="Search doctors, hospitals, etc">
                             </div>
                         </div>
                         <div class="search-input search-map-line">
                             <i class="feather-map-pin"></i>
                             <div class="mb-0">
-                                <input type="text" class="form-control" placeholder="Location"> 
+                                <select class="form-control" name="city">
+                                    <option value="" disabled selected>Select Location</option>
+                                    {% if cities %}
+                                        {% for city in cities %}
+                                            <option value="{{ city.slug }}">{{ city.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>No cities available</option>
+                                    {% endif %}
+                                </select>
                                 <a class="current-loc-icon current_location" href="javascript:void(0);">
                                     <i class="feather-crosshair"></i>
                                 </a>
@@ -34,13 +43,14 @@
                         <div class="search-input search-calendar-line">
                             <i class="feather-calendar"></i>
                             <div class="mb-0">
-                                <input type="text" class="form-control datetimepicker" placeholder="Date">
+                                <input type="text" name="date" class="form-control datetimepicker" placeholder="Date">
                             </div>
                         </div>
                         <div class="form-search-btn">
                             <button class="btn" type="submit">Search</button>
                         </div>
                     </form>
+                    
                 </div>
             </div>
             <div class="col-lg-6">

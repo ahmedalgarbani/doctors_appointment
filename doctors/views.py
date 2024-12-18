@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
@@ -13,6 +12,10 @@ def index(request):
 def specialties_list(request):
     specialties = Specialty.objects.all()
     return render(request, 'frontend/dashboard/doctor/index.html', {'object_list': specialties})
+
+
+def doctor_detail(request):
+    pass
 
 def specialties_create(request):
     if request.method == 'POST':
@@ -104,8 +107,6 @@ def doctorschedules_delete(request, pk):
     schedule = get_object_or_404(DoctorSchedules, pk=pk)
     schedule.delete()
     return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
-=======
 from django.shortcuts import render
 
 # Create your views here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

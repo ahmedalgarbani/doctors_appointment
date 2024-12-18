@@ -1,8 +1,12 @@
 from django.shortcuts import render
 from .models import *
-from doctors.models import Specialty
+from doctors.models import Specialty,Doctor
+from hospitals.models import City
 import logging
+from django.shortcuts import render
 from blog.models import Post
+from datetime import datetime
+
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -68,6 +72,13 @@ def index(request):
     except Exception as e:
         logger.error(f'Failed to retrieve setting artichal section: {str(e)}')
 
+    try:
+        cities = City.objects.filter(status = True)
+        logger.info('Retrieved latest city section')
+      
+    except Exception as e:
+        logger.error(f'Failed to retrieve city artichal section: {str(e)}')
+
     ctx = {
         'homeBanner':homeBanner,
         'specialities':specialities,
@@ -78,7 +89,8 @@ def index(request):
         'partnersSection':partnersSection,
         'socialMediaLinks':socialMediaLinks,
         'posts':posts,
-        'setting':setting
+        'setting':setting,
+        'cities':cities
     }
     logger.info('Context created successfully')
     return render(request,'frontend/home/index.html',ctx)
@@ -107,3 +119,43 @@ def terms_condition(request):
         'termsCondition':termsCondition
     }
     return render(request,'frontend/home/pages/term-condition.html',ctx)
+
+
+
+
+def search_view(request):
+    search_text = request.GET.get('search', '').strip()  
+    city_slug = request.GET.get('city', '').strip()
+    date_str = request.GET.get('date', '').strip()
+
+    filters = {}
+
+    if search_text:
+        filters['full_name__icontains'] = search_text
+        filters['hospitals__name__icontains'] = search_text 
+
+    if city_slug:
+        city = City.objects.filter(slug=city_slug).first() 
+        if city:
+            filters['hospitals__city'] = city
+
+    if date_str:
+        try:
+            available_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            filters['schedules__day'] = available_date.strftime('%A') 
+        except ValueError:
+            filters['available_date'] = None
+
+    doctors = Doctor.objects.filter(**filters).distinct()
+
+    cities = City.objects.all()
+
+    ctx = {
+        'doctors': doctors,
+        'cities': cities,
+    }
+
+
+    return render(request, 'frontend/home/pages/search.html', ctx)
+
+

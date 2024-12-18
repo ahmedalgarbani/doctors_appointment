@@ -1,5 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
 from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
@@ -148,7 +147,5 @@ class Payment(BaseModel):
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
         super().save(*args, **kwargs)
-=======
 
 # Create your models here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

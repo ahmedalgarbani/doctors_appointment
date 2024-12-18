@@ -1,5 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
 from django.conf import settings
 
 class Reports(models.Model):
@@ -7,7 +6,5 @@ class Reports(models.Model):
     hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.CASCADE)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     creation_time = models.DateTimeField(auto_now_add=True)
-=======
 
 # Create your models here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

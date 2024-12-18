@@ -1,5 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
@@ -105,7 +104,5 @@ class RegistrationRequests(models.Model):
             raise ValidationError({
                 'admin_notes': _('يجب إضافة سبب الرفض')
             })
-=======
 
 # Create your models here.
->>>>>>> 98ca75c130f9cf6c22b7c0b3a95afd4a294c4972

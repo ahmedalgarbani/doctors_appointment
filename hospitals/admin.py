@@ -1,9 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from .models import Hospital, HospitalAccountRequest, HospitalDetail, PhoneNumber
+from .models import Hospital, HospitalAccountRequest, City, PhoneNumber
 
 User = get_user_model()
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'status') 
+    prepopulated_fields = {'slug': ('name',)} 
+    list_filter = ('status',)  
+    search_fields = ('name', 'slug')  
 
 @admin.register(HospitalAccountRequest)
 class HospitalAccountRequestAdmin(admin.ModelAdmin):
@@ -91,6 +97,9 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 #                 return format_html('<a href="/admin/users/customuser/{}/change/">{}</a>', user.id, user.get_full_name())
 #         return '-'
 #     hospital_manager_link.short_description = 'مدير المستشفى'
+
+
+
 
 
 admin.site.register(Hospital)
