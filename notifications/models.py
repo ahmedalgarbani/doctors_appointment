@@ -1,16 +1,17 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from hospitals.models import BaseModel
+from django.conf import settings
 
 class Notifications(BaseModel):
     sender = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='sent_notifications',
         verbose_name=_("المرسل")
     )
     user = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='received_notifications',
         verbose_name=_("المستلم")
@@ -26,7 +27,7 @@ class Notifications(BaseModel):
             ('0', _("غير مقروء")),
             ('1', _("مقروء")),
         ],
-        default='unread',
+        default='0',
         verbose_name=_("الحالة")
     )
     notification_type = models.CharField(
@@ -51,3 +52,5 @@ class Notifications(BaseModel):
 
     def __str__(self):
         return f"Notification from {self.sender} to {self.user} - {self.notification_type}"
+
+# Create your models here.

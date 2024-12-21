@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Patients, Favourites
+from doctors.models import Doctor
 
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
@@ -9,5 +10,5 @@ class PatientsAdmin(admin.ModelAdmin):
 
 @admin.register(Favourites)
 class FavouritesAdmin(admin.ModelAdmin):
-    list_display = ('user', 'doctor')
-    search_fields = ('user__username', 'doctor__name')
+    list_display = ('patient', 'doctor') 
+    search_fields = ('patient__full_name', 'doctor__name') 

@@ -1,4 +1,6 @@
 {% load static %}
+{% load menu_generator %}
+{% get_menu "NAV_MENU_TOP" as top_menu %}
 <!-- Header -->
 <header class="header header-custom header-fixed header-one">
     <div class="container">
@@ -11,188 +13,39 @@
                         <span></span>
                     </span>
                 </a>
-                <a href="" class="navbar-brand logo">
-                    <img src="{% static 'img/logo.png' %}" class="img-fluid" alt="Logo">
+                <a href="/" class="navbar-brand logo">
+                    <img src="{{setting.logo.url}}" class="img-fluid" alt="Logo">
                 </a>
             </div>
             <div class="main-menu-wrapper">
                 <div class="menu-header">
-                    <a href="" class="menu-logo">
-                        <img src="{% static 'img/logo.png' %}" class="img-fluid" alt="Logo">
+                    <a href="/" class="menu-logo">
+                        <img src="{{setting.logo.url}}" class="img-fluid" alt="Logo">
                     </a>
                     <a id="menu_close" class="menu-close" href="javascript:void(0);">
                         <i class="fas fa-times"></i>
                     </a>
                 </div>
                 <ul class="main-nav">
-                    <li class="has-submenu megamenu active">
-                        <a href="javascript:void(0);">users:index <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu mega-submenu">
-                            <li>
-                                <div class="megamenu-wrapper">
-                                    <div class="row">
-                                        <div class="col-lg-2">
-                                            <div class="single-demo active">
-                                                <div class="demo-img">
-                                                    <a href="" class="inner-demo-img"><img src="{% static 'img/users:index-11.jpg' %}" class="img-fluid" alt="img"></a>
-                                                </div>
-                                                <div class="demo-info">
-                                                    <a href="" class="inner-demo-img">General users:index</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Repeat similar structure for other demo images -->
-                                        <div class="col-lg-2">
-                                            <div class="single-demo ">
-                                                <div class="demo-img">
-                                                    {% comment %} <a href="{% url 'users:index-2' %}" class="inner-demo-img"><img src="{% static 'img/users:index-10.jpg' %}" class="img-fluid" alt="img"></a> {% endcomment %}
-                                                </div>
-                                                <div class="demo-info">
-                                                    {% comment %} <a href="{% url 'users:index-2' %}" class="inner-demo-img">General users:index 2</a> {% endcomment %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Continue for all other demo links -->
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
+                    
+                    {% for item in top_menu %}
+                    
                     <li class="has-submenu">
-                        <a href="javascript:void(0);">Doctors <i class="fas fa-chevron-down"></i></a>
+                        <a href="{{ item.url }}">{{item.name}} 
+                        {% if item.submenu %}
+                        <i class="fas fa-chevron-down"></i>
+                        {% endif %}    
+                        </a>
+                        {% if item.submenu %}
                         <ul class="submenu">
-                            {% comment %} <li><a href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li> {% endcomment %}
-                            {% comment %} <li><a href="{% url 'appointments' %}">Appointments</a></li> {% endcomment %}
-                            {% comment %} <li><a href="{% url 'schedule_timings' %}">Schedule Timing</a></li> {% endcomment %}
-                            {% comment %} <li><a href="{% url 'my_patients' %}">Patients List</a></li>
-                            <li><a href="{% url 'patient_profile' %}">Patients Profile</a></li>
-                            <li><a href="{% url 'chat_doctor' %}">Chat</a></li>
-                            <li><a href="{% url 'invoices' %}">Invoices</a></li>
-                            <li><a href="{% url 'doctor_profile_settings' %}">Profile Settings</a></li>
-                            <li><a href="{% url 'reviews' %}">Reviews</a></li> {% endcomment %}
-                            {% comment %} <li><a href="{% url 'users:doctor_register' %}">Doctor Register</a></li> {% endcomment %}
-                            <li class="has-submenu">
-                                {% comment %} <a href="{% url 'doctor_blog' %}">Blog</a> {% endcomment %}
-                                <ul class="submenu">
-                                    {% comment %} <li><a href="{% url 'doctor_blog' %}">Blog</a></li>
-                                    <li><a href="{% url 'blog_details' %}">Blog view</a></li>
-                                    <li><a href="{% url 'doctor_add_blog' %} ">Add Blog</a></li> {% endcomment %}
-                                </ul>
-                            </li>
+                            {% for menu in item.submenu %}
+                            <li><a href="{{ menu.url }}">{{menu.name}}</a></li>
+                            {% endfor %}
+                            
                         </ul>
+                        {% endif %}
                     </li>
-                    <li class="has-submenu">
-                        <a href="javascript:void(0);">Patients <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Doctors</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'map_grid' %}">Map Grid</a></li>
-                                    <li><a href="{% url 'map_list' %}">Map List</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Search Doctor</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'search' %}">Search Doctor 1</a></li>
-                                    <li><a href="{% url 'search_2' %}">Search Doctor 2</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            {% comment %} <li><a href="">Doctor Profile</a></li> {% endcomment %}
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Booking</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'booking' %}">Booking 1</a></li>
-                                    <li><a href="{% url 'booking_2' %}">Booking 2</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            {% comment %} <li><a href="{% url 'checkout' %}">Checkout</a></li>
-                            <li><a href="{% url 'booking_success' %}">Booking Success</a></li>
-                            <li><a href="{% url 'patient_dashboard' %}">Patient Dashboard</a></li>
-                            <li><a href="{% url 'favourites' %}">Favourites</a></li>
-                            <li><a href="{% url 'chat' %}">Chat</a></li>
-                            <li><a href="{% url 'profile_settings' %}">Profile Settings</a></li>
-                            <li><a href="{% url 'change_password' %}">Change Password</a></li> {% endcomment %}
-                        </ul>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="javascript:void(0);">Pharmacy <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            {% comment %} <li><a href="{% url 'pharmacy_index' %}">Pharmacy</a></li>
-                            <li><a href="{% url 'pharmacy_details' %}">Pharmacy Details</a></li>
-                            <li><a href="{% url 'pharmacy_search' %}">Pharmacy Search</a></li>
-                            <li><a href="{% url 'product_all' %}">Product</a></li>
-                            <li><a href="{% url 'product_description' %}">Product Description</a></li>
-                            <li><a href="{% url 'cart' %}">Cart</a></li>
-                            <li><a href="{% url 'product_checkout' %}">Product Checkout</a></li>
-                            <li><a href="{% url 'payment_success' %}">Payment Success</a></li>
-                            <li><a href="{% url 'pharmacy_register' %}">Pharmacy Register</a></li> {% endcomment %}
-                        </ul>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="javascript:void(0);">Pages <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            {% comment %} <li><a href="{% url 'about_us' %}">About Us</a></li>
-                            <li><a href="{% url 'contact_us' %}">Contact Us</a></li> {% endcomment %}
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Call</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'voice_call' %}">Voice Call</a></li>
-                                    <li><a href="{% url 'video_call' %}">Video Call</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Invoices</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href ="{% url 'invoices' %}">Invoices</a></li>
-                                    <li><a href="{% url 'invoice_view' %}">Invoice View</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Authentication</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'login_email' %}">Login Email</a></li>
-                                    <li><a href="{% url 'login_phone' %}">Login Phone</a></li>
-                                    <li><a href="{% url 'doctor_signup' %}">Doctor Signup</a></li>
-                                    <li><a href="{% url 'patient_signup' %}">Patient Signup</a></li>
-                                    <li><a href="{% url 'forgot_password' %}">Forgot Password 1</a></li>
-                                    <li><a href="{% url 'forgot_password_2' %}">Forgot Password 2</a></li>
-                                    <li><a href="{% url 'login_email_otp' %}">Email OTP</a></li>
-                                    <li><a href="{% url 'login_phone_otp' %}">Phone OTP</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            <li class="has-submenu">
-                                <a href="javascript:void(0);">Error Pages</a>
-                                <ul class="submenu inner-submenu">
-                                    {% comment %} <li><a href="{% url 'error_404' %}">404 Error</a></li>
-                                    <li><a href="{% url 'error_500' %}">500 Error</a></li> {% endcomment %}
-                                </ul>
-                            </li>
-                            {% comment %} <li><a href="{% url 'blank_page' %}">Starter Page</a></li>
-                            <li><a href="{% url 'pricing' %}">Pricing Plan</a></li>
-                            <li><a href="{% url 'faq' %}">FAQ</a></li>
-                            <li><a href="{% url 'maintenance' %}">Maintenance</a></li>
-                            <li><a href="{% url 'coming_soon' %}">Coming Soon</a></li>
-                            <li><a href="{% url 'terms_condition' %}">Terms & Condition</a></li>
-                            <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-                            <li><a href="{% url 'components' %}">Components</a></li> {% endcomment %}
-                        </ul>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="#">Blog <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            {% comment %} <li><a href="{% url 'blog_list' %}">Blog List</a></li>
-                            <li><a href="{% url 'blog_grid' %}">Blog Grid</a></li>
-                            <li><a href="{% url 'blog_details' %}">Blog Details</a></li> {% endcomment %}
-                        </ul>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="#">Admin <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            {% comment %} <li><a href="{% url 'admin_index' %}" target="_blank">Admin</a></li>
-                            <li><a href="{% url 'pharmacy_admin' %}" target="_blank">Pharmacy Admin</a></li> {% endcomment %}
-                        </ul>
-                    </li>
+               {% endfor %}
                     <li class="searchbar">
                         <a href="javascript:void(0);"><i class="feather-search"></i></a>
                         <div class="togglesearch">
@@ -213,8 +66,7 @@
                     </li>
                 </ul>
             </div>
-        
         </nav>
     </div>
 </header>
-<!-- /Header -->
+    

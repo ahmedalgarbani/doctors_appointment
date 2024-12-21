@@ -5,26 +5,19 @@
     <meta charset="utf-8" />
     <title>Doccure</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat."
-    />
-    <meta
-      name="keywords"
-      content="practo clone, doccure, doctor appointment, Practo clone html template, doctor booking template"
-    />
-    <meta
-      name="author"
-      content="Practo Clone HTML Template - Doctor Booking Template"
-    />
+    <meta name="title" content="{{setting.seo_title}}">
+    <meta name="description" content="{{setting.seo_description}}">
+    <meta name="keywords" content="{{setting.seo_keyword}}">
+
+
     <meta
       property="og:url"
-      content="https://doccure.dreamstechnologies.com/html/"
+      content="/"
     />
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Doctors Appointment HTML Website Templates | Doccure"
+      content="{{setting.seo_title}}"
     />
     <meta
       property="og:description"
@@ -32,29 +25,9 @@
     />
     <meta
       property="og:image"
-      content="{% static 'admin/assets/img/preview-banner.jpg' %}"
+      content="{{setting.footer_logo.url}}"
     />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      property="twitter:domain"
-      content="https://doccure.dreamstechnologies.com/html/"
-    />
-    <meta
-      property="twitter:url"
-      content="https://doccure.dreamstechnologies.com/html/"
-    />
-    <meta
-      name="twitter:title"
-      content="Doctors Appointment HTML Website Templates | Doccure"
-    />
-    <meta
-      name="twitter:description"
-      content="The responsive professional Doccure template offers many features, like scheduling appointments with top doctors, clinics, and hospitals via voice, video call & chat."
-    />
-    <meta
-      name="twitter:image"
-      content="{% static 'img/preview-banner.jpg' %}"
-    />
+    
 
    <!-- Favicon -->
 		<link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
@@ -83,6 +56,12 @@
 		
 		<!-- Main CSS -->
 		<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <style>
+      :root{
+          --colorPrimary: #eee !important;
+      }
+  </style>
+
   </head>
   <body>
     <!-- Main Wrapper -->
@@ -129,7 +108,7 @@
   <script src="{% static 'js/slick.js' %}"></script>
 
   <!-- Animation JS -->
-  <script src="{% static 'assets/js/aos.js' %}"></script>
+  <script src="{% static 'js/aos.js' %}"></script>
 
   <!-- Counter JS -->
   <script src="{% static 'js/counter.js' %}"></script>

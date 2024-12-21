@@ -147,3 +147,5 @@ class Payment(BaseModel):
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
         super().save(*args, **kwargs)
+
+# Create your models here.

@@ -104,3 +104,5 @@ class RegistrationRequests(models.Model):
             raise ValidationError({
                 'admin_notes': _('يجب إضافة سبب الرفض')
             })
+
+# Create your models here.

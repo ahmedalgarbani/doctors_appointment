@@ -5,11 +5,11 @@
         <div class="container">
             <div class="row align-items-center inner-banner">
                 <div class="col-md-12 col-12 text-center">
-                    <h2 class="breadcrumb-title">Blog Grid</h2>
+                    <h2 class="breadcrumb-title">All Blogs</h2>
                     <nav aria-label="breadcrumb" class="page-breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Blog Grid</li>
+                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="breadcrumb-item" aria-current="page">All Blogs</li>
                         </ol>
                     </nav>
                 </div>
@@ -26,266 +26,93 @@
                 <div class="col-lg-8 col-md-12">
                 
                     <div class="row blog-grid-row">
+                        {% for post in page_obj %}
                         <div class="col-md-6 col-sm-12">
                         
                             <!-- Blog Post -->
                             <div class="blog grid-blog">
                                 <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-01.jpg" alt="Post Image"></a>
+                                    <a href="{{ post.get_absolute_url }}"><img class="img-fluid" src="{{post.image.url}}" alt="{{post.title}}"></a>
                                 </div>
                                 <div class="blog-content">
                                     <ul class="entry-meta meta-item">
                                         <li>
                                             <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-01.jpg" alt="Post Author"> <span>Dr. Ruby Perrin</span></a>
+                                                <a href="doctor-profile.html"><img src="" alt=""> <span>{{post.author.username}}</span></a>
                                             </div>
                                         </li>
-                                        <li><i class="far fa-clock"></i> 4 Dec 2023</li>
+                                        <li><i class="far fa-clock"></i>{{ post.created_at|date:"F j, Y" }}</li>
                                     </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Doccure – Making your clinic painless visit?</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
+                                    <h3 class="blog-title"><a href="{{ post.get_absolute_url }}">{{post.title}}</a></h3>
+                                    <p class="mb-0">{{ post.content|truncatechars:70 }}
+                                    </p>
                                 </div>
                             </div>
                             <!-- /Blog Post -->
                             
                         </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-02.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-02.jpg" alt="Post Author"> <span>Dr. Darren Elder</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 3 Dec 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">What are the benefits of Online Doctor Booking?</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-03.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-03.jpg" alt="Post Author"> <span>Dr. Deborah Angel</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 3 Dec 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Benefits of consulting with an Online Doctor</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-04.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-04.jpg" alt="Post Author"> <span>Dr. Sofia Brient</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 2 Dec 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">5 Great reasons to use an Online Doctor</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-05.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-05.jpg" alt="Post Author"> <span>Dr. Marvin Campbell</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 1 Dec 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Online Doctor Appointment Scheduling</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-06.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-06.jpg" alt="Post Author"> <span>Dr. Katharine Berthold</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 30 Nov 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Simple steps to make your doctor visits exceptional!</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-07.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-07.jpg" alt="Post Author"> <span>Dr. Linda Tobin</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 28 Nov 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Choose your own Online Doctor Appointment</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-08.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-08.jpg" alt="Post Author"> <span>Dr. Paul Richard </span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 25 Nov 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Simple steps to visit your doctor today</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-09.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-09.jpg" alt="Post Author"> <span>Dr. John Gibbs</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 24 Nov 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">5 Great reasons to use an Online Doctor</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                        
-                            <!-- Blog Post -->
-                            <div class="blog grid-blog">
-                                <div class="blog-image">
-                                    <a href="blog-details.html"><img class="img-fluid" src="assets/img/blog/blog-10.jpg" alt="Post Image"></a>
-                                </div>
-                                <div class="blog-content">
-                                    <ul class="entry-meta meta-item">
-                                        <li>
-                                            <div class="post-author">
-                                                <a href="doctor-profile.html"><img src="assets/img/doctors/doctor-thumb-10.jpg" alt="Post Author"> <span>Dr. Olga Barlow</span></a>
-                                            </div>
-                                        </li>
-                                        <li><i class="far fa-clock"></i> 23 Nov 2023</li>
-                                    </ul>
-                                    <h3 class="blog-title"><a href="blog-details.html">Online Doctoral Programs</a></h3>
-                                    <p class="mb-0">Lorem ipsum dolor sit amet, consectetur em adipiscing elit, sed do eiusmod tempor.</p>
-                                </div>
-                            </div>
-                            <!-- /Blog Post -->
-                            
-                        </div>
+                        {% endfor %}
                     </div>
-                    
-                    <!-- Blog Pagination -->
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="blog-pagination">
-                                <nav>
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
-                                        </li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">1</a>
-                                        </li>
-                                        <li class="page-item active">
-                                            <a class="page-link" href="#">2 <span class="visually-hidden">(current)</span></a>
-                                        </li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">3</a>
-                                        </li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#"><i class="fas fa-angle-double-right"></i></a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /Blog Pagination -->
-                    
+                    {% if page_obj.has_other_pages %}
+    <!-- Blog Pagination -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="blog-pagination">
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }} <span class="visually-hidden">(current)</span></a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#"><i class="fas fa-angle-double-right"></i></a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- /Blog Pagination -->
+{% endif %}
+
                 </div>
                 
                 <!-- Blog Sidebar -->
@@ -303,7 +130,7 @@
                         </div>
                     </div>
                     <!-- /Search -->
-
+                {% if page_obj %}
                     <!-- Latest Posts -->
                     <div class="card post-widget">
                         <div class="card-header">
@@ -311,94 +138,52 @@
                         </div>
                         <div class="card-body">
                             <ul class="latest-posts">
+                                {% for post in page_obj|slice:":5" %}
                                 <li>
                                     <div class="post-thumb">
-                                        <a href="blog-details.html">
-                                            <img class="img-fluid" src="assets/img/blog/blog-thumb-01.jpg" alt="blog-image">
+                                        <a href="{{ post.get_absolute_url }}">
+                                            <img class="img-fluid" src="{{post.image.url}}" alt="blog-image">
                                         </a>
                                     </div>
                                     <div class="post-info">
                                         <h4>
-                                            <a href="blog-details.html">Doccure – Making your clinic painless visit?</a>
+                                            <a href="{{ post.get_absolute_url }}">{{post.title}}</a>
                                         </h4>
-                                        <p>4 Dec 2023</p>
+                                        <p>{{ post.created_at|date:"F j, Y" }}</p>
                                     </div>
                                 </li>
-                                <li>
-                                    <div class="post-thumb">
-                                        <a href="blog-details.html">
-                                            <img class="img-fluid" src="assets/img/blog/blog-thumb-02.jpg" alt="blog-image">
-                                        </a>
-                                    </div>
-                                    <div class="post-info">
-                                        <h4>
-                                            <a href="blog-details.html">What are the benefits of Online Doctor Booking?</a>
-                                        </h4>
-                                        <p>3 Dec 2023</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="post-thumb">
-                                        <a href="blog-details.html">
-                                            <img class="img-fluid" src="assets/img/blog/blog-thumb-03.jpg" alt="blog-image">
-                                        </a>
-                                    </div>
-                                    <div class="post-info">
-                                        <h4>
-                                            <a href="blog-details.html">Benefits of consulting with an Online Doctor</a>
-                                        </h4>
-                                        <p>3 Dec 2023</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="post-thumb">
-                                        <a href="blog-details.html">
-                                            <img class="img-fluid" src="assets/img/blog/blog-thumb-04.jpg" alt="blog-image">
-                                        </a>
-                                    </div>
-                                    <div class="post-info">
-                                        <h4>
-                                            <a href="blog-details.html">5 Great reasons to use an Online Doctor</a>
-                                        </h4>
-                                        <p>2 Dec 2023</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="post-thumb">
-                                        <a href="blog-details.html">
-                                            <img class="img-fluid" src="assets/img/blog/blog-thumb-05.jpg" alt="blog-image">
-                                        </a>
-                                    </div>
-                                    <div class="post-info">
-                                        <h4>
-                                            <a href="blog-details.html">Online Doctor Appointment Scheduling</a>
-                                        </h4>
-                                        <p>1 Dec 2023</p>
-                                    </div>
-                                </li>
+                                {% endfor %}
+                                
+                              
                             </ul>
                         </div>
                     </div>
                     <!-- /Latest Posts -->
-
+                    {% endif %}
                     <!-- Categories -->
+                    {% if categories %}
+                   
                     <div class="card category-widget">
                         <div class="card-header">
                             <h4 class="card-title">Blog Categories</h4>
                         </div>
                         <div class="card-body">
                             <ul class="categories">
-                                <li><a href="#">Cardiology <span>(62)</span></a></li>
-                                <li><a href="#">Health Care <span>(27)</span></a></li>
-                                <li><a href="#">Nutritions <span>(41)</span></a></li>
-                                <li><a href="#">Health Tips <span>(16)</span></a></li>
-                                <li><a href="#">Medical Research <span>(55)</span></a></li>
-                                <li><a href="#">Health Treatment <span>(07)</span></a></li>
+                                {% for category in categories %}
+                                <li><a href="{{ category.get_absolute_url }}">{{ category.name }} <span>
+                                    {% with category.posts.count as total_cate %}
+                                    ( {{ total_cate }} )
+
+                                    {% endwith %}
+                                </span></a></li>
+                                {% endfor %}
+                               
                             </ul>
                         </div>
                     </div>
                     <!-- /Categories -->
-
+                    {% endif %}
+                    {% if tags %}
                     <!-- Tags -->
                     <div class="card tags-widget">
                         <div class="card-header">
@@ -406,31 +191,15 @@
                         </div>
                         <div class="card-body">
                             <ul class="tags">
-                                <li><a href="#" class="tag">Children</a></li>
-                                <li><a href="#" class="tag">Disease</a></li>
-                                <li><a href="#" class="tag">Appointment</a></li>
-                                <li><a href="#" class="tag">Booking</a></li>
-                                <li><a href="#" class="tag">Kids</a></li>
-                                <li><a href="#" class="tag">Health</a></li>
-                                <li><a href="#" class="tag">Family</a></li>
-                                <li><a href="#" class="tag">Tips</a></li>
-                                <li><a href="#" class="tag">Shedule</a></li>
-                                <li><a href="#" class="tag">Treatment</a></li>
-                                <li><a href="#" class="tag">Dr</a></li>
-                                <li><a href="#" class="tag">Clinic</a></li>
-                                <li><a href="#" class="tag">Online</a></li>
-                                <li><a href="#" class="tag">Health Care</a></li>
-                                <li><a href="#" class="tag">Consulting</a></li>
-                                <li><a href="#" class="tag">Doctors</a></li>
-                                <li><a href="#" class="tag">Neurology</a></li>
-                                <li><a href="#" class="tag">Dentists</a></li>
-                                <li><a href="#" class="tag">Specialist</a></li>
-                                <li><a href="#" class="tag">Doccure</a></li>
+                                {% for tag in tags %}
+                                <li><a href="{{ tag.get_absolute_url }}" class="tag">{{tag}}</a></li>
+                                {% endfor %}
+                                
                             </ul>
                         </div>
                     </div>
                     <!-- /Tags -->
-                    
+                    {% endif %}
                 </div>
                 <!-- /Blog Sidebar -->
                 

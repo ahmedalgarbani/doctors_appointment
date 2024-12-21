@@ -13,6 +13,10 @@ def specialties_list(request):
     specialties = Specialty.objects.all()
     return render(request, 'frontend/dashboard/doctor/index.html', {'object_list': specialties})
 
+
+def doctor_detail(request):
+    pass
+
 def specialties_create(request):
     if request.method == 'POST':
         form = SpecialtiesForm(request.POST)
@@ -103,3 +107,6 @@ def doctorschedules_delete(request, pk):
     schedule = get_object_or_404(DoctorSchedules, pk=pk)
     schedule.delete()
     return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+from django.shortcuts import render
+
+# Create your views here.

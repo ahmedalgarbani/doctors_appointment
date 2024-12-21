@@ -1,4 +1,5 @@
 from django.db import models
+from doctors_appointment import settings
 from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
@@ -16,7 +17,7 @@ class Booking(BaseModel):
     ]
 
     patient = models.ForeignKey(
-        'users.Users',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='patient_bookings'
     )
@@ -82,3 +83,5 @@ class BookingStatus(BaseModel):
 
     def __str__(self):
         return f"{self.booking_status_name} ({self.status_code})"
+
+# Create your models here.

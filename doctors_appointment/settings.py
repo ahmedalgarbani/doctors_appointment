@@ -12,23 +12,12 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -48,6 +37,10 @@ INSTALLED_APPS = [
     'reviews',
     'dashboard',
     'patients',
+    'home',
+    'blog',
+    'menu_generator',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [
@@ -65,7 +58,7 @@ ROOT_URLCONF = 'doctors_appointment.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR/ 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,10 +66,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-
-
-
-                
             ],
         },
     },
@@ -84,30 +73,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
-	'default': {
-		'ENGINE': 'django.db.backends.mysql',
-		'NAME': 'doctor_appointment',
-		'USER': 'root',
-		'PASSWORD': '',
-		'HOST':'localhost',
-		'PORT':'3306',
-	}
-
-
-    # 'sqllite': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'doctor_appointment',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'isolation_level': 'read committed',
+        },
+    }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -124,33 +105,46 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Example settings for menus and CKEditor
+NAV_MENU_TOP = [
+    {"name": "FAQ", "url": "/faq"},
+    {"name": "About", "url": "/about"},
+    {"name": "Pricing Plan", "url": "/about"},
+    {
+        "name": "Pages", "url": "/",
+        "submenu": [
+            {"name": "About Us", "url": "/"},
+            {"name": "Contact Us", "url": "/"},
+            {"name": "Terms & Condition", "url": "/terms-condition"},
+            {"name": "Privacy Policy", "url": "/privacy-policy"},
+        ],
+    },
+    {"name": "Blog", "url": "/blog"},
+]
+
+FOOTER_MENU_ONE = [{"name": "Contact Us"}]
+FOOTER_MENU_RIGHT = [{"name": "Address", "url": "/address"}]
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+            'blockQuote', 'undo', 'redo'
+        ],
+        'language': 'en',
+    },
+}

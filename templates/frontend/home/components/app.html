@@ -1,4 +1,5 @@
 {% load static %}
+{% if appSection %}
 <section class="app-section">
     <div class="container">
         <div class="app-bg">
@@ -6,25 +7,26 @@
                 <div class="col-lg-6 col-md-12">
                     <div class="app-content">
                         <div class="app-header aos" data-aos="fade-up">
-                            <h5>Working for Your Better Health.</h5>
-                            <h2>Download the Doccure App today!</h2>
+                            <h5>{{ appSection.title }}</h5>
+                            <h2>{{ appSection.sub_title }}</h2>
                         </div>
                         <div class="app-scan aos" data-aos="fade-up">
-                            <p>Scan the QR code to get the app now</p>
-                            <img src="static/img/scan-img.png" alt="scan-image">
-                        </div>
+                            <p>{{ appSection.qr_title }}</p>
+                            <img src="{{ appSection.qr_image.url }}" alt="scan-image">
+                            </div>
                         <div class="google-imgs aos" data-aos="fade-up">
-                            <a href="javascript:void(0);"><img src="static/img/google-play.png" alt="img"></a>
-                            <a href="javascript:void(0);"><img src="static/img/app-store.png" alt="img"></a>
+                            <a href="{{ appSection.google_play_url }}"><img src="{{ appSection.google_play_icon.url }}" alt="img"></a>
+                            <a href="{{ appSection.apple_store_url }}"><img src="{{ appSection.apple_store_icon.url }}" alt="img"></a>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12 aos" data-aos="fade-up">
                     <div class="mobile-img">
-                        <img src="static/img/mobile-img.png" class="img-fluid" alt="img">
-                    </div>
-                </div>
+                        <img src="{{ appSection.app_photo.url }}" class="img-fluid" alt="img">
+                        </div>
+                        </div>
             </div>
         </div>
     </div>
 </section>
+{% endif %}

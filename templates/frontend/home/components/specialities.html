@@ -1,4 +1,6 @@
 {% load static %}
+{% if specialities %}
+
 <!-- Specialities Section -->
 <section class="specialities-section-one">
     <div class="container">
@@ -13,63 +15,19 @@
             </div>
         </div>
         <div class="owl-carousel specialities-slider-one owl-theme aos" data-aos="fade-up">
+            {% for specialy in specialities %}
             <div class="item">
                 <div class="specialities-item">
+                    {% if specialy.image %}
                     <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-01.svg' %}" alt="heart-image"></span>
+                        <span><img src="{{ specialy.image.url }}" alt="heart-image"></span>
                     </div>
-                    <p>Cardiology</p>
+                    {% endif %}
+                    <p>{{ specialy.name }}</p>
                 </div>
             </div>
-
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-02.svg' %}" alt="brain-image"></span>
-                    </div>
-                    <p>Neurology</p>
-                </div>
-            </div>
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-03.svg' %}" alt="kidney-image"></span>
-                    </div>
-                    <p>Urology</p>
-                </div>
-            </div>
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-04.svg' %}" alt="bone-image"></span>
-                    </div>
-                    <p>Orthopedic</p>
-                </div>
-            </div>
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-05.svg' %}" alt="dentist"></span>
-                    </div>
-                    <p>Dentist</p>
-                </div>
-            </div>
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-06.svg' %}" alt="eye-image"></span>
-                    </div>
-                    <p>Ophthalmology</p>
-                </div>
-            </div>
-            <div class="item">
-                <div class="specialities-item">
-                    <div class="specialities-img">
-                        <span><img src="{% static 'img/specialities/specialities-02.svg' %}" alt="brain-image"></span>
-                    </div>
-                    <p>Neurology</p>
-                </div>
-            </div>
+            {% endfor %}
+          
         </div>
         <div class="specialities-btn aos" data-aos="fade-up">
             <a href="" class="btn">
@@ -78,4 +36,20 @@
         </div>
     </div>
 </section>
+{% endif %}
 <!-- /Specialities Section -->
+{% block extra_js %}
+<script>
+    $('.owl-carousel').owlCarousel({
+        loop: false,  
+        items: 3,    
+        autoplay: true
+    });
+    
+    $('.specialities-slider-one').owlCarousel({
+        loop: false,
+        items: 3
+    });
+    
+</script>
+{% endblock  %}

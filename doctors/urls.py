@@ -15,6 +15,8 @@ urlpatterns = [
     path('doctors/add/', views.doctors_create, name='doctors_add'),
     path('doctors/edit/<int:pk>/', views.doctors_update, name='doctors_edit'),
     path('doctors/delete/<int:pk>/', views.doctors_delete, name='doctors_delete'),
+    path('doctors/<slug:slug>', views.doctor_detail, name='doctor_detail'),
+
 
 
     # DoctorSchedules URLs
