@@ -1,0 +1,104 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12 col-12">
+                <h2 class="breadcrumb-title">Online Consultation Booking</h2>
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Online Consultation</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="doctor-widget">
+                            <div class="doc-info-left">
+                                <div class="doctor-img">
+                                    {% if doctor.image %}
+                                        <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+                                    {% else %}
+                                        <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
+                                    {% endif %}
+                                </div>
+                                <div class="doc-info-cont">
+                                    <h4 class="doc-name">Dr. {{ doctor.full_name }}</h4>
+                                    <p class="doc-speciality">{{ doctor.specialty.name }}</p>
+                                    <div class="clinic-details">
+                                        <p class="doc-location">
+                                            <i class="fas fa-video"></i> Online Consultation Available
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Online Consultation Timings</h4>
+                        <div class="row">
+                            {% for schedule in schedules %}
+                            <div class="col-md-4 col-sm-12">
+                                <div class="schedule-widget">
+                                    <div class="schedule-header">
+                                        <div class="schedule-nav">
+                                            <h4>{{ schedule.day }}</h4>
+                                            {% if schedule.is_available %}
+                                            <span class="badge bg-success-light">Available</span>
+                                            {% else %}
+                                            <span class="badge bg-danger-light">Not Available</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="schedule-cont">
+                                        <div class="time-slot">
+                                            <ul class="clearfix">
+                                                <li>
+                                                    <span>{{ schedule.start_time }} - {{ schedule.end_time }}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if schedules %}
+                        <div class="submit-section proceed-btn text-end">
+                            <a href="{% url 'appointments:create_online' doctor.id %}" class="btn btn-primary submit-btn">Book Online Consultation</a>
+                        </div>
+                        {% else %}
+                        <div class="text-center mt-4">
+                            <p>No online consultation schedules available for this doctor.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}

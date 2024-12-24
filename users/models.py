@@ -48,8 +48,8 @@ class CustomUser(AbstractUser):
     )
 
     # Required fields for custom user authentication
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'mobile_number']
+    # USERNAME_FIELD = 'email'
+    # REQUIRED_FIELDS = ['username', 'mobile_number']
 
     def __str__(self):
         return f"{self.email} ({self.get_user_type_display()})"

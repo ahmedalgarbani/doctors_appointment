@@ -10,60 +10,49 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('doctors', '0001_initial'),
-        ('hospitals', '0001_initial'),
+        ('payments', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='doctor',
+            model_name='payment',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='doctor',
-            name='hospitals',
-            field=models.ManyToManyField(related_name='doctors', to='hospitals.hospital'),
-        ),
-        migrations.AddField(
-            model_name='doctor',
+            model_name='payment',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='doctorpricing',
-            name='doctor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pricing', to='doctors.doctor'),
-        ),
-        migrations.AddField(
-            model_name='doctorpricing',
-            name='hospital',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='doctor_prices', to='hospitals.hospital'),
-        ),
-        migrations.AddField(
-            model_name='doctorschedules',
-            name='doctor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='schedules', to='doctors.doctor'),
-        ),
-        migrations.AddField(
-            model_name='doctorschedules',
-            name='hospital',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='doctor_schedules', to='hospitals.hospital'),
-        ),
-        migrations.AddField(
-            model_name='specialty',
+            model_name='paymentmethod',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='specialty',
+            model_name='paymentmethod',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='doctor',
-            name='specialty',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='doctors.specialty'),
+            model_name='payment',
+            name='payment_method',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='payments.paymentmethod', verbose_name='طريقة الدفع'),
+        ),
+        migrations.AddField(
+            model_name='paymentstatus',
+            name='created_by',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
+        ),
+        migrations.AddField(
+            model_name='paymentstatus',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
+        ),
+        migrations.AddField(
+            model_name='payment',
+            name='payment_status',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='payments.paymentstatus', verbose_name='حالة الدفع'),
         ),
     ]

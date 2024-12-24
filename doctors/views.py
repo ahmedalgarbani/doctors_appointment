@@ -74,10 +74,7 @@ def doctors_delete(request, pk):
     doctor.delete()
     return HttpResponseRedirect(reverse_lazy('doctor:doctors_list'))
 
-
-
-
-# DoctorSchedules Views
+# Doctor Schedules Views
 def doctorschedules_list(request):
     schedules = DoctorSchedules.objects.all()
     return render(request, 'frontend/dashboard/doctor/sections/doctorschedules_list.html', {'object_list': schedules})
@@ -107,6 +104,27 @@ def doctorschedules_delete(request, pk):
     schedule = get_object_or_404(DoctorSchedules, pk=pk)
     schedule.delete()
     return HttpResponseRedirect(reverse_lazy('doctor:doctorschedules_list'))
+
+# Doctor Schedule Views
+def doctor_schedule(request, doctor_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    schedules = DoctorSchedules.objects.filter(doctor=doctor)
+    
+    context = {
+        'doctor': doctor,
+        'schedules': schedules,
+    }
+    return render(request, 'frontend/doctors/doctor_schedule.html', context)
+
+def doctor_online_booking(request, doctor_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    schedules = DoctorSchedules.objects.filter(doctor=doctor, is_online=True)
+    
+    context = {
+        'doctor': doctor,
+        'schedules': schedules,
+    }
+    return render(request, 'frontend/doctors/doctor_online_booking.html', context)
 from django.shortcuts import render
 
 # Create your views here.

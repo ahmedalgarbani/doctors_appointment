@@ -36,13 +36,17 @@ class Doctor(BaseModel):
         default=STATUS_MALE,
     )
     email = models.EmailField(unique=True)  
-    experience = models.IntegerField(default=0)
+    
     sub_title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=200, unique=True)
     about = models.TextField()
     status = models.BooleanField(default=True)
     show_at_home = models.BooleanField(default=True)
     
+    experience_years = models.PositiveIntegerField(
+        default=0,
+        verbose_name="سنوات الخبرة"
+    )
 
     def __str__(self):
         return self.full_name
@@ -99,4 +103,3 @@ class DoctorPricing(models.Model):
     class Meta:
         verbose_name = "جدول اسعار الطبيب"
         verbose_name_plural = "جداول اسعار الأطباء"
-
