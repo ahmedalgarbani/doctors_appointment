@@ -5,11 +5,12 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'System Admin'),
         ('hospital_manager', 'Hospital Manager'),
-        ('patients', 'patients'),
+        ('patient', 'Patient'),
     ]
-    
+
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
-    mobile_number = models.CharField(max_length=15, unique=True)
+    email = models.EmailField(unique=True, verbose_name="Email Address")
+    mobile_number = models.CharField(max_length=15, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')], blank=True)
     is_pregnant = models.BooleanField(default=False)
@@ -18,11 +19,11 @@ class CustomUser(AbstractUser):
     height = models.FloatField(null=True, blank=True)
     age = models.PositiveSmallIntegerField(null=True, blank=True)
     blood_group = models.CharField(
-        max_length=5, 
+        max_length=5,
         choices=[
-            ('A+', 'A+'), ('A-', 'A-'), 
+            ('A+', 'A+'), ('A-', 'A-'),
             ('B+', 'B+'), ('B-', 'B-'),
-            ('AB+', 'AB+'), ('AB-', 'AB-'), 
+            ('AB+', 'AB+'), ('AB-', 'AB-'),
             ('O+', 'O+'), ('O-', 'O-')
         ],
         null=True, blank=True, verbose_name="Blood Group"
@@ -31,6 +32,10 @@ class CustomUser(AbstractUser):
     city = models.CharField(max_length=50, null=True, blank=True, verbose_name="City")
     state = models.CharField(max_length=50, null=True, blank=True, verbose_name="State")
 
+<<<<<<< HEAD
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'mobile_number']
+=======
     # تعديل الحقول المتسببة في التعارض
     groups = models.ManyToManyField(
         'auth.Group',
@@ -48,13 +53,13 @@ class CustomUser(AbstractUser):
     )
 
     # Required fields for custom user authentication
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'mobile_number']
+    # USERNAME_FIELD = 'email'
+    # REQUIRED_FIELDS = ['username', 'mobile_number']
+>>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923
 
     def __str__(self):
         return f"{self.email} ({self.get_user_type_display()})"
 
-# نموذج Roles و Permissions
 class Roles(models.Model):
     role_name = models.CharField(max_length=100)
     role_desc = models.TextField(blank=True, null=True)
@@ -72,13 +77,3 @@ class Permissions(models.Model):
 class RolePermissions(models.Model):
     role = models.ForeignKey(Roles, on_delete=models.CASCADE)
     permission = models.ForeignKey(Permissions, on_delete=models.CASCADE)
-
-class Users(models.Model):
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
-    email = models.EmailField(blank=True, null=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    role = models.ForeignKey(Roles, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.username

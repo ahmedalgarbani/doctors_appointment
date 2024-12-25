@@ -1,4 +1,5 @@
 {% extends "frontend/layouts/master.html" %}
+{% load static %}
 
 {% block content %}
 <!-- Breadcrumb -->
@@ -33,7 +34,7 @@
                                 <h4 class="filter-title">Filter</h4>
                             </div>
                             <div class="filter-details">
-
+                                <form id="filterForm" method="GET">
                                 <!-- Filter Grid -->
                                 <div class="filter-grid">
                                     <h4>
@@ -44,58 +45,16 @@
                                             <ul>
                                                 <li>
                                                     <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="gender">
+                                                        <input type="radio" name="gender" value="male" {% if selected_filters.gender == '1' or selected_filters.gender == 'male' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
                                                         Male Gender
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="gender">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="gender" value="female" {% if selected_filters.gender == '0' or selected_filters.gender == 'female' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
                                                         Female Gender
-                                                    </label>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- /Filter Grid -->
-
-                                <!-- Filter Grid -->
-                                <div class="filter-grid">
-                                    <h4>
-                                        <a href="#collapsetwo" data-bs-toggle="collapse">Availability</a>
-                                    </h4>
-                                    <div id="collapsetwo" class="collapse show">
-                                        <div class="filter-collapse">
-                                            <ul>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="availability">
-                                                        <span class="checkmark"></span>
-                                                        Available Today
-                                                    </label>
-                                                </li>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="availability">
-                                                        <span class="checkmark"></span>
-                                                        Available Tomorrow
-                                                    </label>
-                                                </li>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="availability">
-                                                        <span class="checkmark"></span>
-                                                        Available in Next 7 Days
-                                                    </label>
-                                                </li>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="availability">
-                                                        <span class="checkmark"></span>
-                                                        Available in Next 30 Days
                                                     </label>
                                                 </li>
                                             </ul>
@@ -111,52 +70,33 @@
                                     </h4>
                                     <div id="collapsethree" class="collapse show">
                                         <div class="filter-collapse">
-                                            <div class="filter-content filter-content-slider">	
-                                                <p>$10 <span>$10000</span></p>									
-                                                <div class="slider-wrapper">
-                                                    <div id="price-range"></div>
-                                                </div>
-                                                <div class="price-wrapper">
-                                                    <h6>Price: 
-                                                    <span>
-                                                        $<span id="pricerangemin"></span> 
-                                                        - $<span id="pricerangemax"></span>
-                                                    </span>
-                                                    </h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- /Filter Grid -->
-
-                                <!-- Filter Grid -->
-                                <div class="filter-grid">
-                                    <h4>
-                                        <a href="#collapsefour" data-bs-toggle="collapse">Speciality</a>
-                                    </h4>
-                                    <div id="collapsefour" class="collapse show">
-                                        <div class="filter-collapse">
                                             <ul>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="speciality">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="fee_range" value="low" {% if selected_filters.fee_range == 'low' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        Urology
+                                                        $0 - $100
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="speciality">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="fee_range" value="medium" {% if selected_filters.fee_range == 'medium' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        Ophthalmology
+                                                        $101 - $200
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="speciality">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="fee_range" value="high" {% if selected_filters.fee_range == 'high' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        Cardiology
+                                                        $201 - $500
+                                                    </label>
+                                                </li>
+                                                <li>
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="fee_range" value="very_high" {% if selected_filters.fee_range == 'very_high' %}checked{% endif %}>
+                                                        <span class="checkmark"></span>
+                                                        $500+
                                                     </label>
                                                 </li>
                                             </ul>
@@ -170,63 +110,35 @@
                                     <h4>
                                         <a href="#collapsefive" data-bs-toggle="collapse">Experience</a>
                                     </h4>
-                                    <div id="collapsefive" class=" collapse show">
+                                    <div id="collapsefive" class="collapse show">
                                         <div class="filter-collapse">
                                             <ul>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="experience">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="experience" value="0-2" {% if selected_filters.experience == '0-2' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        1-5 Years
+                                                        0-2 Years
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="experience">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="experience" value="2-5" {% if selected_filters.experience == '2-5' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        5+ Years
-                                                    </label>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- /Filter Grid -->
-
-                                <!-- Filter Grid -->
-                                <div class="filter-grid">
-                                    <h4>
-                                        <a href="#collapsesix" data-bs-toggle="collapse">Online Consultation</a>
-                                    </h4>
-                                    <div id="collapsesix" class="collapse show">
-                                        <div class="filter-collapse">
-                                            <ul>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
-                                                        <span class="checkmark"></span>
-                                                        <i class="feather-video online-icon"></i> Video Call
+                                                        2-5 Years
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="experience" value="5-10" {% if selected_filters.experience == '5-10' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        <i class="feather-mic online-icon"></i> Audio Call
+                                                        5-10 Years
                                                     </label>
                                                 </li>
                                                 <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="experience" value="10+" {% if selected_filters.experience == '10+' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        <i class="feather-message-square online-icon"></i> Chat
-                                                    </label>
-                                                </li>
-                                                <li>
-                                                    <label class="custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
-                                                        <span class="checkmark"></span>
-                                                        <i class="feather-users online-icon"></i> Instant Consulting
+                                                        10+ Years
                                                     </label>
                                                 </li>
                                             </ul>
@@ -244,74 +156,25 @@
                                         <div class="filter-collapse">
                                             <ul>
                                                 <li>
-                                                    <div class="custom_check rating_custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="rating" value="4" {% if selected_filters.rating == '4' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        <div class="rating">
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <span class="rating-count">(40)</span>
-                                                        </div>
-                                                    </div>
+                                                        4+ Rating
+                                                    </label>
                                                 </li>
                                                 <li>
-                                                    <div class="custom_check rating_custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="rating" value="3" {% if selected_filters.rating == '3' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        <div class="rating">
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <span class="rating-count">(35)</span>
-                                                        </div>
-                                                    </div>
+                                                        3+ Rating
+                                                    </label>
                                                 </li>
                                                 <li>
-                                                    <div class="custom_check rating_custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="rating" value="2" {% if selected_filters.rating == '2' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        <div class="rating">
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <span class="rating-count">(20)</span>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="custom_check rating_custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
-                                                        <span class="checkmark"></span>
-                                                        <div class="rating">
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <span class="rating-count">(10)</span>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="custom_check rating_custom_check d-inline-flex">  
-                                                        <input type="checkbox" name="online">
-                                                        <span class="checkmark"></span>
-                                                        <div class="rating">
-                                                            <i class="fas fa-star filled"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <span class="rating-count">(05)</span>
-                                                        </div>
-                                                    </div>
+                                                        2+ Rating
+                                                    </label>
                                                 </li>
                                             </ul>
                                         </div>
@@ -319,23 +182,23 @@
                                 </div>
                                 <!-- /Filter Grid -->
 
-
                                 <!-- Filter Btn -->
-                                <div class="filter-btn apply-btn">
-                                    <div class="row">
-                                        <div class="-6">
-                                            <a href="javascript:void(0);" class="btn btn-primary">Apply</a>
-                                        </div>
-                                        <div class="col-6">
-                                            <a href="javascript:void(0);" class="btn btn-outline-primary">Reset</a>
-                                        </div>
-                                    </div>
+                                <div class="filter-btn">
+                                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                    <a href="{% url 'home:search_view' %}" class="btn btn-outline-primary">Reset Filters</a>
                                 </div>
                                 <!-- /Filter Btn -->
-
+                                </form>
                             </div>
                         </div>
                     </div>
+
+
+
+
+
+
+                    
                     <div class="col-lg-9">
                         <div class="doctor-filter-info">
                             <div class="doctor-filter-inner">
@@ -391,14 +254,22 @@
                                 </div>
                             </div>
                         </div>
+
+
+                        
+                        {%for doctor in doctors %}
+                       
                         <div class="card doctor-card">
                             <div class="card-body">
                                 <div class="doctor-widget-one">
                                     <div class="doc-info-left">
                                         <div class="doctor-img">
                                             <a href="doctor-profile.html">
-                                                <img src="assets/img/doctors/doctor-13.jpg" class="img-fluid" alt="John Doe">
-                                            </a>
+                                              {% if doctor.photo %}
+                                                <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}">
+                                            {% else %}
+                                                <img src="{% static 'img/doctors/default-doctor.jpg' %}" alt="{{ doctor.full_name }} "class="img-fluid">
+                                            {% endif %}
                                             <div class="favourite-btn">
                                                 <a href="javascript:void(0)" class="favourite-icon">
                                                     <i class="fas fa-heart"></i>
@@ -407,7 +278,7 @@
                                         </div>
                                         <div class="doc-info-cont">
                                             <h4 class="doc-name">
-                                                <a href="doctor-profile.html">Dr.John Doe</a>
+                                                <a href="doctor-profile.html">{{doctor.full_name}}</a>
                                                 <i class="fas fa-circle-check"></i>
                                             </h4>
                                             <p class="doc-speciality">MBBS, Dentist</p>
@@ -439,260 +310,69 @@
                                             </ul>
                                         </div>
                                         <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="booking.html">Book Appointment</a>
+                                            <a class="btn btn-primary" href="{% url 'bookings:booking' doctor.id %}">Book Appointment</a>
+                                            <a class="btn btn-primary-light" href="{% url 'bookings:booking' doctor.id %}?type=online">Book Online Consultation</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card doctor-card">
-                            <div class="card-body">
-                                <div class="doctor-widget-one">
-                                    <div class="doc-info-left">
-                                        <div class="doctor-img">
-                                            <a href="doctor-profile.html">
-                                                <img src="assets/img/doctors/doctor-14.jpg" class="img-fluid" alt="Darren Elder">
-                                            </a>
-                                            <div class="favourite-btn">
-                                                <a href="javascript:void(0)" class="favourite-icon">
-                                                    <i class="fas fa-heart"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="doc-info-cont">
-                                            <h4 class="doc-name">
-                                                <a href="doctor-profile.html">Dr. Darren Elder</a>
-                                                <i class="fas fa-circle-check"></i>
-                                            </h4>
-                                            <p class="doc-speciality">BDS, MDS - Oral & Maxillofacial Surgery</p>
-                                            <div class="clinic-details">
-                                                <p class="doc-location">
-                                                    <i class="feather-map-pin"></i>
-                                                    1.1 mi - Georgia, USA <a href="javascript:void(0);">Get Direction</a>
-                                                </p>
-                                                <p class="doc-location">
-                                                    <i class="feather-award"></i> 15 Years of Experience
-                                                </p>
-                                            </div>
-                                            <div class="reviews-ratings">
-                                                <p>
-                                                    <span><i class="fas fa-star"></i> 4.3</span> (22 Reviews)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="doc-info-right">
-                                        <div class="clini-infos">
-                                            <ul>
-                                                <li>
-                                                    <i class="feather-clock available-icon"></i> 
-                                                    <span class="available-date available-tomorrow">Available Tomorrow</span>
-                                                </li>
-                                                <li><i class="feather-thumbs-up available-icon"></i> 90% <span class="votes">(380 Votes)</span></li>
-                                                <li><i class="feather-dollar-sign available-icon"></i> $2800 <i class="feather-info available-info-icon"></i></li>
-                                            </ul>
-                                        </div>
-                                        <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="booking.html">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="booking-2.html">Book Online Consultation</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card doctor-card">
-                            <div class="card-body">
-                                <div class="doctor-widget-one">
-                                    <div class="doc-info-left">
-                                        <div class="doctor-img">
-                                            <a href="doctor-profile.html">
-                                                <img src="assets/img/doctors/doctor-15.jpg" class="img-fluid" alt="Sofia Brient">
-                                            </a>
-                                            <div class="favourite-btn">
-                                                <a href="javascript:void(0)" class="favourite-icon">
-                                                    <i class="fas fa-heart"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="doc-info-cont">
-                                            <h4 class="doc-name">
-                                                <a href="doctor-profile.html">Dr. Sofia Brient</a>
-                                                <i class="fas fa-circle-check"></i>
-                                            </h4>
-                                            <p class="doc-speciality">MBBS, Dentist</p>
-                                            <div class="clinic-details">
-                                                <p class="doc-location">
-                                                    <i class="feather-map-pin"></i>
-                                                    <span>0.9</span> mi - Newyork, USA <a href="javascript:void(0);">Get Direction</a>
-                                                </p>
-                                                <p class="doc-location">
-                                                    <i class="feather-award"></i> <span>20</span> Years of Experience
-                                                </p>
-                                            </div>
-                                            <div class="reviews-ratings">
-                                                <p>
-                                                    <span><i class="fas fa-star"></i> 4.5</span> (35 Reviews)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="doc-info-right">
-                                        <div class="clini-infos">
-                                            <ul>
-                                                <li>
-                                                    <i class="feather-clock available-icon"></i> 
-                                                    <span class="available-date available-today">Available Today</span>
-                                                </li>
-                                                <li><i class="feather-thumbs-up available-icon"></i> 98% <span class="votes">(252 Votes)</span></li>
-                                                <li><i class="feather-dollar-sign available-icon"></i> $1500 <i class="feather-info available-info-icon"></i></li>
-                                            </ul>
-                                        </div>
-                                        <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="booking.html">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="booking-2.html">Book Online Consultation</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card doctor-card">
-                            <div class="card-body">
-                                <div class="doctor-widget-one">
-                                    <div class="doc-info-left">
-                                        <div class="doctor-img">
-                                            <a href="doctor-profile.html">
-                                                <img src="assets/img/doctors/doctor-16.jpg" class="img-fluid" alt="Johny Rita">
-                                            </a>
-                                            <div class="favourite-btn">
-                                                <a href="javascript:void(0)" class="favourite-icon">
-                                                    <i class="fas fa-heart"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="doc-info-cont">
-                                            <h4 class="doc-name">
-                                                <a href="doctor-profile.html">Dr. Johny Rita</a>
-                                                <i class="fas fa-circle-check"></i>
-                                            </h4>
-                                            <p class="doc-speciality">MBBS, Dentist</p>
-                                            <div class="clinic-details">
-                                                <p class="doc-location">
-                                                    <i class="feather-map-pin"></i>
-                                                    <span>0.9</span> mi - Newyork, USA <a href="javascript:void(0);">Get Direction</a>
-                                                </p>
-                                                <p class="doc-location">
-                                                    <i class="feather-award"></i> <span>20</span> Years of Experience
-                                                </p>
-                                            </div>
-                                            <div class="reviews-ratings">
-                                                <p>
-                                                    <span><i class="fas fa-star"></i> 4.5</span> (35 Reviews)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="doc-info-right">
-                                        <div class="clini-infos">
-                                            <ul>
-                                                <li>
-                                                    <i class="feather-clock available-icon"></i> 
-                                                    <span class="available-date available-today">Available Today</span>
-                                                </li>
-                                                <li><i class="feather-thumbs-up available-icon"></i> 98% <span class="votes">(252 Votes)</span></li>
-                                                <li><i class="feather-dollar-sign available-icon"></i> $1500 <i class="feather-info available-info-icon"></i></li>
-                                            </ul>
-                                        </div>
-                                        <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="booking.html">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="booking-2.html">Book Online Consultation</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card doctor-card">
-                            <div class="card-body">
-                                <div class="doctor-widget-one">
-                                    <div class="doc-info-left">
-                                        <div class="doctor-img">
-                                            <a href="doctor-profile.html">
-                                                <img src="assets/img/doctors/doctor-17.jpg" class="img-fluid" alt="Deborah Angel">
-                                            </a>
-                                            <div class="favourite-btn">
-                                                <a href="javascript:void(0)" class="favourite-icon">
-                                                    <i class="fas fa-heart"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="doc-info-cont">
-                                            <h4 class="doc-name">
-                                                <a href="doctor-profile.html">Dr. Deborah Angel</a>
-                                                <i class="fas fa-circle-check"></i>
-                                            </h4>
-                                            <p class="doc-speciality">MBBS, Dentist</p>
-                                            <div class="clinic-details">
-                                                <p class="doc-location">
-                                                    <i class="feather-map-pin"></i>
-                                                    <span>0.9</span> mi - Newyork, USA <a href="javascript:void(0);">Get Direction</a>
-                                                </p>
-                                                <p class="doc-location">
-                                                    <i class="feather-award"></i> <span>20</span> Years of Experience
-                                                </p>
-                                            </div>
-                                            <div class="reviews-ratings">
-                                                <p>
-                                                    <span><i class="fas fa-star"></i> 4.5</span> (35 Reviews)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="doc-info-right">
-                                        <div class="clini-infos">
-                                            <ul>
-                                                <li>
-                                                    <i class="feather-clock available-icon"></i> 
-                                                    <span class="available-date available-today">Available Today</span>
-                                                </li>
-                                                <li><i class="feather-thumbs-up available-icon"></i> 98% <span class="votes">(252 Votes)</span></li>
-                                                <li><i class="feather-dollar-sign available-icon"></i> $1500 <i class="feather-info available-info-icon"></i></li>
-                                            </ul>
-                                        </div>
-                                        <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="booking.html">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="booking-2.html">Book Online Consultation</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                       {%endfor%}
+
+
+
+
+                        {% if page_obj.has_other_pages %}
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="blog-pagination rev-page">
                                     <nav>
                                         <ul class="pagination justify-content-center">
+                                            {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link page-prev" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    <i class="feather-chevrons-left me-1"></i> PREV
+                                                </a>
+                                            </li>
+                                            {% else %}
                                             <li class="page-item disabled">
-                                                <a class="page-link page-prev" href="#" tabindex="-1"><i class="feather-chevrons-left me-1"></i> PREV</a>
+                                                <span class="page-link page-prev">
+                                                    <i class="feather-chevrons-left me-1"></i> PREV
+                                                </span>
                                             </li>
-                                            <li class="page-item active">
-                                                <a class="page-link" href="#">1</a>
-                                            </li>
+                                            {% endif %}
+
+                                            {% for num in page_obj.paginator.page_range %}
+                                                {% if page_obj.number == num %}
+                                                    <li class="page-item active">
+                                                        <span class="page-link">{{ num }}</span>
+                                                    </li>
+                                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if page_obj.has_next %}
                                             <li class="page-item">
-                                                <a class="page-link" href="#">2</a>
+                                                <a class="page-link page-next" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    NEXT <i class="feather-chevrons-right ms-1"></i>
+                                                </a>
                                             </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#">...</a>
+                                            {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link page-next">
+                                                    NEXT <i class="feather-chevrons-right ms-1"></i>
+                                                </span>
                                             </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#">10</a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link page-next" href="#">NEXT <i class="feather-chevrons-right ms-1"></i></a>
-                                            </li>
+                                            {% endif %}
                                         </ul>
                                     </nav>
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -705,4 +385,8 @@
     </div>
 </div>		
 <!-- /Page Content -->	
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/search-filters.js' %}"></script>
 {% endblock %}

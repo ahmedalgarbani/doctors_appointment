@@ -42,7 +42,7 @@ class BaseModel(models.Model):
         abstract = True
 
 class City(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True ,)
     slug = models.SlugField(unique=True)
     status = models.BooleanField(default=True)
     def __str__(self):

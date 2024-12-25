@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Booking, BookingStatus
 
+<<<<<<< HEAD
 
 @admin.register(BookingStatus)
 class BookingStatusAdmin(admin.ModelAdmin):
@@ -27,3 +28,8 @@ class BookingAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('created_at', 'updated_at')  
+=======
+from bookings.models import Booking
+admin.site.register(Booking)
+# Register your models here.
+>>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Roles, Permissions, RolePermissions, Users
+from .models import CustomUser, Roles, Permissions, RolePermissions
 
 # تخصيص عرض CustomUser في لوحة الإدارة
 class CustomUserAdmin(UserAdmin):
@@ -37,17 +37,11 @@ class PermissionsAdmin(admin.ModelAdmin):
 admin.site.register(Permissions, PermissionsAdmin)
 
 # تخصيص عرض RolePermissions في لوحة الإدارة
-class RolePermissionsAdmin(admin.ModelAdmin):
-    list_display = ('role', 'permission')
-    search_fields = ('role__role_name', 'permission__permission_name')
-    list_filter = ('role', 'permission')
+class RolePermissionsInline(admin.TabularInline):
+    model = RolePermissions
+    extra = 1
 
-admin.site.register(RolePermissions, RolePermissionsAdmin)
-
-# تخصيص عرض Users في لوحة الإدارة
-class UsersAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'phone_number', 'role')
-    search_fields = ('username', 'email', 'phone_number')
-    list_filter = ('role',)
-
-admin.site.register(Users, UsersAdmin)
+class RolesAdmin(admin.ModelAdmin):
+    inlines = [RolePermissionsInline]
+    list_display = ('role_name', 'role_desc')
+    search_fields = ('role_name',)

@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from hospitals.models import BaseModel  # تم استيراد BaseModel هنا فقط
+from hospitals.models import BaseModel 
 
 class Patients(BaseModel):
     user = models.ForeignKey(

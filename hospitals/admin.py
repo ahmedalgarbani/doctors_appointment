@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from .models import Hospital, HospitalAccountRequest, City, PhoneNumber
 
 User = get_user_model()
-
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'status') 
@@ -74,6 +73,8 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
 
+
+        
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
     def reject_requests(self, request, queryset):
@@ -84,20 +85,22 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
         self.message_user(request, f"تم رفض {queryset.count()} طلب/طلبات")
     reject_requests.short_description = "رفض الطلبات المحددة"
 
-@admin.register(Hospital)
-class HospitalAdmin(admin.ModelAdmin):
-    list_display = ('name', 'location', 'hospital_manager_id', 'created_at')
-    search_fields = ('name', 'location')
-    ordering = ('-created_at',)
+# @admin.register(Hospital)
+# class HospitalAdmin(admin.ModelAdmin):
+#     list_display = ['name', 'location']
+#     search_fields = ['name', 'location']
 
-@admin.register(HospitalDetail)
-class HospitalDetailAdmin(admin.ModelAdmin):
-    list_display = ('hospital', 'specialty', 'status', 'show_at_home')
-    search_fields = ('hospital__name', 'specialty__name')
-    list_filter = ('status', 'show_at_home')
+#     def hospital_manager_link(self, obj):
+#         if obj.hospital_manager_id:
+#             user = User.objects.filter(id=obj.hospital_manager_id).first()
+#             if user:
+#                 return format_html('<a href="/admin/users/customuser/{}/change/">{}</a>', user.id, user.get_full_name())
+#         return '-'
+#     hospital_manager_link.short_description = 'مدير المستشفى'
 
-@admin.register(PhoneNumber)
-class PhoneNumberAdmin(admin.ModelAdmin):
-    list_display = ('number', 'phone_type', 'hospital')
-    search_fields = ('number', 'hospital__name')
-    list_filter = ('phone_type',)
+
+
+
+
+admin.site.register(Hospital)
+admin.site.register(PhoneNumber)

@@ -1,9 +1,11 @@
 from django.db import models
-from doctors_appointment import settings
-from hospitals.models import BaseModel
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
+from doctors.models import Doctor
 
-class Booking(BaseModel): 
+User = get_user_model()
+
+<<<<<<< HEAD
+class Booking(models.Model): 
     PURPOSE_CHOICES = [
         ('consultation', _('استشارة')),
         ('surgery', _('جراحة')),
@@ -80,8 +82,30 @@ class BookingStatus(BaseModel):
         verbose_name = _("حالة الحجز")
         verbose_name_plural = _("حالات الحجز")
         ordering = ['status_code']
+=======
+class Booking(models.Model):
+    BOOKING_STATUS = (
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='bookings')
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    is_online = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-appointment_date', '-appointment_time']
+        verbose_name = 'Booking'
+        verbose_name_plural = 'Bookings'
+>>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923
 
     def __str__(self):
-        return f"{self.booking_status_name} ({self.status_code})"
-
-# Create your models here.
+        return f"{self.patient.get_full_name()} - Dr. {self.doctor.full_name} - {self.appointment_date}"
