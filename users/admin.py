@@ -1,47 +1,27 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Roles, Permissions, RolePermissions
+from .models import CustomUser
 
-# تخصيص عرض CustomUser في لوحة الإدارة
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'mobile_number', 'user_type', 'is_staff', 'is_active', 'gender', 'is_pregnant', 'age', 'blood_group', 'city', 'state')
-    list_filter = ('is_staff', 'is_active', 'gender', 'is_pregnant', 'blood_group', 'city', 'state')
+    list_display = ('username', 'email', 'mobile_number','user_type', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'gender', 'city', 'state')
     search_fields = ('username', 'email', 'mobile_number')
+
     fieldsets = (
-        (None, {'fields': ('username', 'email', 'password')}),
-        ('Personal info', {'fields': ('mobile_number', 'profile_picture', 'gender', 'is_pregnant', 'pregnancy_term', 'weight', 'height', 'age', 'blood_group', 'family_data', 'city', 'state')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'user_type', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        (None, {'fields': ('username', 'password', 'email', 'mobile_number', 'profile_picture')}),
+        ('Personal Info', {'fields': ('gender', 'is_pregnant', 'pregnancy_term', 'age', 'blood_group', 'weight', 'height')}),
+        ('Family Data', {'fields': ('family_data',)}),
+        ('Location', {'fields': ('city', 'state')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')}),
     )
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'mobile_number', 'password1', 'password2', 'user_type', 'is_active', 'is_staff'),
+            'fields': ('username', 'email', 'mobile_number', 'password1', 'password2', 'is_staff', 'is_active'),
         }),
     )
 
+    ordering = ('username',)
+
 admin.site.register(CustomUser, CustomUserAdmin)
-
-# تخصيص عرض Roles في لوحة الإدارة
-class RolesAdmin(admin.ModelAdmin):
-    list_display = ('role_name', 'role_desc')
-    search_fields = ('role_name',)
-
-admin.site.register(Roles, RolesAdmin)
-
-# تخصيص عرض Permissions في لوحة الإدارة
-class PermissionsAdmin(admin.ModelAdmin):
-    list_display = ('permission_name', 'permission_code')
-    search_fields = ('permission_name',)
-
-admin.site.register(Permissions, PermissionsAdmin)
-
-# تخصيص عرض RolePermissions في لوحة الإدارة
-class RolePermissionsInline(admin.TabularInline):
-    model = RolePermissions
-    extra = 1
-
-class RolesAdmin(admin.ModelAdmin):
-    inlines = [RolePermissionsInline]
-    list_display = ('role_name', 'role_desc')
-    search_fields = ('role_name',)
