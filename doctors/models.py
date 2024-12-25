@@ -1,6 +1,7 @@
 from django.db import models
 from hospitals.models import BaseModel
 from django.urls import reverse
+from django.utils.text import slugify
 
 # نموذج التخصصات
 class Specialty(BaseModel):
@@ -11,11 +12,6 @@ class Specialty(BaseModel):
 
     def __str__(self):
         return self.name
-
-    class Meta:
-        verbose_name = "تخصص"
-        verbose_name_plural = "التخصصات"
-        ordering = ['name']
 
 
 # نموذج الأطباء
@@ -46,13 +42,15 @@ class Doctor(BaseModel):
     def __str__(self):
         return self.full_name
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.full_name)
+        if not self.slug:
+            self.slug = 'default-slug'  
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self):
         return reverse('home:blog:post_detail', args=[self.slug])
-
-    class Meta:
-        verbose_name = "طبيب"
-        verbose_name_plural = "الأطباء"
-        ordering = ['full_name']
 
 
 # نموذج مواعيد الأطباء

@@ -159,3 +159,40 @@ def search_view(request):
     return render(request, 'frontend/home/pages/search.html', ctx)
 
 
+
+
+
+
+from django.shortcuts import render, get_object_or_404
+from doctors.models import Doctor, DoctorPricing
+from django.db.models import Avg
+from reviews.models import Review
+
+def profile(request):
+    doctors = Doctor.objects.filter(status=True)
+    
+    ctx = {
+        'doctors': doctors,
+    }
+
+    return render(request, 'frontend/home/pages/profile.html', ctx)
+
+
+
+def doctor_profile(request, doctor_id):
+    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
+
+    reviews = Review.objects.filter(doctor=doctor, status=True)
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
+
+    ctx = {
+        'doctor': doctor,
+        'reviews': reviews,
+        'average_rating': average_rating,
+        'pricing': pricing,
+        'hospitals': doctor.hospitals.all(),
+    }
+
+    return render(request, 'frontend/home/pages/doctor_profile.html', ctx)

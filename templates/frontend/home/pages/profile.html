@@ -1,0 +1,17 @@
+{% extends "frontend/layouts/master.html" %}
+{% block content %}
+
+    <h1>قائمة الأطباء</h1>
+
+    <h3>الأطباء المتاحين:</h3>
+    <ul>
+        {% for doctor in doctors %}
+            <li>
+                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">
+                    {{ doctor.full_name }}
+                </a> - {{ doctor.specialty.name }}
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

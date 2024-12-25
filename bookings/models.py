@@ -3,7 +3,7 @@ from doctors_appointment import settings
 from hospitals.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 
-class Booking(BaseModel): 
+class Booking(models.Model): 
     PURPOSE_CHOICES = [
         ('consultation', _('استشارة')),
         ('surgery', _('جراحة')),

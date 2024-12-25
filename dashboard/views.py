@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 
 def doctor_index(request):
     specialties = Specialty.objects.all()
-<<<<<<< HEAD
     patients = Patients.objects.all()
     favourites = Favourites.objects.all()
 
@@ -28,11 +27,3 @@ def doctor_index(request):
     }
 
     return render(request, 'frontend/dashboard/doctor/index.html', context)
-=======
-    return render(request, 'frontend/dashboard/doctor/index.html',{
-        'specialties':specialties
-    })
-    
-
-# Create your views here.
->>>>>>> origin/main

@@ -15,9 +15,9 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get('SECRET_KEY', 'default-secret-key')  # يجب تعيينه باستخدام متغيرات البيئة
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -27,10 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
+    'hospitals',
     'payments',
     'doctors',
     'bookings',
-    'hospitals',
     'registrations',
     'notifications',
     'reports',
@@ -76,11 +76,11 @@ WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'doctor_appointment',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'doctor_appointment'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'isolation_level': 'read committed',

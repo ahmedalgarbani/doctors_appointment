@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('bookings/', include(('bookings.urls', 'bookings'), namespace='doctor')),
-    path('', TemplateView.as_view(template_name='frontend/home/index.html'), name='home'),
+    path('', include(('home.urls', 'home'), namespace='home')),
     path('users/', include('users.urls', namespace='users')),
     path('hospital/', include('hospitals.urls', namespace='hospitals')),
 ]
