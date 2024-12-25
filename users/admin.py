@@ -45,3 +45,5 @@ class RolesAdmin(admin.ModelAdmin):
     inlines = [RolePermissionsInline]
     list_display = ('role_name', 'role_desc')
     search_fields = ('role_name',)
+
+

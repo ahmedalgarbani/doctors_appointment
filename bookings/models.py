@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from doctors.models import Doctor
+from django.utils.translation import gettext_lazy as _  # إضافة هذا السطر
 
 User = get_user_model()
 
