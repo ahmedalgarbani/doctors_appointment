@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import Review
 
-<<<<<<< HEAD
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'hospital', 'doctor', 'rating', 'status', 'created_at')
@@ -28,8 +27,4 @@ class ReviewAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('user', 'created_at')
         return self.readonly_fields
 
-    readonly_fields = ('created_at',) 
-=======
-
-admin.site.register(Review)
->>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923
+    readonly_fields = ('created_at',)

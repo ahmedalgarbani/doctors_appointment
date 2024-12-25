@@ -23,7 +23,6 @@ class Doctor(BaseModel):
         (STATUS_MALE, 'ذكر'),
         (STATUS_FAMEL, 'أنثى'),
     ]
-<<<<<<< HEAD
 
     full_name = models.CharField(max_length=255, verbose_name="الاسم الكامل")
     birthday = models.DateField(verbose_name="تاريخ الميلاد")
@@ -39,32 +38,7 @@ class Doctor(BaseModel):
     about = models.TextField(verbose_name="نبذة عن الطبيب")
     status = models.BooleanField(default=True, verbose_name="الحالة")
     show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
-=======
-    full_name = models.CharField(max_length=255)
-    birthday = models.DateField()
-    phone_number = models.CharField(max_length=20)  
-    hospitals = models.ManyToManyField('hospitals.Hospital', related_name='doctors',  
-        )
-    specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True,  
-        blank=True)
-    photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True)
-    gender =  models.IntegerField(
-        choices=STATUS_CHOICES,
-        default=STATUS_MALE,
-    )
-    email = models.EmailField(unique=True)  
-    
-    sub_title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=200, unique=True)
-    about = models.TextField()
-    status = models.BooleanField(default=True)
-    show_at_home = models.BooleanField(default=True)
-    
-    experience_years = models.PositiveIntegerField(
-        default=0,
-        verbose_name="سنوات الخبرة"
-    )
->>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923
+    experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
 
     def __str__(self):
         return self.full_name

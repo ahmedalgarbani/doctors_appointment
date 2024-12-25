@@ -20,23 +20,21 @@ class CustomUser(AbstractUser):
     age = models.PositiveSmallIntegerField(null=True, blank=True)
     blood_group = models.CharField(
         max_length=5,
-        choices=[
-            ('A+', 'A+'), ('A-', 'A-'),
-            ('B+', 'B+'), ('B-', 'B-'),
-            ('AB+', 'AB+'), ('AB-', 'AB-'),
-            ('O+', 'O+'), ('O-', 'O-')
-        ],
+        choices=[('A+', 'A+'), ('A-', 'A-'),
+                 ('B+', 'B+'), ('B-', 'B-'),
+                 ('AB+', 'AB+'), ('AB-', 'AB-'),
+                 ('O+', 'O+'), ('O-', 'O-')],
         null=True, blank=True, verbose_name="Blood Group"
     )
     family_data = models.JSONField(null=True, blank=True, verbose_name="Family Data")
     city = models.CharField(max_length=50, null=True, blank=True, verbose_name="City")
     state = models.CharField(max_length=50, null=True, blank=True, verbose_name="State")
 
-<<<<<<< HEAD
+    # Set email as the primary field for authentication
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'mobile_number']
-=======
-    # تعديل الحقول المتسببة في التعارض
+    REQUIRED_FIELDS = ['username', 'mobile_number']  # Add 'mobile_number' as a required field
+
+    # Retain the default groups and permissions for Django's user management
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='custom_user_groups',
@@ -52,28 +50,5 @@ class CustomUser(AbstractUser):
         verbose_name='user permissions',
     )
 
-    # Required fields for custom user authentication
-    # USERNAME_FIELD = 'email'
-    # REQUIRED_FIELDS = ['username', 'mobile_number']
->>>>>>> 17a6cc346d6933bc45c5346f29d0bec0ec6e5923
-
     def __str__(self):
         return f"{self.email} ({self.get_user_type_display()})"
-
-class Roles(models.Model):
-    role_name = models.CharField(max_length=100)
-    role_desc = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.role_name
-
-class Permissions(models.Model):
-    permission_name = models.CharField(max_length=100)
-    permission_code = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.permission_name
-
-class RolePermissions(models.Model):
-    role = models.ForeignKey(Roles, on_delete=models.CASCADE)
-    permission = models.ForeignKey(Permissions, on_delete=models.CASCADE)
