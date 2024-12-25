@@ -21,7 +21,6 @@ urlpatterns = [
     
     path('search/', views.search_view, name='search_view'),
     
-    # صفحة عرض الأطباء (الملف الشخصي للأطباء)
     path('doctors/profile/', views.profile, name='doctors_profile'),
     
     # صفحة تفاصيل الطبيب (باستخدام ID الطبيب)
