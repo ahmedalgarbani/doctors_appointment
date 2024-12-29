@@ -6,17 +6,12 @@ from django.conf.urls.static import static
 app_name = 'home'
 
 urlpatterns = [
-    # الصفحة الرئيسية
     path('', views.index, name='home'),
-    
     path('faq', views.faq_page, name='faq'),
-    
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
-    
-    path('privacy-policy', views.privacy_policy, name='privacy_policy'),
-    
-    path('terms-condition', views.terms_condition, name='terms_condition'),
-    
+    path('privacy-policy',views.privacy_policy,name='privacy_policy'),
+    path('terms-condition',views.terms_condition,name='terms_condition'),
+    path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
     path('search/', views.search_view, name='search_view'),
     
     # صفحة عرض الأطباء (الملف الشخصي للأطباء)

@@ -28,3 +28,4 @@ class ReviewAdmin(admin.ModelAdmin):
         return self.readonly_fields
 
     readonly_fields = ('created_at',)
+

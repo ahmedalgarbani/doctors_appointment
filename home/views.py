@@ -3,12 +3,12 @@ from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules
 from hospitals.models import City
 from reviews.models import Review
-import logging
 from blog.models import Post
 from datetime import datetime
 from datetime import timedelta
 from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -295,6 +295,7 @@ def doctor_profile(request, doctor_id):
     }
 
     return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
+
 
 def booking_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)

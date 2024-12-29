@@ -12,12 +12,23 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'default-secret-key')  # يجب تعيينه باستخدام متغيرات البيئة
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1').split(',')
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+
+# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -27,10 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
-    'payments',
+    
+    'hospitals',
     'doctors',
     'bookings',
-    'hospitals',
+    'payments',
     'registrations',
     'notifications',
     'reports',
@@ -58,7 +70,7 @@ ROOT_URLCONF = 'doctors_appointment.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+         'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,26 +85,50 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 
-# إعدادات قاعدة البيانات باستخدام المتغيرات البيئية
+
+# Database
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'doctor_appointment'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
+        'NAME': 'doctor_appointment',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'",
             'charset': 'utf8mb4',
             'use_unicode': True,
             'autocommit': True,
             'isolation_level': 'read committed',
-        },
+            'sql_mode': 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION',
+        }
     }
 }
 
-AUTH_USER_MODEL = 'users.CustomUser'
+DATABASE_OPTIONS = {
+    'timeout': 20,
+    'connect_timeout': 10,
+}
+
+
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+
+
+
+
+AUTH_USER_MODEL='users.CustomUser'
+
+    
+
+
+# Password validation
+# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -109,39 +145,114 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.0/topics/i18n/
+
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'UTC'
+
 USE_I18N = True
+
 USE_TZ = True
 
+
+# Static files (CSS, JavaScript, Images)
+
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATIC_ROOT = os.path.join(BASE_DIR, '/static')
+
+
+
+
+
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
+
+
+
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Example settings for menus and CKEditor
+
+
+
+####################################################################################
+# Example: settings.py
+####################################################################################
+
 NAV_MENU_TOP = [
-    {"name": "FAQ", "url": "/faq"},
-    {"name": "About", "url": "/about"},
-    {"name": "Pricing Plan", "url": "/about"},
     {
-        "name": "Pages", "url": "/",
+        "name": "FAQ",
+        "url": "/faq",
+    },
+    {
+        "name": "About",
+        "url": "/about",
+    },
+    {
+        "name": "Pricing Plan",
+        "url": "/about",
+    },
+    {
+        "name": "Pages",
+        "url": "/",
+        
         "submenu": [
-            {"name": "About Us", "url": "/"},
-            {"name": "Contact Us", "url": "/"},
-            {"name": "Terms & Condition", "url": "/terms-condition"},
-            {"name": "Privacy Policy", "url": "/privacy-policy"},
+            {
+                "name": "About Us",
+                "url": "/",
+            },
+            {
+                "name": "Contact Us",
+                "url": "/",
+
+            },
+            {
+                "name": "Terms & Condition",
+                "url": "/terms-condition",
+
+            },
+            {
+                "name": "Privacy Policy",
+                "url": "/privacy-policy",
+
+            }
         ],
     },
-    {"name": "Blog", "url": "/blog"},
+    {
+        "name": "Blog",
+        "url": "/blog",
+    },
 ]
 
-FOOTER_MENU_ONE = [{"name": "Contact Us"}]
-FOOTER_MENU_RIGHT = [{"name": "Address", "url": "/address"}]
+
+
+FOOTER_MENU_ONE = [
+    {
+        "name": "Contact Us",
+    },
+]
+
+FOOTER_MENU_RIGHT = [
+    {
+        "name": "Address",
+        "url": "/address",
+    },
+]
+
 
 CKEDITOR_5_CONFIGS = {
     'default': {

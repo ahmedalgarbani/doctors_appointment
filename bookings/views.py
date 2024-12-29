@@ -8,12 +8,15 @@ from .models import Booking
 import json
 
 # عرض حجز الطبيب
+# Create your views here.
+
 @login_required
 def booking_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     is_online = request.GET.get('type') == 'online'
     
     # الحصول على الجداول المتاحة للطبيب
+    # Get available schedules for the doctor
     schedules = DoctorSchedules.objects.filter(
         doctor=doctor
     )
@@ -30,6 +33,9 @@ def booking_view(request, doctor_id):
 @login_required
 def get_available_slots(request, doctor_id):
     """نقطة النهاية API للحصول على الفترات المتاحة لليوم المحدد"""
+@login_required
+def get_available_slots(request, doctor_id):
+    """API endpoint to get available slots for a specific date"""
     if request.method == 'GET':
         date = request.GET.get('date')
         is_online = request.GET.get('type') == 'online'
@@ -40,12 +46,14 @@ def get_available_slots(request, doctor_id):
         doctor = get_object_or_404(Doctor, id=doctor_id)
         
         # الحصول على الجداول للطبيب في اليوم المحدد
+        # Get schedules for the specified date
         schedules = DoctorSchedules.objects.filter(
             doctor=doctor,
             day=date
         )
         
         # الحصول على الحجوزات الموجودة في هذا اليوم
+        # Get existing bookings for the date
         existing_bookings = Booking.objects.filter(
             doctor=doctor,
             appointment_date=date
@@ -82,6 +90,7 @@ def create_booking(request, doctor_id):
             doctor = get_object_or_404(Doctor, id=doctor_id)
             
             # التحقق من وجود الجدول المتاح
+            # Check if slot is still available
             schedule = DoctorSchedules.objects.filter(
                 doctor=doctor,
                 day=date,
@@ -94,6 +103,7 @@ def create_booking(request, doctor_id):
                 }, status=400)
             
             # إنشاء الحجز
+            # Create the booking
             booking = Booking.objects.create(
                 doctor=doctor,
                 patient=request.user,
@@ -104,6 +114,7 @@ def create_booking(request, doctor_id):
             )
             
             # تقليل الفترات المتاحة
+            # Decrease available slots
             schedule.available_slots -= 1
             schedule.save()
             
@@ -149,12 +160,14 @@ def cancel_booking(request, booking_id):
         booking = get_object_or_404(Booking, id=booking_id, patient=request.user)
         
         # السماح بالإلغاء فقط للحجوزات التي هي في حالة "قيد الانتظار" أو "مؤكدة"
+        # Only allow cancellation of pending or confirmed bookings
         if booking.status not in ['pending', 'confirmed']:
             return JsonResponse({
                 'error': 'Cannot cancel this booking'
             }, status=400)
         
         # زيادة الفترات المتاحة مرة أخرى
+        # Increase available slots back
         schedule = DoctorSchedules.objects.filter(
             doctor=booking.doctor,
             day=booking.appointment_date,

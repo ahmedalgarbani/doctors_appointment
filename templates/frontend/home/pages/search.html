@@ -310,8 +310,8 @@
                                             </ul>
                                         </div>
                                         <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="{% url 'bookings:booking' doctor.id %}">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="{% url 'bookings:booking' doctor.id %}?type=online">Book Online Consultation</a>
+                                            <a class="btn btn-primary" href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">Book Appointment</a>
+                                            <a class="btn btn-primary-light" href="{% url 'home:doctor_profile' doctor_id=doctor.id %}?type=online">Book Online Consultation</a>
                                         </div>
                                     </div>
                                 </div>
