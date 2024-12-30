@@ -46,20 +46,22 @@ class Patients(BaseModel):
         null=True,
         verbose_name="ملاحظات"
     )
-    blood_group = models.CharField(
-        max_length=3,
-        choices=[
-            ('A+', 'A+'),
-            ('A-', 'A-'),
-            ('B+', 'B+'),
-            ('B-', 'B-'),
-            ('AB+', 'AB+'),
-            ('AB-', 'AB-'),
-            ('O+', 'O+'),
-            ('O-', 'O-')
-        ],
-        verbose_name="زمرة الدم"
-    )
+    # blood_group = models.CharField(
+    #     max_length=3,
+    #     choices=[
+    #         ('0', 'A+'),
+    #         ('1', 'A-'),
+    #         ('2', 'B+'),
+    #         ('3', 'B-'),
+    #         ('4', 'AB+'),
+    #         ('5', 'AB-'),
+    #         ('6', 'O+'),
+    #         ('7', 'O-')
+    #     ],
+    #     verbose_name="زمرة الدم",
+    #     null = True,
+    #     blank = True
+    # )
 
     def __str__(self):
         return self.full_name

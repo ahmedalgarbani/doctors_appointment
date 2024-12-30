@@ -130,6 +130,36 @@ def terms_condition(request):
     }
     return render(request, 'frontend/home/pages/term-condition.html', ctx)
 
+def profile(request):
+    doctors = Doctor.objects.filter(status=True)
+    
+    ctx = {
+        'doctors': doctors,
+    }
+
+    return render(request, 'frontend/home/pages/profile.html', ctx)
+
+def doctor_profile(request, doctor_id):
+    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
+
+    reviews = Review.objects.filter(doctor=doctor, status=True)
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
+
+    ctx = {
+        'doctor': doctor,
+        'reviews': reviews,
+        'average_rating': average_rating,
+        'pricing': pricing,
+        'hospitals': doctor.hospitals.all(),
+    }
+
+    return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
+
+
+
+
 def search_view(request):
     search_text = request.GET.get('search', '').strip()  
     city_slug = request.GET.get('city', '').strip()
@@ -159,7 +189,7 @@ def search_view(request):
     if gender:
         gender_map = {
             'male': 1,    # Doctor.STATUS_MALE
-            'female': 0   # Doctor.STATUS_FEMALE
+            'female': 0   # Doctor.STATUS_FAMEL
         }
         gender_value = gender_map.get(gender.lower())
         logger.info(f"Mapped gender value: {gender_value}")
@@ -276,34 +306,6 @@ def search_view(request):
     }
 
     return render(request, 'frontend/home/pages/search.html', ctx)
-
-def profile(request):
-    doctors = Doctor.objects.filter(status=True)
-    
-    ctx = {
-        'doctors': doctors,
-    }
-
-    return render(request, 'frontend/home/pages/profile.html', ctx)
-
-def doctor_profile(request, doctor_id):
-    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
-
-    reviews = Review.objects.filter(doctor=doctor, status=True)
-    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-
-    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
-
-    ctx = {
-        'doctor': doctor,
-        'reviews': reviews,
-        'average_rating': average_rating,
-        'pricing': pricing,
-        'hospitals': doctor.hospitals.all(),
-    }
-
-    return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
-
 
 
 
