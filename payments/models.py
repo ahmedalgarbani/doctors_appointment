@@ -1,5 +1,6 @@
+import datetime
 from django.db import models
-from hospitals.models import BaseModel
+from hospitals.models import BaseModel,Hospital
 from django.utils.translation import gettext_lazy as _
 
 # ------------PaymentStatus-------------
@@ -24,7 +25,7 @@ class PaymentStatus(BaseModel):
 
 # ------------PaymentMethod-------------
 
-class PaymentMethod(BaseModel):
+class PaymentMethod(models.Model):
     method_name = models.CharField(
         max_length=50,
         verbose_name=_("اسم طريقة الدفع")
@@ -48,7 +49,34 @@ class PaymentMethod(BaseModel):
       max_length=25,
         verbose_name=_("العملة"),
     )
-    transfer_number = models.CharField(
+    
+    
+
+    class Meta:
+        verbose_name = _("طريقة الدفع")
+        verbose_name_plural = _("طرق الدفع")
+        ordering = ['-activate_state', 'method_name']
+
+    def __str__(self):
+        status = _("مفعّل") if self.activate_state else _("معطّل")
+        return f"{self.method_name} - {self.currency} ({status})"
+
+
+
+
+# ------------Choose Payment-------------
+
+class ChoosePayment(models.Model):
+    payment_option = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE,related_name='payment_option')
+    hospitals = models.ForeignKey(
+        Hospital,
+        on_delete=models.CASCADE,
+        related_name='payment_methods',
+        verbose_name=_("المستشفيات"),
+        blank=True
+    )
+    status = models.BooleanField(default=True)
+    account_number = models.CharField(
         max_length=66,
         verbose_name=_("رقم التحويل"),
         blank=True,
@@ -61,30 +89,22 @@ class PaymentMethod(BaseModel):
         null=True
     )
 
-    class Meta:
-        verbose_name = _("طريقة الدفع")
-        verbose_name_plural = _("طرق الدفع")
-        ordering = ['-activate_state', 'method_name']
-
-    def __str__(self):
-        status = _("مفعّل") if self.activate_state else _("معطّل")
-        return f"{self.method_name} - {self.currency} ({status})"
 
 
 # ------------Payment-------------
 
-class Payment(BaseModel):
+class Payment(models.Model):
     Type_choices = [
         ('cash', _('نقدي')),
         ('e_pay', _('دفع إلكتروني')),
     ]
+    payment_choose = models.ForeignKey(
+    ChoosePayment,
+    on_delete=models.CASCADE,
+    verbose_name=_("طريقة الدفع"),
+    related_name='payments'
+)
 
-    payment_method = models.ForeignKey(
-        'payments.PaymentMethod',
-        on_delete=models.CASCADE,
-        verbose_name=_("طريقة الدفع"),
-        related_name='payments'
-    )
     payment_status = models.ForeignKey(
         'payments.PaymentStatus',
         on_delete=models.CASCADE,

@@ -12,19 +12,21 @@ import json
 
 @login_required
 def booking_view(request, doctor_id):
+  
+    selected_doctor = get_object_or_404(Doctor, id=doctor_id)
+    request.session['selected_doctor'] = selected_doctor
     doctor = get_object_or_404(Doctor, id=doctor_id)
     is_online = request.GET.get('type') == 'online'
     
     # الحصول على الجداول المتاحة للطبيب
     # Get available schedules for the doctor
     schedules = DoctorSchedules.objects.filter(
-        doctor=doctor
+        doctor=selected_doctor
     )
     
     context = {
-        'doctor': doctor,
+        'doctor': selected_doctor,
         'schedules': schedules,
-        'is_online': is_online
     }
     
     return render(request, 'frontend/home/pages/booking.html', context)

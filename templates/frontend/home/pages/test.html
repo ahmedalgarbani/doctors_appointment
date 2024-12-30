@@ -1,0 +1,322 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+{% block content %}
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar-two">
+        <div class="container">
+            <div class="row align-items-center inner-banner">
+                <div class="col-md-12 col-12 text-center">
+                    <h2 class="breadcrumb-title">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</h2>
+                    <nav aria-label="breadcrumb" class="page-breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
+                            <li class="breadcrumb-item" aria-current="page">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Breadcrumb -->
+    
+    <!-- Page Content -->
+    <div class="content content-space">
+        <div class="container">
+            <!-- Booking -->
+            <div class="row">
+                <div class="col-lg-8 col-md-12">
+                    <div class="booking-header">
+                        <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
+                        <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
+                    </div>
+                    <div class="booking-date choose-date-book">
+                        <p>اختر التاريخ</p>
+                        <div class="booking-range">
+                            <div class="bookingrange btn">
+                                <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
+                                <span></span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card booking-card">
+                        <div class="card-body time-slot-card-body">
+                            <div class="booking-date-slider">
+                                <ul class="date-slider slick">
+                                    {% for schedule in schedules %}
+                                    <li 
+                                    {% if forloop.first %}class="active"{% endif %}
+                                    data-start="{{ schedule.start_time|time:'H:i' }}" 
+                                    data-end="{{ schedule.end_time|time:'H:i' }}">
+                                    <h4>{{ schedule.day }}</h4>
+                                    <p>{{ schedule.date|date:"M d" }}</p>
+                                </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-4">
+                                    <div class="time-slot time-slot-blk">
+                                        <h4>Morning</h4>
+                                        <div class="time-slot-list">
+                                            <ul>
+                                                {% for schedule in schedules %}
+                                                {% if schedule.start_time.hour < 12 %}
+                                                <li>
+                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
+                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4">
+                                    <div class="time-slot time-slot-blk">
+                                        <h4>Afternoon</h4>
+                                        <div class="time-slot-list">
+                                            <ul>
+                                                {% for schedule in schedules %}
+                                                {% if schedule.start_time.hour >= 12 and schedule.start_time.hour < 17 %}
+                                                <li>
+                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
+                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4">
+                                    <div class="time-slot time-slot-blk">
+                                        <h4>Evening</h4>
+                                        <div class="time-slot-list">
+                                            <ul>
+                                                {% for schedule in schedules %}
+                                                {% if schedule.start_time.hour >= 17 %}
+                                                <li>
+                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
+                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="booking-btn">
+                        <a href="{% url 'payments:process' doctor.id %}" class="btn btn-primary prime-btn justify-content-center align-items-center">
+                            Next <i class="feather-arrow-right-circle"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-12">
+                    <div class="booking-header">
+                        <h4 class="booking-title">Booking Summary</h4>
+                    </div>
+                    <div class="card booking-card">
+                        <div class="card-body booking-card-body">
+                            <div class="booking-doctor-details">
+                                <div class="booking-doctor-left">
+                                    <div class="booking-doctor-img">
+                                        {% if doctor.image %}
+                                        <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+                                        {% else %}
+                                        <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
+                                        {% endif %}
+                                    </div>
+                                    <div class="booking-doctor-info">
+                                        <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
+                                        <p>{{ doctor.specialty.name }}</p>
+                                    </div>
+                                </div>
+                                <div class="booking-doctor-right">
+                                    <p>
+                                        <i class="fas fa-circle-check"></i>
+                                        {% if is_online %}Online Consultation{% else %}In-person Visit{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="booking-availability">
+                                <h5>Available Days:</h5>
+                                <ul class="list-group">
+                                    {% for schedule in schedules %}
+                                        <li class="list-group-item">
+                                            <i class="fas fa-calendar-alt"></i> {{ schedule.day }}
+                                        </li>
+                                    {% empty %}
+                                        <li class="list-group-item">No schedules available.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <!-- /Booking -->
+        </div>
+    </div>		
+    <!-- /Page Content -->
+
+
+
+
+
+    
+    
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    
+    $(document).ready(function () {
+        // Variables to store selected date and time
+        let selectedDate = '';
+        let selectedTime = '';
+    
+        // Handle date selection
+        $('.date-slider li').on('click', function () {
+            selectedDate = $(this).find('p').text().trim(); // Get the date text
+            $('.date-slider li').removeClass('active'); // Remove active class from all
+            $(this).addClass('active'); // Add active class to the clicked element
+        });
+    
+        // Handle time slot selection
+        $('.timing').on('click', function () {
+            selectedTime = $(this).find('span').text().trim(); // Get the time text
+            $('.timing').removeClass('selected'); // Remove selected class from all
+            $(this).addClass('selected'); // Add selected class to the clicked element
+        });
+    
+        // Update the next button's href dynamically
+        $('.timing, .date-slider li').on('click', function () {
+            if (selectedDate && selectedTime) {
+                const nextBtn = $('.booking-btn a');
+                const baseUrl = "{{ request.build_absolute_uri }}"; // Django's dynamic URL base
+                const type = "{% if is_online %}online{% else %}offline{% endif %}"; // Determine type
+    
+                // Update the button's href dynamically
+                nextBtn.attr(
+                    'href',
+                    `${baseUrl}?date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}&type=${type}`
+                );
+            }
+        });
+    });
+    </script>
+    
+{% endblock %}
+
+
+<script>
+    $(document).ready(function () {
+        // Handle date selection
+        $('.date-slider li').on('click', function () {
+            // Get the selected date, start time, and end time
+            const selectedDate = $(this).find('p').text().trim();
+            const startTime = $(this).data('start');
+            const endTime = $(this).data('end');
+
+            // Highlight the selected date
+            $('.date-slider li').removeClass('active');
+            $(this).addClass('active');
+
+            // Display start and end time
+            $('#time-details').html(
+                `<strong>Start Time:</strong> ${startTime} <br> <strong>End Time:</strong> ${endTime}`
+            );
+        });
+    });
+
+    $(document).ready(function () {
+        // Variables to store selected date and time
+        let selectedDate = '';
+        let selectedTime = '';
+    
+        // Handle date selection
+        $('.date-slider li').on('click', function () {
+            // Get the selected date
+            selectedDate = $(this).find('p').text().trim();
+            
+            // Highlight the selected date
+            $('.date-slider li').removeClass('active');
+            $(this).addClass('active');
+            
+            // Get the start and end time for the selected date
+            const startTime = $(this).data('start');
+            const endTime = $(this).data('end');
+            
+            // Filter and categorize time slots dynamically
+            const morningSlots = [];
+            const afternoonSlots = [];
+            const eveningSlots = [];
+    
+            $('.timing').each(function () {
+                const timeText = $(this).find('span').text();
+                const timeParts = timeText.split(' - ');
+                const slotStartTime = timeParts[0];
+                const hour = parseInt(slotStartTime.split(':')[0]);
+    
+                // Categorize based on the time
+                if (hour < 12) {
+                    morningSlots.push(this);
+                } else if (hour >= 12 && hour < 17) {
+                    afternoonSlots.push(this);
+                } else if (hour >= 17) {
+                    eveningSlots.push(this);
+                }
+            });
+    
+            // Update time slots dynamically
+            function updateTimeSlots(containerSelector, slots) {
+                const container = $(containerSelector);
+                container.empty();
+                if (slots.length > 0) {
+                    slots.forEach(function (slot) {
+                        container.append(slot);
+                    });
+                } else {
+                    container.append('<li>No slots available</li>');
+                }
+            }
+    
+            updateTimeSlots('.morning-time-slots', morningSlots);
+            updateTimeSlots('.afternoon-time-slots', afternoonSlots);
+            updateTimeSlots('.evening-time-slots', eveningSlots);
+        });
+    
+        // Handle time slot selection
+        $('.timing').on('click', function () {
+            selectedTime = $(this).find('span').text().trim(); // Get the selected time
+            
+            // Highlight the selected time slot
+            $('.timing').removeClass('selected');
+            $(this).addClass('selected');
+            
+            // Update the "Next" button's link dynamically if both date and time are selected
+            if (selectedDate && selectedTime) {
+                const nextBtn = $('.booking-btn a');
+                const baseUrl = "{{ request.build_absolute_uri }}"; // Replace with your base URL
+                const type = "{% if is_online %}online{% else %}offline{% endif %}"; // Determine the type
+    
+                nextBtn.attr(
+                    'href',
+                    `${baseUrl}?date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}&type=${type}`
+                );
+            }
+        });
+    });
+    
+</script>
