@@ -31,7 +31,6 @@ class Doctor(BaseModel):
     photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True, verbose_name="الصورة الشخصية")
     gender = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_MALE, verbose_name="الجنس")
     email = models.EmailField(unique=True, verbose_name="البريد الإلكتروني")
-    experience = models.IntegerField(default=0, verbose_name="الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
     about = models.TextField(verbose_name="نبذة عن الطبيب")
