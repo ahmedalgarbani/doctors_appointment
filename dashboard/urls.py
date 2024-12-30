@@ -1,14 +1,9 @@
-
-from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import TemplateView
+from django.urls import path
 from . import views
 
-app_name='dashboard'
+app_name = 'dashboard'
 
 urlpatterns = [
-       path('doctor', views.doctor_index, name='doctor_index'),
-
-    
-
+    path('hospitals/', views.hospitals_list, name='hospitals_list'),
+    path('hospitals/<slug:slug>/', views.doctor_index, name='hospital_detail'),
 ]

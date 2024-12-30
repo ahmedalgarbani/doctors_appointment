@@ -45,8 +45,15 @@ class Doctor(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.full_name)
+        
         if not self.slug:
-            self.slug = 'default-slug'  
+            self.slug = 'default-slug'
+
+        # تحقق من وجود الـ slug في قاعدة البيانات وإذا كان مكررًا، أضف معرف فريد
+        from django.db.models import Q
+        while Doctor.objects.filter(slug=self.slug).exists():
+            self.slug = f"{self.slug}-{self.id}"
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
