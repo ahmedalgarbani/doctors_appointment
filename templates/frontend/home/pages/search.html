@@ -204,7 +204,7 @@
                             <div class="doctor-filter-inner">
                                 <div>
                                     <div class="doctors-found">
-                                        <p><span>100 Doctors found for:</span> Dentist in San francisco, California</p>
+                                        <p><span>{{ doctors.count }} Doctors found for</span></p>
                                     </div>
                                     <div class="doctor-filter-availability">
                                         <p>Availability</p>
@@ -281,19 +281,19 @@
                                                 <a href="doctor-profile.html">{{doctor.full_name}}</a>
                                                 <i class="fas fa-circle-check"></i>
                                             </h4>
-                                            <p class="doc-speciality">MBBS, Dentist</p>
+                                            <p class="doc-speciality">{{ doctor.specialty.name }}</p>
                                             <div class="clinic-details">
                                                 <p class="doc-location">
                                                     <i class="feather-map-pin"></i>
-                                                    <span>0.9</span> mi - Newyork, USA <a href="javascript:void(0);">Get Direction</a>
+                                                    <span>0.9</span> {{ doctor.hospital.name }}
                                                 </p>
                                                 <p class="doc-location">
-                                                    <i class="feather-award"></i> <span>20</span> Years of Experience
+                                                    <i class="feather-award"></i> <span>   {{ doctor.experience_years }}</span>    Years of Experience  
                                                 </p>
                                             </div>
                                             <div class="reviews-ratings">
                                                 <p>
-                                                    <span><i class="fas fa-star"></i> 4.5</span> (35 Reviews)
+                                                    <span><i class="fas fa-star"></i> {{ doctor.review }}</span> ({{doctor.reviews}} Reviews)
                                                 </p>
                                             </div>
                                         </div>
@@ -301,17 +301,19 @@
                                     <div class="doc-info-right">
                                         <div class="clini-infos">
                                             <ul>
+                                                
+                                                {% if doctor %}
                                                 <li>
                                                     <i class="feather-clock available-icon"></i> 
-                                                    <span class="available-date available-today">Available Today</span>
+                                                <span class="available-date available-today">Available Today</span>
                                                 </li>
-                                                <li><i class="feather-thumbs-up available-icon"></i> 98% <span class="votes">(252 Votes)</span></li>
-                                                <li><i class="feather-dollar-sign available-icon"></i> $1500 <i class="feather-info available-info-icon"></i></li>
+                                                
+                                                {% endif %}
+                                                <li><i class="feather-dollar-sign available-icon"></i> ${{price_range.min_price}} <i class="feather-info available-info-icon"></i></li>
                                             </ul>
                                         </div>
                                         <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="{% url 'bookings:booking' doctor.id %}">Book Appointment</a>
-                                            <a class="btn btn-primary-light" href="{% url 'bookings:booking' doctor.id %}?type=online">Book Online Consultation</a>
+                                            <a class="btn btn-primary" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
                                         </div>
                                     </div>
                                 </div>

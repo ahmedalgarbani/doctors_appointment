@@ -1,7 +1,11 @@
 from django.shortcuts import render, get_object_or_404
+from datetime import datetime
+from home.helpers import group_shifts_by_period
+from  patients.models import Patients
+from payments.models import ChoosePayment, Payment, PaymentMethod, PaymentStatus
 from .models import *
-from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules
-from hospitals.models import City
+from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
+from hospitals.models import City, Hospital
 from reviews.models import Review
 import logging
 from django.shortcuts import render
@@ -10,12 +14,16 @@ from datetime import datetime
 from datetime import timedelta
 from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+from bookings.models import Booking
 logger = logging.getLogger(__name__)
 
 # Create your views here.
 
 def index(request):
+    request.session.flush()
+
     try:
         homeBanner = HomeBanner.objects.first()  
         logger.info('Retrieved home banner')
@@ -254,7 +262,6 @@ def search_view(request):
     ).values('doctor').annotate(
         avg_rating=Avg('rating')
     )
-
     ctx = {
         'doctors': doctors_page,
         'page_obj': doctors_page,
@@ -275,17 +282,135 @@ def search_view(request):
 
     return render(request, 'frontend/home/pages/search.html', ctx)
 
+
+
+
+
+
 def booking_view(request, doctor_id):
+    selected_doctor = get_object_or_404(Doctor, id=doctor_id)
+    request.session['selected_doctor'] = selected_doctor.id    
+    dayes = selected_doctor.schedules.all()  
+    sched = dayes[0]  
+
+    schedulesShift = sched.shifts.all()
+
+    grouped_slots = group_shifts_by_period(schedulesShift)
+
+    context = {
+        'doctor': selected_doctor,
+        'dayes': dayes,
+        'schedules': grouped_slots,
+        'selected_day':sched.id,
+
+
+        
+    }
+
+    return render(request, 'frontend/home/pages/booking.html', context)
+
+
+
+def get_time_slots(request,schedule_id,doctor_id,):
+    request.session['selected_day'] = schedule_id    
+
+    if not schedule_id:
+        return JsonResponse({'error': 'No schedule ID provided'}, status=400)
+
+    doctor = get_object_or_404(Doctor, id=request.session['selected_doctor'])
+    
+    schedule = get_object_or_404(DoctorSchedules, id=schedule_id, doctor=doctor)
+    
+    schedulesShift = schedule.shifts.all()
+    dayes = doctor.schedules.all()  
+
+    grouped_slots = group_shifts_by_period(schedulesShift)
+    ctx = {
+        'schedules': grouped_slots, 
+        'dayes': dayes,
+        'doctor': doctor,
+        'selected_day':schedule_id
+    }
+    # html = render_to_string('frontend/home/pages/time_slots.html', {})
+    
+    return render(request,'frontend/home/pages/booking.html',ctx)
+
+
+
+def payment_process(request):
+    doctor_id = request.session.get('selected_doctor')
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    schedules = DoctorSchedule.objects.filter(doctor=doctor)
-    is_online = request.GET.get('type') == 'online'
-    
-    if is_online:
-        schedules = schedules.filter(is_online=True)
-    
+    selected_date = request.session.get('selected_date', 0)
+    selected_time = request.session.get('selected_time', 0)
+
+    if request.method == 'GET':
+        selected_date = get_object_or_404(DoctorSchedules, id=request.GET.get('day'))
+        selected_time = get_object_or_404(DoctorShifts, id=request.GET.get('date'))
+        request.session['selected_date'] = selected_date.id
+        request.session['selected_time'] = selected_time.id
+    elif request.method == 'POST':
+        selected_date = get_object_or_404(DoctorSchedules, id=request.POST.get('selected_date', 0))
+        selected_time = get_object_or_404(DoctorShifts, id=request.POST.get('selected_time', 0))
+        request.session['selected_date'] = selected_date.id
+        request.session['selected_time'] = selected_time.id
+
+    hospital = doctor.hospitals.first()
+    payment_methods = ChoosePayment.objects.filter(status=True)
+
+    pricing = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
+    amount = pricing.amount if pricing else 0
+
+    if request.method == 'POST':
+        notes = request.POST.get('notes', '')
+        subtotal = float(request.POST.get('subtotal', 0)) if float(request.POST.get('subtotal', 0)) > 0 else float(amount)
+        discount = float(request.POST.get('discount', 0))
+        total = subtotal - discount
+        transfer_number = request.POST.get('transfer_number', None)
+        payment_method = request.POST.get('payment', 'cash')
+     
+        booking = Booking.objects.create(
+            doctor=doctor,
+            patient=get_object_or_404(Patients, id=1),
+            hospital=get_object_or_404(Hospital, id=hospital.id),
+            appointment_date=get_object_or_404(DoctorSchedules, id=selected_date.id),
+            appointment_time=get_object_or_404(DoctorShifts, id=selected_time.id),
+            notes=notes,
+            status='pending'
+        )
+       
+
+
+        Payment.objects.create(
+            booking=booking,
+            payment_choose=get_object_or_404(ChoosePayment,id=payment_method),
+            payment_status=get_object_or_404(PaymentStatus, id=1),
+            payment_subtotal=subtotal,
+            payment_discount=discount,
+            payment_totalamount=total,
+            payment_currency='RYL',
+            payment_note=f"Transfer number: {transfer_number}",
+            payment_type=get_object_or_404(PaymentMethod, id=payment_method).method_name
+        )
+
+        context = {
+            'doctor': doctor,
+            'hospital': hospital,
+            'selected_date': selected_date.day,
+            'selected_time': selected_time,
+            'subtotal': subtotal,
+            'discount': discount,
+            'total': total,
+            'transfer_number': transfer_number,
+            'payment_method': payment_method,
+        }
+        return render(request, 'frontend/home/pages/booking-success.html', context)
+
     context = {
         'doctor': doctor,
-        'schedules': schedules,
-        'is_online': is_online
+        'hospital': hospital,
+        'selected_date': selected_date,
+        'selected_time': selected_time,
+        'amount': amount,
+        'payment_methods': payment_methods,
     }
-    return render(request, 'frontend/home/pages/booking.html', context)
+    return render(request, 'frontend/home/pages/payment.html', context)

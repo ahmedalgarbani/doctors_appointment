@@ -1,49 +1,27 @@
 from django.contrib import admin
- # Import Users model
-from doctors.models import Doctor  # Import Doctor model
+from .models import Patients, Favourites
 
+# Admin interface for Patients model
+@admin.register(Patients)
+class PatientsAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'birth_date', 'gender', 'phone_number', 'email', 'join_date')
+    list_filter = ('gender', 'join_date')
+    search_fields = ('full_name', 'phone_number', 'email')
+    ordering = ('-join_date',)
+    readonly_fields = ('join_date',)
 
-# # Ensure Users and Doctor have proper search_fields configured
-# @admin.register(Users)
-# class UsersAdmin(admin.ModelAdmin):
-#     search_fields = ('username', 'email', 'full_name')  # Adjust fields as per the Users model
+    def get_queryset(self, request):
+        # Optionally, modify the queryset (e.g., filter based on user)
+        return super().get_queryset(request)
 
+# Admin interface for Favourites model
+@admin.register(Favourites)
+class FavouritesAdmin(admin.ModelAdmin):
+    list_display = ('patient', 'doctor')
+    search_fields = ('patient__full_name', 'doctor__full_name')
+    list_filter = ('patient', 'doctor')
+    ordering = ('patient',)
 
-
-# @admin.register(Patients)
-# class PatientsAdmin(admin.ModelAdmin):
-#     list_display = ('full_name', 'user', 'birth_date', 'gender', 'phone_number', 'email', 'join_date')
-#     list_filter = ('gender', 'join_date')
-#     search_fields = ('full_name', 'phone_number', 'email', 'address')
-#     ordering = ('-join_date',)
-#     readonly_fields = ('join_date',)
-#     fieldsets = (
-#         (None, {
-#             'fields': (
-#                 'user',
-#                 'full_name',
-#                 'birth_date',
-#                 'gender',
-#                 'address',
-#                 'phone_number',
-#                 'email',
-#                 'profile_picture',
-#                 'notes'
-#             )
-#         }),
-#         ('Metadata', {
-#             'fields': ('join_date',),
-#         }),
-#     )
-
-# @admin.register(Favourites)
-# class FavouritesAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'doctor')
-#     list_filter = ('user', 'doctor')
-#     ordering = ('user', 'doctor')
-#     autocomplete_fields = ('user', 'doctor')  # Ensure related admin classes have search_fields
-#     fieldsets = (
-#         (None, {
-#             'fields': ('user', 'doctor')
-#         }),
-#     )
+    def get_queryset(self, request):
+        # Optionally, customize the queryset to filter based on user
+        return super().get_queryset(request)

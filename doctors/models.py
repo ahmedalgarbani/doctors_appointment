@@ -54,26 +54,39 @@ class Doctor(BaseModel):
     def get_absolute_url(self):
         return reverse('home:blog:post_detail', args=[self.slug])
 
+        
 
-# نموذج مواعيد الأطباء
 class DoctorSchedules(models.Model):
+    DAY_CHOICES = [
+        (0, 'Saturday'),
+        (1, 'Sunday'),
+        (2, 'Monday'),
+        (3, 'Tuesday'),
+        (4, 'Wednesday'),
+        (5, 'Thursday'),
+        (6, 'Friday'),
+    ]
     doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='schedules')
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True,  
-        blank=True)
-    day = models.CharField(max_length=20)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    available_slots = models.PositiveIntegerField(default=0)  
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True, blank=True)
+    day = models.CharField(max_length=20, choices=DAY_CHOICES) 
 
     def __str__(self):
         return f"{self.doctor} - {self.day}"
 
     class Meta:
-        verbose_name = "جدول الطبيب"
-        verbose_name_plural = "جداول الأطباء"
-        ordering = [ 'day', 'start_time']
+        ordering = ['day', 'doctor']
 
-# Create your models here.
+
+class DoctorShifts(models.Model):
+    doctor_schedule = models.ForeignKey('DoctorSchedules', on_delete=models.CASCADE, related_name='shifts')
+    start_time = models.TimeField()      
+    end_time = models.TimeField()        
+    available_slots = models.PositiveIntegerField(default=0)
+    booked_slots = models.PositiveIntegerField(default=0)    
+
+    def __str__(self):
+        return f"Shift from {self.start_time} to {self.end_time}"
+
 
 
 

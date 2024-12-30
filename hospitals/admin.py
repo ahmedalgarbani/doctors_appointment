@@ -18,6 +18,7 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
     search_fields = ['hospital_name', 'manager_full_name', 'manager_email']
     readonly_fields = ['created_at', 'created_by']
     actions = ['approve_requests', 'reject_requests']
+    repopulated_fields = {'slug': ('hospital_name',)} 
 
     def view_documents(self, obj):
         links = []

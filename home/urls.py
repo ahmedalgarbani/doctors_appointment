@@ -13,6 +13,10 @@ urlpatterns = [
     # path('terms-condition',views.terms_condition,name='terms_condition'),
     # path('about-us',views.about_us,name='about_us'),
     path('search/', views.search_view, name='search_view'),
+    path('booking/<int:doctor_id>/', views.booking_view, name='booking'),
+    path('get-time-slots/<int:schedule_id>/<int:doctor_id>', views.get_time_slots, name='get_time_slots'),
+    path('payment/', views.payment_process, name='payment'),
+
 ]
 
 

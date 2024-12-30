@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from doctors.models import Doctor
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts
+from hospitals.models import Hospital
+from patients.models import Patients
 
 User = get_user_model()
 
@@ -13,9 +15,10 @@ class Booking(models.Model):
     )
 
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='bookings')
-    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
-    appointment_date = models.DateField()
-    appointment_time = models.TimeField()
+    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='hospitals')
+    patient = models.ForeignKey(Patients, on_delete=models.CASCADE, related_name='bookings')
+    appointment_date = models.ForeignKey(DoctorSchedules, on_delete=models.CASCADE, related_name='date')
+    appointment_time = models.ForeignKey(DoctorShifts, on_delete=models.CASCADE, related_name='time')
     is_online = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)

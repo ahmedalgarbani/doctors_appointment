@@ -1,187 +1,173 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
 {% block content %}
-    <!-- Breadcrumb -->
-    <div class="breadcrumb-bar-two">
-        <div class="container">
-            <div class="row align-items-center inner-banner">
-                <div class="col-md-12 col-12 text-center">
-                    <h2 class="breadcrumb-title">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</h2>
-                    <nav aria-label="breadcrumb" class="page-breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
-                            <li class="breadcrumb-item" aria-current="page">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</li>
-                        </ol>
-                    </nav>
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+    <div class="container">
+        <div class="row align-items-center inner-banner">
+            <div class="col-md-12 col-12 text-center">
+                <h2 class="breadcrumb-title">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</h2>
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
+                        <li class="breadcrumb-item" aria-current="page">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content content-space">
+    <div class="container">
+       <!-- Booking -->
+<div class="row">
+    <div class="col-lg-8 col-md-12">
+        <div class="booking-header">
+            <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
+            <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
+        </div>
+        <div class="booking-date choose-date-book">
+            <p>Choose a Date</p>
+            <div class="booking-range">
+                <div class="bookingrange btn">
+                    <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
+                    <span></span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+        <div class="card booking-card">
+            <div class="card-body time-slot-card-body">
+                <div class="booking-date-slider">
+                    <ul class="date-slider slick">
+                        {% for schedule in dayes %}
+                        <li 
+                            class="{% if schedule.id == selected_day %}active{% endif %}" 
+                            data-schedule="{{ schedule.id }}" 
+                            data-start="{{ schedule.shifts.start_time|time:'H:i' }}" 
+                            data-end="{{ schedule.shifts.end_time|time:'H:i' }}">
+                            <h4>{{ schedule.day }}</h4>
+                            <p>{{ schedule.date|date:"M d" }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Time Details Display -->
+                <div id="time-details" class="time-details mt-3">
+                    {% include "frontend/home/pages/time_slots.html" %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Form for next step -->
+        <form id="booking-form" action="{% url 'home:payment' %}" method="GET">
+
+            <input type="hidden" name="day" id="day_id" >
+            <input type="hidden" name="date" id="date_id" >
+                        <!-- Hidden Inputs for day_id and date_id -->
+            <div class="booking-btn">
+                <button type="submit" class="btn btn-primary prime-btn justify-content-center align-items-center">
+                    Next <i class="feather-arrow-right-circle"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4 col-md-12">
+        <div class="booking-header">
+            <h4 class="booking-title">Booking Summary</h4>
+        </div>
+        <div class="card booking-card">
+            <div class="card-body booking-card-body">
+                <div class="booking-doctor-details">
+                    <div class="booking-doctor-left">
+                        <div class="booking-doctor-img">
+                            {% if doctor.image %}
+                            <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+                            {% else %}
+                            <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
+                            {% endif %}
+                        </div>
+                        <div class="booking-doctor-info">
+                            <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
+                            <p>{{ doctor.specialty.name }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="booking-availability">
+                    <h5>Available Days:</h5>
+                    <ul class="list-group">
+                        {% for schedule in dayes %}
+                        <li class="list-group-item">
+                            <i class="fas fa-calendar-alt"></i> {{ schedule.day }}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No schedules available.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-    <!-- /Breadcrumb -->
-    
-    <!-- Page Content -->
-    <div class="content content-space">
-        <div class="container">
-            <!-- Booking -->
-            <div class="row">
-                <div class="col-lg-8 col-md-12">
-                    <div class="booking-header">
-                        <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
-                        <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
-                    </div>
-                    <div class="booking-date choose-date-book">
-                        <p>اختر التاريخ</p>
-                        <div class="booking-range">
-                            <div class="bookingrange btn">
-                                <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
-                                <span></span>
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card booking-card">
-                        <div class="card-body time-slot-card-body">
-                            <div class="booking-date-slider">
-                                <ul class="date-slider slick">
-                                    {% for schedule in schedules %}
-                                    <li {% if forloop.first %}class="active"{% endif %}>
-                                        <h4>{{ schedule.day }}</h4>
-                                        <p>{{ schedule.date|date:"M d" }}</p>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-4 col-md-4">
-                                    <div class="time-slot time-slot-blk">
-                                        <h4>Morning</h4>
-                                        <div class="time-slot-list">
-                                            <ul>
-                                                {% for schedule in schedules %}
-                                                {% if schedule.start_time.hour < 12 %}
-                                                <li>
-                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
-                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-4">
-                                    <div class="time-slot time-slot-blk">
-                                        <h4>Afternoon</h4>
-                                        <div class="time-slot-list">
-                                            <ul>
-                                                {% for schedule in schedules %}
-                                                {% if schedule.start_time.hour >= 12 and schedule.start_time.hour < 17 %}
-                                                <li>
-                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
-                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-4">
-                                    <div class="time-slot time-slot-blk">
-                                        <h4>Evening</h4>
-                                        <div class="time-slot-list">
-                                            <ul>
-                                                {% for schedule in schedules %}
-                                                {% if schedule.start_time.hour >= 17 %}
-                                                <li>
-                                                    <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
-                                                        <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="booking-btn">
-                        <a href="{% url 'payments:process' doctor.id %}" class="btn btn-primary prime-btn justify-content-center align-items-center">
-                            Next <i class="feather-arrow-right-circle"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-12">
-                    <div class="booking-header">
-                        <h4 class="booking-title">Booking Summary</h4>
-                    </div>
-                    <div class="card booking-card">
-                        <div class="card-body booking-card-body">
-                            <div class="booking-doctor-details">
-                                <div class="booking-doctor-left">
-                                    <div class="booking-doctor-img">
-                                        {% if doctor.image %}
-                                        <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
-                                        {% else %}
-                                        <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
-                                        {% endif %}
-                                    </div>
-                                    <div class="booking-doctor-info">
-                                        <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
-                                        <p>{{ doctor.specialty.name }}</p>
-                                    </div>
-                                </div>
-                                <div class="booking-doctor-right">
-                                    <p>
-                                        <i class="fas fa-circle-check"></i>
-                                        {% if is_online %}Online Consultation{% else %}In-person Visit{% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Booking -->
-        </div>
-    </div>		
-    <!-- /Page Content -->
+</div>
+
+    </div>
+</div>		
+<!-- /Page Content -->
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-$(document).ready(function() {
-    // Store selected date and time
-    let selectedDate = '';
-    let selectedTime = '';
-
-    // When a date is selected
-    $('.date-slider li').click(function() {
-        selectedDate = $(this).find('p').text();
-        $('.date-slider li').removeClass('active');
-        $(this).addClass('active');
+  
+    $(document).ready(function () {
+        $('#day_id').val('{{ selected_day }}');
+    
+        let selectedDate = '';
+        let selectedScheduleId = '';
+    
+        $('.date-slider li').on('click', function () {
+            selectedScheduleId = $(this).data('schedule'); 
+            $('.date-slider li').removeClass('active'); 
+            $(this).addClass('active'); 
+    
+            $('#day_id').val(selectedScheduleId);
+    
+            const url = "{% url 'home:get_time_slots' 0 0 %}"
+                .replace("0", selectedScheduleId)
+                .replace("0", 0); 
+            window.location.href = url;
+        });
+    
+        $('.timing').on('click', function () {
+            const scheduleId = $(this).data('schedule'); 
+            $('.timing').removeClass('selected'); 
+            $(this).addClass('selected'); 
+            $('#date_id').val(scheduleId);
+        });
     });
-
-    // When a time slot is selected
-    $('.timing').click(function() {
-        $('.timing').removeClass('selected');
-        $(this).addClass('selected');
-        selectedTime = $(this).find('span').text();
+    /*
+    $(document).ready(function () {
+        $('#booking-form').on('submit', function (e) {
+            e.preventDefault();
+    
+            const dayId = $('#day_id').val();
+            const dateId = $('#date_id').val();
+    
+     
+                .replace("0", dayId)
+                .replace("0", dateId);
+                       
+            window.location.href = url;
+        });
     });
+    */
+    </script>
+    
 
-    // Update next button href when date or time is selected
-    $('.timing, .date-slider li').click(function() {
-        if (selectedDate && selectedTime) {
-            let nextBtn = $('.booking-btn a');
-            let baseUrl = "{% url 'payments:process' doctor.id %}";
-            let type = "{% if is_online %}online{% else %}offline{% endif %}";
-            nextBtn.attr('href', `${baseUrl}?date=${selectedDate}&time=${selectedTime}&type=${type}`);
-        }
-    });
-});
-</script>
 {% endblock %}
+
