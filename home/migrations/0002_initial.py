@@ -10,49 +10,44 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('doctors', '0002_initial'),
-        ('patients', '0001_initial'),
+        ('home', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='favourites',
+            model_name='privacypolicy',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='favourites',
-            name='doctor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourited_by', to='doctors.doctor', verbose_name='الطبيب'),
-        ),
-        migrations.AddField(
-            model_name='favourites',
+            model_name='privacypolicy',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='patients',
+            model_name='question',
+            name='faq_section',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='home.faqsection'),
+        ),
+        migrations.AddField(
+            model_name='termsconditions',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='patients',
+            model_name='termsconditions',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='patients',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='patients', to=settings.AUTH_USER_MODEL, verbose_name='المستخدم'),
+            model_name='testimonial',
+            name='testimonial',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='testimonials', to='home.testimonialsection'),
         ),
         migrations.AddField(
-            model_name='favourites',
-            name='patient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', to='patients.patients', verbose_name='المريض'),
-        ),
-        migrations.AddConstraint(
-            model_name='favourites',
-            constraint=models.UniqueConstraint(fields=('patient', 'doctor'), name='unique_patient_doctor'),
+            model_name='workstep',
+            name='work_section',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='steps', to='home.worksection'),
         ),
     ]

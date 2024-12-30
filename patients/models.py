@@ -1,7 +1,6 @@
 from django.db import models
-from hospitals.models import BaseModel
 from django.conf import settings
-from hospitals.models import BaseModel
+from hospitals.models import BaseModel 
 
 class Patients(BaseModel):
     user = models.ForeignKey(
@@ -47,10 +46,23 @@ class Patients(BaseModel):
         null=True,
         verbose_name="ملاحظات"
     )
+    blood_group = models.CharField(
+        max_length=3,
+        choices=[
+            ('A+', 'A+'),
+            ('A-', 'A-'),
+            ('B+', 'B+'),
+            ('B-', 'B-'),
+            ('AB+', 'AB+'),
+            ('AB-', 'AB-'),
+            ('O+', 'O+'),
+            ('O-', 'O-')
+        ],
+        verbose_name="زمرة الدم"
+    )
 
     def __str__(self):
         return self.full_name
-
 
 class Favourites(BaseModel):
     patient = models.ForeignKey(  # Link directly to Patients

@@ -1,4 +1,5 @@
 {% extends "frontend/layouts/master.html" %}
+{% load static %}
 
 {% block content %}
 
@@ -24,88 +25,76 @@
 			<div class="content">
 				<div class="container">
 
-					<!-- Doctor Widget -->
-					<div class="card">
-						<div class="card-body">
-							<div class="doctor-widget">
-								<div class="doc-info-left">
-									<div class="doctor-img">
-										<img src="assets/img/doctors/doctor-thumb-02.jpg" class="img-fluid" alt="User Image">
-									</div>
-									<div class="doc-info-cont">
-										<h4 class="doc-name">Dr. Darren Elder</h4>
-										<p class="doc-speciality">BDS, MDS - Oral & Maxillofacial Surgery</p>
-										<p class="doc-department"><img src="assets/img/specialities/specialities-05.png" class="img-fluid" alt="Speciality">Dentist</p>
-										<div class="rating">
-											<i class="fas fa-star filled"></i>
-											<i class="fas fa-star filled"></i>
-											<i class="fas fa-star filled"></i>
-											<i class="fas fa-star filled"></i>
-											<i class="fas fa-star"></i>
-											<span class="d-inline-block average-rating">(35)</span>
-										</div>
-										<div class="clinic-details">
-											<p class="doc-location"><i class="fas fa-map-marker-alt"></i> Newyork, USA - <a href="javascript:void(0);">Get Directions</a></p>
-											<ul class="clinic-gallery">
-												<li>
-													<a href="assets/img/features/feature-01.jpg" data-fancybox="gallery">
-														<img src="assets/img/features/feature-01.jpg" alt="Feature">
-													</a>
-												</li>
-												<li>
-													<a href="assets/img/features/feature-02.jpg" data-fancybox="gallery">
-														<img  src="assets/img/features/feature-02.jpg" alt="Feature Image">
-													</a>
-												</li>
-												<li>
-													<a href="assets/img/features/feature-03.jpg" data-fancybox="gallery">
-														<img src="assets/img/features/feature-03.jpg" alt="Feature">
-													</a>
-												</li>
-												<li>
-													<a href="assets/img/features/feature-04.jpg" data-fancybox="gallery">
-														<img src="assets/img/features/feature-04.jpg" alt="Feature">
-													</a>
-												</li>
-											</ul>
-										</div>
-										<div class="clinic-services">
-											<span>Dental Fillings</span>
-											<span>Teeth Whitneing</span>
-										</div>
-									</div>
+				<!-- Doctor Widget -->
+				<div class="card">
+					<div class="card-body">
+						<div class="doctor-widget">
+							<div class="doc-info-left">
+								<div class="doctor-img">
+									<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
 								</div>
-								<div class="doc-info-right">
-									<div class="clini-infos">
-										<ul>
-											<li><i class="far fa-thumbs-up"></i> 99%</li>
-											<li><i class="far fa-comment"></i> 35 Feedback</li>
-											<li><i class="fas fa-map-marker-alt"></i> Newyork, USA</li>
-											<li><i class="far fa-money-bill-alt"></i> $100 per hour </li>
+								<div class="doc-info-cont">
+									<!-- اسم الدكتور -->
+									<h4 class="doc-name">{{ doctor.full_name }}</h4>
+
+									<!-- أسماء المستشفيات المرتبطة -->
+									<p class="doc-speciality">
+										{% for hospital in hospitals %}
+											<span>{{ hospital.name }}</span>{% if not forloop.last %}, {% endif %}
+										{% endfor %}
+									</p>
+
+									<!-- قسم الطبيب -->
+									<p class="doc-department">
+										<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
+										{{ doctor.specialty.name }}
+									</p>
+
+									 <!-- التقييمات -->
+									 <div class="rating">
+										<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if average_rating >= 4 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
+										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
+									</div>
+									
+									<div class="clinic-details">
+
+
+										<ul class="clinic-gallery">
+											<li>
+												<a href="{% static 'img/features/feature-01.jpg' %}" data-fancybox="gallery">
+													<img src="{% static 'img/features/feature-01.jpg' %}" alt="Feature">
+												</a>
+											</li>
 										</ul>
 									</div>
-									<div class="doctor-action">
-										<a href="javascript:void(0)" class="btn btn-white fav-btn">
-											<i class="far fa-bookmark"></i>
-										</a>
-										<a href="chat.html" class="btn btn-white msg-btn">
-											<i class="far fa-comment-alt"></i>
-										</a>
-										<a href="javascript:void(0)" class="btn btn-white call-btn" data-bs-toggle="modal" data-bs-target="#voice_call">
-											<i class="fas fa-phone"></i>
-										</a>
-										<a href="javascript:void(0)" class="btn btn-white call-btn" data-bs-toggle="modal" data-bs-target="#video_call">
-											<i class="fas fa-video"></i>
-										</a>
-									</div>
-									<div class="clinic-booking">
-										<a class="apt-btn" href="booking.html">Book Appointment</a>
-									</div>
+								</div>
+							</div>
+							<div class="doc-info-right">
+								<div class="clini-infos">
+									<ul>
+										<li><i class="far fa-comment"></i> {{ reviews.count }} تعليق</li>
+										<li><i class="fas fa-map-marker-alt"></i>العنوان: {{ doctor.sub_title }}  </li>
+										<li><i class="far fa-money-bill-alt"></i> {{ pricing.amount }} $ </li>
+									</ul>
+								</div>
+								<div class="doctor-action">
+									<a href="javascript:void(0)" class="btn btn-white fav-btn">
+										<i class="far fa-bookmark"></i>
+									</a>
+								</div>
+								<div class="clinic-booking">
+									<a class="apt-btn" href="booking.html">Book Appointment</a>
 								</div>
 							</div>
 						</div>
 					</div>
-					<!-- /Doctor Widget -->
+				</div>
+				<!-- /Doctor Widget -->
+
 					
 					<!-- Doctor Details Tab -->
 					<div class="card">
@@ -306,164 +295,85 @@
 								
 									<!-- Location List -->
 									<div class="location-list">
-										<div class="row">
+										<div class="row align-items-start">
 										
-											<!-- Clinic Content -->
-											<div class="col-md-6">
+											<div class="col-md-4">
+												{% for hospital in doctor.hospitals.all %}
 												<div class="clinic-content">
-													<h4 class="clinic-name"><a href="#">Smile Cute Dental Care Center</a></h4>
-													<p class="doc-speciality">MDS - Periodontology and Oral Implantology, BDS</p>
+													<h4 class="clinic-name"><a href="#"><span>{{ hospital.name }}</span></a></h4>
+													<p class="doc-speciality">{{ doctor.specialty.name }}</p>
+
 													<div class="rating">
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star"></i>
-														<span class="d-inline-block average-rating">(4)</span>
+														<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
+														<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
+														<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
+														<i class="fas fa-star {% if average_rating >= 4 %}filled{% endif %}"></i>
+														<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
+														<span class="d-inline-block average-rating">({{ reviews.count }})</span>
 													</div>
+
 													<div class="clinic-details mb-0">
-														<h5 class="clinic-direction"> <i class="fas fa-map-marker-alt"></i> 2286  Sundown Lane, Austin, Texas 78749, USA <br><a href="javascript:void(0);">Get Directions</a></h5>
+														<h5 class="clinic-direction"> <i class="fas fa-map-marker-alt"></i> {{ hospital.city.name }} الموقع <br><a href="javascript:void(0);">{{ hospital.location }}</a></h5>
 														<ul>
 															<li>
-																<a href="assets/img/features/feature-01.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-01.jpg" alt="Feature Image">
+																<a href="{% static 'img/features/feature-01.jpg' %}" data-fancybox="gallery2">
+																	<img src="{% static 'img/features/feature-01.jpg' %}" alt="Feature Image">
 																</a>
 															</li>
 															<li>
-																<a href="assets/img/features/feature-02.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-02.jpg" alt="Feature Image">
+																<a href="{% static 'img/features/feature-02.jpg' %}" data-fancybox="gallery2">
+																	<img src="{% static 'img/features/feature-02.jpg' %}" alt="Feature Image">
 																</a>
 															</li>
 															<li>
-																<a href="assets/img/features/feature-03.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-03.jpg" alt="Feature Image">
+																<a href="{% static 'img/features/feature-03.jpg' %}" data-fancybox="gallery2">
+																	<img src="{% static 'img/features/feature-03.jpg' %}" alt="Feature Image">
 																</a>
 															</li>
 															<li>
-																<a href="assets/img/features/feature-04.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-04.jpg" alt="Feature Image">
+																<a href="{% static 'img/features/feature-04.jpg' %}" data-fancybox="gallery2">
+																	<img src="{% static 'img/features/feature-04.jpg' %}" alt="Feature Image">
 																</a>
 															</li>
 														</ul>
 													</div>
 												</div>
+												{% endfor %}
 											</div>
 											<!-- /Clinic Content -->
-											
-											<!-- Clinic Timing -->
+
 											<div class="col-md-4">
 												<div class="clinic-timing">
-													<div>
+													{% for schedule in doctor.schedules.all %}
+													<div class="schedule-item">
 														<p class="timings-days">
-															<span> Mon - Sat </span>
+															<span>{{ schedule.day }}</span>
 														</p>
 														<p class="timings-times">
-															<span>10:00 AM - 2:00 PM</span>
-															<span>4:00 PM - 9:00 PM</span>
+															<span>{{ schedule.start_time }} - {{ schedule.end_time }}</span>
+														</p>
+														<p class="timings-days">
+															<span>مواعيد متاحة</span>: <span>{{ schedule.available_slots }}</span>
 														</p>
 													</div>
-													<div>
-													<p class="timings-days">
-														<span>Sun</span>
-													</p>
-													<p class="timings-times">
-														<span>10:00 AM - 2:00 PM</span>
-													</p>
-													</div>
+													<hr> <!-- خط فاصل بين المواعيد -->
+													{% endfor %}
 												</div>
 											</div>
 											<!-- /Clinic Timing -->
-											
-											<div class="col-md-2">
-												<div class="consult-price">
-													$250
+
+											<div class="col-md-4">
+												<div class="consult-price text-left">
+													<h4>السعر</h4>
+													<p>{{ pricing.amount }} $</p>
 												</div>
 											</div>
+											<!-- /Price -->
 										</div>
 									</div>
+
 									<!-- /Location List -->
 									
-									<!-- Location List -->
-									<div class="location-list">
-										<div class="row">
-										
-											<!-- Clinic Content -->
-											<div class="col-md-6">
-												<div class="clinic-content">
-													<h4 class="clinic-name"><a href="#">The Family Dentistry Clinic</a></h4>
-													<p class="doc-speciality">MDS - Periodontology and Oral Implantology, BDS</p>
-													<div class="rating">
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star filled"></i>
-														<i class="fas fa-star"></i>
-														<span class="d-inline-block average-rating">(4)</span>
-													</div>
-													<div class="clinic-details mb-0">
-														<p class="clinic-direction"> <i class="fas fa-map-marker-alt"></i> 2883  University Street, Seattle, Texas Washington, 98155 <br><a href="javascript:void(0);">Get Directions</a></p>
-														<ul>
-															<li>
-																<a href="assets/img/features/feature-01.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-01.jpg" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="assets/img/features/feature-02.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-02.jpg" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="assets/img/features/feature-03.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-03.jpg" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="assets/img/features/feature-04.jpg" data-fancybox="gallery2">
-																	<img src="assets/img/features/feature-04.jpg" alt="Feature Image">
-																</a>
-															</li>
-														</ul>
-													</div>
-
-												</div>
-											</div>
-											<!-- /Clinic Content -->
-											
-											<!-- Clinic Timing -->
-											<div class="col-md-4">
-												<div class="clinic-timing">
-													<div>
-														<p class="timings-days">
-															<span> Tue - Fri </span>
-														</p>
-														<p class="timings-times">
-															<span>11:00 AM - 1:00 PM</span>
-															<span>6:00 PM - 11:00 PM</span>
-														</p>
-													</div>
-													<div>
-														<p class="timings-days">
-															<span>Sat - Sun</span>
-														</p>
-														<p class="timings-times">
-															<span>8:00 AM - 10:00 AM</span>
-															<span>3:00 PM - 7:00 PM</span>
-														</p>
-													</div>
-												</div>
-											</div>
-											<!-- /Clinic Timing -->
-											
-											<div class="col-md-2">
-												<div class="consult-price">
-													$350
-												</div>
-											</div>
-										</div>
-									</div>
-									<!-- /Location List -->
-
 								</div>
 								<!-- /Locations Content -->
 								
@@ -514,90 +424,7 @@
 													</div>
 												</div>
 												
-												<!-- Comment Reply -->
-												<ul class="comments-reply">
-													<li>
-														<div class="comment">
-															<img class="avatar avatar-sm rounded-circle" alt="User Image" src="assets/img/patients/patient1.jpg">
-															<div class="comment-body">
-																<div class="meta-data">
-																	<span class="comment-author">Charlene Reed</span>
-																	<span class="comment-date">Reviewed 3 Days ago</span>
-																	<div class="review-count rating">
-																		<i class="fas fa-star filled"></i>
-																		<i class="fas fa-star filled"></i>
-																		<i class="fas fa-star filled"></i>
-																		<i class="fas fa-star filled"></i>
-																		<i class="fas fa-star"></i>
-																	</div>
-																</div>
-																<p class="comment-content">
-																	Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-																	sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-																	Ut enim ad minim veniam.
-																	Curabitur non nulla sit amet nisl tempus
-																</p>
-																<div class="comment-reply">
-																	<a class="comment-btn" href="#">
-																		<i class="fas fa-reply"></i> Reply
-																	</a>
-																	<p class="recommend-btn">
-																		<span>Recommend?</span>
-																		<a href="#" class="like-btn">
-																			<i class="far fa-thumbs-up"></i> Yes
-																		</a>
-																		<a href="#" class="dislike-btn">
-																			<i class="far fa-thumbs-down"></i> No
-																		</a>
-																	</p>
-																</div>
-															</div>
-														</div>
-													</li>
-												</ul>
-												<!-- /Comment Reply -->
 												
-											</li>
-											<!-- /Comment List -->
-											
-											<!-- Comment List -->
-											<li>
-												<div class="comment">
-													<img class="avatar avatar-sm rounded-circle" alt="User Image" src="assets/img/patients/patient2.jpg">
-													<div class="comment-body">
-														<div class="meta-data">
-															<span class="comment-author">Travis Trimble</span>
-															<span class="comment-date">Reviewed 4 Days ago</span>
-															<div class="review-count rating">
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star"></i>
-															</div>
-														</div>
-														<p class="comment-content">
-															Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-															sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-															Ut enim ad minim veniam, quis nostrud exercitation.
-															Curabitur non nulla sit amet nisl tempus
-														</p>
-														<div class="comment-reply">
-															<a class="comment-btn" href="#">
-																<i class="fas fa-reply"></i> Reply
-															</a>
-															<p class="recommend-btn">
-																<span>Recommend?</span>
-																<a href="#" class="like-btn">
-																	<i class="far fa-thumbs-up"></i> Yes
-																</a>
-																<a href="#" class="dislike-btn">
-																	<i class="far fa-thumbs-down"></i> No
-																</a>
-															</p>
-														</div>
-													</div>
-												</div>
 											</li>
 											<!-- /Comment List -->
 											

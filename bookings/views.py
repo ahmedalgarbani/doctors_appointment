@@ -7,6 +7,7 @@ from doctors.models import Doctor, DoctorSchedules
 from .models import Booking
 import json
 
+# عرض حجز الطبيب
 # Create your views here.
 
 @login_required
@@ -14,6 +15,7 @@ def booking_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     is_online = request.GET.get('type') == 'online'
     
+    # الحصول على الجداول المتاحة للطبيب
     # Get available schedules for the doctor
     schedules = DoctorSchedules.objects.filter(
         doctor=doctor
@@ -27,6 +29,10 @@ def booking_view(request, doctor_id):
     
     return render(request, 'frontend/home/pages/booking.html', context)
 
+# الحصول على الوقت المتاح للطبيب في يوم محدد
+@login_required
+def get_available_slots(request, doctor_id):
+    """نقطة النهاية API للحصول على الفترات المتاحة لليوم المحدد"""
 @login_required
 def get_available_slots(request, doctor_id):
     """API endpoint to get available slots for a specific date"""
@@ -39,12 +45,14 @@ def get_available_slots(request, doctor_id):
             
         doctor = get_object_or_404(Doctor, id=doctor_id)
         
+        # الحصول على الجداول للطبيب في اليوم المحدد
         # Get schedules for the specified date
         schedules = DoctorSchedules.objects.filter(
             doctor=doctor,
             day=date
         )
         
+        # الحصول على الحجوزات الموجودة في هذا اليوم
         # Get existing bookings for the date
         existing_bookings = Booking.objects.filter(
             doctor=doctor,
@@ -63,6 +71,7 @@ def get_available_slots(request, doctor_id):
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+# إنشاء حجز جديد
 @login_required
 def create_booking(request, doctor_id):
     if request.method == 'POST':
@@ -80,6 +89,7 @@ def create_booking(request, doctor_id):
             
             doctor = get_object_or_404(Doctor, id=doctor_id)
             
+            # التحقق من وجود الجدول المتاح
             # Check if slot is still available
             schedule = DoctorSchedules.objects.filter(
                 doctor=doctor,
@@ -92,6 +102,7 @@ def create_booking(request, doctor_id):
                     'error': 'This slot is no longer available'
                 }, status=400)
             
+            # إنشاء الحجز
             # Create the booking
             booking = Booking.objects.create(
                 doctor=doctor,
@@ -102,6 +113,7 @@ def create_booking(request, doctor_id):
                 notes=notes
             )
             
+            # تقليل الفترات المتاحة
             # Decrease available slots
             schedule.available_slots -= 1
             schedule.save()
@@ -124,6 +136,7 @@ def create_booking(request, doctor_id):
         'error': 'Invalid request method'
     }, status=405)
 
+# عرض صفحة الدفع
 @login_required
 def payment_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
@@ -140,17 +153,20 @@ def payment_view(request, doctor_id):
     
     return render(request, 'frontend/home/pages/payment.html', context)
 
+# إلغاء الحجز
 @login_required
 def cancel_booking(request, booking_id):
     if request.method == 'POST':
         booking = get_object_or_404(Booking, id=booking_id, patient=request.user)
         
+        # السماح بالإلغاء فقط للحجوزات التي هي في حالة "قيد الانتظار" أو "مؤكدة"
         # Only allow cancellation of pending or confirmed bookings
         if booking.status not in ['pending', 'confirmed']:
             return JsonResponse({
                 'error': 'Cannot cancel this booking'
             }, status=400)
         
+        # زيادة الفترات المتاحة مرة أخرى
         # Increase available slots back
         schedule = DoctorSchedules.objects.filter(
             doctor=booking.doctor,
