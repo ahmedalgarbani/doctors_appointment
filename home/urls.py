@@ -6,13 +6,20 @@ from django.conf.urls.static import static
 app_name = 'home'
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    # path('faq', views.faq_page, name='faq'),
+    path('', views.index, name='home'),
+    path('faq', views.faq_page, name='faq'),
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
-    # path('privacy-policy',views.privacy_policy,name='privacy_policy'),
-    # path('terms-condition',views.terms_condition,name='terms_condition'),
-    # path('about-us',views.about_us,name='about_us'),
+    path('privacy-policy',views.privacy_policy,name='privacy_policy'),
+    path('terms-condition',views.terms_condition,name='terms_condition'),
+    path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
     path('search/', views.search_view, name='search_view'),
+    
+    # صفحة عرض الأطباء (الملف الشخصي للأطباء)
+    path('doctors/profile/', views.profile, name='doctors_profile'),
+    
+    # صفحة تفاصيل الطبيب (باستخدام ID الطبيب)
+    path('doctors/<int:doctor_id>/', views.doctor_profile, name='doctor_profile'),
+
     path('booking/<int:doctor_id>/', views.booking_view, name='booking'),
     path('get-time-slots/<int:schedule_id>/<int:doctor_id>', views.get_time_slots, name='get_time_slots'),
     path('payment/', views.payment_process, name='payment'),
@@ -21,5 +28,4 @@ urlpatterns = [
 
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

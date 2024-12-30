@@ -7,13 +7,13 @@ from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
 from hospitals.models import City, Hospital
 from reviews.models import Review
-import logging
-from django.shortcuts import render
 from blog.models import Post
 from datetime import datetime
 from datetime import timedelta
 from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import logging
+
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from bookings.models import Booking
@@ -74,66 +74,61 @@ def index(request):
 
     try:
         posts = Post.objects.filter(status=True)
-        logger.info('Retrieved latest artichal section')
+        logger.info('Retrieved latest article section')
     except Exception as e:
-        logger.error(f'Failed to retrieve latest artichal section: {str(e)}')
+        logger.error(f'Failed to retrieve latest article section: {str(e)}')
 
     try:
         setting = Setting.objects.first()
         logger.info('Retrieved latest setting section')
     except Exception as e:
-        logger.error(f'Failed to retrieve setting artichal section: {str(e)}')
+        logger.error(f'Failed to retrieve setting article section: {str(e)}')
 
     try:
-        cities = City.objects.filter(status = True)
+        cities = City.objects.filter(status=True)
         logger.info('Retrieved latest city section')
-      
     except Exception as e:
-        logger.error(f'Failed to retrieve city artichal section: {str(e)}')
+        logger.error(f'Failed to retrieve city article section: {str(e)}')
 
     ctx = {
-        'homeBanner':homeBanner,
-        'specialities':specialities,
-        'workSection':workSection,
-        'appSection':appSection,
-        'faqSection':faqSection,
-        'testimonialSection':testimonialSection,
-        'partnersSection':partnersSection,
-        'socialMediaLinks':socialMediaLinks,
-        'posts':posts,
-        'setting':setting,
-        'cities':cities
+        'homeBanner': homeBanner,
+        'specialities': specialities,
+        'workSection': workSection,
+        'appSection': appSection,
+        'faqSection': faqSection,
+        'testimonialSection': testimonialSection,
+        'partnersSection': partnersSection,
+        'socialMediaLinks': socialMediaLinks,
+        'posts': posts,
+        'setting': setting,
+        'cities': cities
     }
     logger.info('Context created successfully')
-    return render(request,'frontend/home/index.html',ctx)
-
+    return render(request, 'frontend/home/index.html', ctx)
 
 def faq_page(request):
     faqs = FAQSection.objects.first()
 
     ctx = {
-        'faqs':faqs
+        'faqs': faqs
     }
-    return render(request,'frontend/home/pages/faq.html',ctx)
+    return render(request, 'frontend/home/pages/faq.html', ctx)
+
 def privacy_policy(request):
     privacyPolicy = PrivacyPolicy.objects.first()
 
     ctx = {
-        'privacyPolicy':privacyPolicy
+        'privacyPolicy': privacyPolicy
     }
-    return render(request,'frontend/home/pages/privacy-policy.html',ctx)
-
+    return render(request, 'frontend/home/pages/privacy-policy.html', ctx)
 
 def terms_condition(request):
     termsCondition = TermsConditions.objects.first()
 
     ctx = {
-        'termsCondition':termsCondition
+        'termsCondition': termsCondition
     }
-    return render(request,'frontend/home/pages/term-condition.html',ctx)
-
-
-
+    return render(request, 'frontend/home/pages/term-condition.html', ctx)
 
 def search_view(request):
     search_text = request.GET.get('search', '').strip()  
@@ -164,7 +159,7 @@ def search_view(request):
     if gender:
         gender_map = {
             'male': 1,    # Doctor.STATUS_MALE
-            'female': 0   # Doctor.STATUS_FAMEL
+            'female': 0   # Doctor.STATUS_FEMALE
         }
         gender_value = gender_map.get(gender.lower())
         logger.info(f"Mapped gender value: {gender_value}")
@@ -281,6 +276,34 @@ def search_view(request):
     }
 
     return render(request, 'frontend/home/pages/search.html', ctx)
+
+def profile(request):
+    doctors = Doctor.objects.filter(status=True)
+    
+    ctx = {
+        'doctors': doctors,
+    }
+
+    return render(request, 'frontend/home/pages/profile.html', ctx)
+
+def doctor_profile(request, doctor_id):
+    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
+
+    reviews = Review.objects.filter(doctor=doctor, status=True)
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
+
+    ctx = {
+        'doctor': doctor,
+        'reviews': reviews,
+        'average_rating': average_rating,
+        'pricing': pricing,
+        'hospitals': doctor.hospitals.all(),
+    }
+
+    return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
+
 
 
 

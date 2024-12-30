@@ -10,75 +10,74 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('doctors', '0002_initial'),
-        ('hospitals', '0001_initial'),
+        ('blog', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hospital',
+            model_name='category',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='hospital',
-            name='hospital_manager',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='hospital',
+            model_name='category',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='hospitalaccountrequest',
+            model_name='comment',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='hospitalaccountrequest',
-            name='reviewed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_hospital_requests', to=settings.AUTH_USER_MODEL, verbose_name='تمت المراجعة بواسطة'),
-        ),
-        migrations.AddField(
-            model_name='hospitalaccountrequest',
+            model_name='comment',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='hospitaldetail',
+            model_name='comment',
+            name='user',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_comments', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='post',
+            name='author',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='post',
+            name='categories',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to='blog.category'),
+        ),
+        migrations.AddField(
+            model_name='post',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='hospitaldetail',
-            name='hospital',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='details', to='hospitals.hospital'),
-        ),
-        migrations.AddField(
-            model_name='hospitaldetail',
-            name='specialty',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='doctors.specialty'),
-        ),
-        migrations.AddField(
-            model_name='hospitaldetail',
+            model_name='post',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
         ),
         migrations.AddField(
-            model_name='phonenumber',
+            model_name='comment',
+            name='post',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='blog.post'),
+        ),
+        migrations.AddField(
+            model_name='tag',
             name='created_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='المنشى'),
         ),
         migrations.AddField(
-            model_name='phonenumber',
-            name='hospital',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='phone_numbers', to='hospitals.hospital'),
-        ),
-        migrations.AddField(
-            model_name='phonenumber',
+            model_name='tag',
             name='updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='المعدل'),
+        ),
+        migrations.AddField(
+            model_name='post',
+            name='tags',
+            field=models.ManyToManyField(related_name='posts', to='blog.tag'),
         ),
     ]
