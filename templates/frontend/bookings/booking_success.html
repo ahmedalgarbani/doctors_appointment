@@ -1,0 +1,44 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+{% block content %}
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar-two">
+        <div class="container">
+            <div class="row align-items-center inner-banner">
+                <div class="col-md-12 col-12 text-center">
+                    <h2 class="breadcrumb-title">Booking Success</h2>
+                    <nav aria-label="breadcrumb" class="page-breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
+                            <li class="breadcrumb-item" aria-current="page">Booking Success</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Breadcrumb -->
+    
+    <!-- Page Content -->
+    <div class="content success-page-cont">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <!-- Success Card -->
+                    <div class="card success-card">
+                        <div class="card-body">
+                            <div class="success-cont">
+                                <i class="fas fa-check"></i>
+                                <h3>Appointment booked Successfully!</h3>
+                                <p>Appointment booked with <strong>Dr. {{ booking.doctor.full_name }}</strong><br> on <strong>{{ booking.appointment_date|date:"l, F j, Y" }}</strong> at <strong>{{ booking.appointment_time }}</strong></p>
+                                <a href="{% url 'home:index' %}" class="btn btn-primary view-inv-btn">Back to Home</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /Success Card -->
+                </div>
+            </div>
+        </div>
+    </div>		
+    <!-- /Page Content -->
+{% endblock %}

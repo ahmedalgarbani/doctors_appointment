@@ -27,4 +27,5 @@ class ReviewAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('user', 'created_at')
         return self.readonly_fields
 
-    readonly_fields = ('created_at',) 
+    readonly_fields = ('created_at',)
+

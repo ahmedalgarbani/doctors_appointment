@@ -39,7 +39,6 @@ def doctor_index(request, slug):
         'patients': patients,
     }
     
-    
     if not today_bookings and not upcoming_bookings:
         context['no_bookings_message'] = "لا توجد حجوزات لهذا اليوم أو الأيام القادمة."
     
