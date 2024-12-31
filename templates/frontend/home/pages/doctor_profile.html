@@ -82,7 +82,7 @@
 									</ul>
 								</div>
 								<div class="doctor-action">
-									<a href="javascript:void(0)" class="btn btn-white fav-btn">
+									<a href="javascript:void(0)" class="btn {% if isFavorite.exists %} btn-red {% else %} btn-white {% endif %} fav-btn" data-doctor-id="{{ doctor.id }}">
 										<i class="far fa-bookmark"></i>
 									</a>
 								</div>
@@ -104,16 +104,16 @@
 							<nav class="user-tabs mb-4">
 								<ul class="nav nav-tabs nav-tabs-bottom nav-justified">
 									<li class="nav-item">
-										<a class="nav-link active" href="#doc_overview" data-bs-toggle="tab">Overview</a>
+										<a class="nav-link active" href="#doc_overview" data-bs-toggle="tab">لمحه</a>
 									</li>
 									<li class="nav-item">
-										<a class="nav-link" href="#doc_locations" data-bs-toggle="tab">Locations</a>
+										<a class="nav-link" href="#doc_locations" data-bs-toggle="tab">الموفع</a>
 									</li>
 									<li class="nav-item">
-										<a class="nav-link" href="#doc_reviews" data-bs-toggle="tab">Reviews</a>
+										<a class="nav-link" href="#doc_reviews" data-bs-toggle="tab">التقييمات</a>
 									</li>
 									<li class="nav-item">
-										<a class="nav-link" href="#doc_business_hours" data-bs-toggle="tab">Business Hours</a>
+										<a class="nav-link" href="#doc_business_hours" data-bs-toggle="tab">ساعات العمل</a>
 									</li>
 								</ul>
 							</nav>
@@ -129,158 +129,19 @@
 										
 											<!-- About Details -->
 											<div class="widget about-widget">
-												<h4 class="widget-title">About Me</h4>
-												<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+												<h4 class="widget-title">نبذه عن الطبيب</h4>
+												<p>{{doctor.sub_title}}</p>
 											</div>
 											<!-- /About Details -->
-										
-											<!-- Education Details -->
-											<div class="widget education-widget">
-												<h4 class="widget-title">Education</h4>
-												<div class="experience-box">
-													<ul class="experience-list">
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<a href="#/" class="name">American Dental Medical University</a>
-																	<div>BDS</div>
-																	<span class="time">1998 - 2003</span>
-																</div>
-															</div>
-														</li>
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<a href="#/" class="name">American Dental Medical University</a>
-																	<div>MDS</div>
-																	<span class="time">2003 - 2005</span>
-																</div>
-															</div>
-														</li>
-													</ul>
-												</div>
-											</div>
-											<!-- /Education Details -->
-									
-											<!-- Experience Details -->
-											<div class="widget experience-widget">
-												<h4 class="widget-title">Work & Experience</h4>
-												<div class="experience-box">
-													<ul class="experience-list">
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<a href="#/" class="name">Glowing Smiles Family Dental Clinic</a>
-																	<span class="time">2010 - Present (5 years)</span>
-																</div>
-															</div>
-														</li>
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<a href="#/" class="name">Comfort Care Dental Clinic</a>
-																	<span class="time">2007 - 2010 (3 years)</span>
-																</div>
-															</div>
-														</li>
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<a href="#/" class="name">Dream Smile Dental Practice</a>
-																	<span class="time">2005 - 2007 (2 years)</span>
-																</div>
-															</div>
-														</li>
-													</ul>
-												</div>
-											</div>
-											<!-- /Experience Details -->
-								
-											<!-- Awards Details -->
-											<div class="widget awards-widget">
-												<h4 class="widget-title">Awards</h4>
-												<div class="experience-box">
-													<ul class="experience-list">
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<p class="exp-year">July 2023</p>
-																	<h4 class="exp-title">Humanitarian Award</h4>
-																	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin a ipsum tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
-																</div>
-															</div>
-														</li>
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<p class="exp-year">March 2011</p>
-																	<h4 class="exp-title">Certificate for International Volunteer Service</h4>
-																	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin a ipsum tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
-																</div>
-															</div>
-														</li>
-														<li>
-															<div class="experience-user">
-																<div class="before-circle"></div>
-															</div>
-															<div class="experience-content">
-																<div class="timeline-content">
-																	<p class="exp-year">May 2008</p>
-																	<h4 class="exp-title">The Dental Professional of The Year Award</h4>
-																	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin a ipsum tellus. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
-																</div>
-															</div>
-														</li>
-													</ul>
-												</div>
-											</div>
-											<!-- /Awards Details -->
-											
-											<!-- Services List -->
-											<div class="service-list">
-												<h4>Services</h4>
-												<ul class="clearfix">
-													<li>Tooth cleaning </li>
-													<li>Root Canal Therapy</li>
-													<li>Implants</li>
-													<li>Composite Bonding</li>
-													<li>Fissure Sealants</li>
-													<li>Surgical Extractions</li>
-												</ul>
-											</div>
-											<!-- /Services List -->
 											
 											<!-- Specializations List -->
 											<div class="service-list">
-												<h4>Specializations</h4>
+												<h4>Hospitals Where He/SHe Works</h4>
 												<ul class="clearfix">
-													<li>Children Care</li>
-													<li>Dental Care</li>	
-													<li>Oral and Maxillofacial Surgery </li>	
-													<li>Orthodontist</li>	
-													<li>Periodontist</li>	
-													<li>Prosthodontics</li>	
+													{% for hospital in doctor.hospitals.all %}
+													<li>{{hospital.name}}</li>
+													{% endfor %}
+													
 												</ul>
 											</div>
 											<!-- /Specializations List -->
@@ -347,14 +208,18 @@
 													{% for schedule in doctor.schedules.all %}
 													<div class="schedule-item">
 														<p class="timings-days">
-															<span>{{ schedule.day }}</span>
+															<span>{{ schedule.get_day_display }}</span>
 														</p>
-														<p class="timings-times">
-															<span>{{ schedule.start_time }} - {{ schedule.end_time }}</span>
-														</p>
+														
 														<p class="timings-days">
-															<span>مواعيد متاحة</span>: <span>{{ schedule.available_slots }}</span>
+															<span>مواعيد متاحة</span>:
+															<br>
+															{% for shift in schedule.shifts.all %}
+															<span>{{ shift.start_time }} - {{ shift.end_time }}</span>
+															<br>
+														{% endfor %}
 														</p>
+														
 													</div>
 													<hr> <!-- خط فاصل بين المواعيد -->
 													{% endfor %}
@@ -383,114 +248,92 @@
 									<!-- Review Listing -->
 									<div class="widget review-listing">
 										<ul class="comments-list">
-										
-											<!-- Comment List -->
-											<li>
-												<div class="comment">
-													<img class="avatar avatar-sm rounded-circle" alt="User Image" src="assets/img/patients/patient.jpg">
-													<div class="comment-body">
-														<div class="meta-data">
-															<span class="comment-author">Richard Wilson</span>
-															<span class="comment-date">Reviewed 2 Days ago</span>
-															<div class="review-count rating">
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star filled"></i>
-																<i class="fas fa-star"></i>
-															</div>
-														</div>
-														<p class="recommended"><i class="far fa-thumbs-up"></i> I recommend the doctor</p>
-														<p class="comment-content">
-															Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-															sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-															Ut enim ad minim veniam, quis nostrud exercitation.
-															Curabitur non nulla sit amet nisl tempus
-														</p>
-														<div class="comment-reply">
-															<a class="comment-btn" href="#">
-																<i class="fas fa-reply"></i> Reply
-															</a>
-														   <p class="recommend-btn">
-															<span>Recommend?</span>
-															<a href="#" class="like-btn">
-																<i class="far fa-thumbs-up"></i> Yes
-															</a>
-															<a href="#" class="dislike-btn">
-																<i class="far fa-thumbs-down"></i> No
-															</a>
-														</p>
-														</div>
-													</div>
+										{% if reviews.count > 0 %}
+										{% for review in reviews %}
+										<!-- Comment List -->
+										<li>
+											<div class="comment">
+												{% if review.user.profile_picture %}
+												
+												<img class="avatar avatar-sm rounded-circle" alt="User Image" src="{{review.user.profile_picture.url}}">
+												{% endif %}
+												<div class="comment-body">
+													<div class="meta-data">
+														<span class="comment-author">{{ review.user.full_name }}</span>
+														<span class="comment-date">Reviewed {{ review.created_at }}</span>
+														<div class="review-count rating">
+															<i class="fas fa-star {% if review.rating >= 1 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if review.rating >= 2 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if review.rating >= 3 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
+										<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
+										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
 												</div>
-												
-												
-											</li>
-											<!-- /Comment List -->
+													</div>
+													{% comment %} <p class="recommended"><i class="far fa-thumbs-up"></i> I recommend the doctor</p> {% endcomment %}
+													<p class="comment-content">
+														{{review.review}}
+													</p>
+													
+												</div>
+											</div>
+											
+											
+										</li>
+										<!-- /Comment List -->
+										{% endfor %}
+										
+										{% endif %}
+											
 											
 										</ul>
 										
-										<!-- Show All -->
-										<div class="all-feedback text-center">
-											<a href="#" class="btn btn-primary btn-sm">
-												Show all feedback <strong>(167)</strong>
-											</a>
-										</div>
-										<!-- /Show All -->
+										
 										
 									</div>
 									<!-- /Review Listing -->
 								
 									<!-- Write Review -->
 									<div class="write-review">
-										<h4>Write a review for <strong>Dr. Darren Elder</strong></h4>
+										<h4>Write a review for <strong>Dr. {{ doctor.full_name }}</strong></h4>
 										
 										<!-- Write Review Form -->
-										<form>
+										<form method="post" action='{% url "home:doctor_profile" doctor.id  %}' > 
+											{% csrf_token %}
 											<div class="mb-3">
 												<label class="mb-2">Review</label>
 												<div class="star-rating">
-													<input id="star-5" type="radio" name="rating" value="star-5">
+													<input id="star-5" type="radio" name="rating" value="5">
 													<label for="star-5" title="5 stars">
 														<i class="active fa fa-star"></i>
 													</label>
-													<input id="star-4" type="radio" name="rating" value="star-4">
+													<input id="star-4" type="radio" name="rating" value="4">
 													<label for="star-4" title="4 stars">
 														<i class="active fa fa-star"></i>
 													</label>
-													<input id="star-3" type="radio" name="rating" value="star-3">
+													<input id="star-3" type="radio" name="rating" value="3">
 													<label for="star-3" title="3 stars">
 														<i class="active fa fa-star"></i>
 													</label>
-													<input id="star-2" type="radio" name="rating" value="star-2">
+													<input id="star-2" type="radio" name="rating" value="2">
 													<label for="star-2" title="2 stars">
 														<i class="active fa fa-star"></i>
 													</label>
-													<input id="star-1" type="radio" name="rating" value="star-1">
+													<input id="star-1" type="radio" name="rating" value="1">
 													<label for="star-1" title="1 star">
 														<i class="active fa fa-star"></i>
 													</label>
 												</div>
 											</div>
-											<div class="mb-3">
-												<label class="mb-2">Title of your review</label>
-												<input class="form-control" type="text" placeholder="If you could say it in one sentence, what would you say?">
-											</div>
+											
 											<div class="mb-3">
 												<label class="mb-2">Your review</label>
-												<textarea id="review_desc" maxlength="100" class="form-control"></textarea>
+												<textarea id="review_desc" maxlength="100" name="review" class="form-control"></textarea>
 											  
 											  <div class="d-flex justify-content-between mt-3"><small class="text-muted"><span id="chars">100</span> characters remaining</small></div>
 											</div>
 											<hr>
-											<div class="mb-3">
-												<div class="terms-accept">
-													<div class="custom-checkbox">
-													   <input type="checkbox" id="terms_accept">
-													   <label for="terms_accept">I have read and accept <a href="#">Terms &amp; Conditions</a></label>
-													</div>
-												</div>
-											</div>
+											
 											<div class="submit-section">
 												<button type="submit" class="btn btn-primary submit-btn">Add Review</button>
 											</div>
@@ -512,55 +355,42 @@
 											<div class="widget business-widget">
 												<div class="widget-content">
 													<div class="listing-hours">
+														{% for schedule in doctor.schedules.all %}
+														{% if  day_name == schedule.get_day_display  %}
 														<div class="listing-day current">
-															<div class="day">Today <span>5 Nov 2023</span></div>
+															<div class="day">Today <span>{{day_date}}</span></div>
 															<div class="time-items">
 																<span class="open-status"><span class="badge bg-success-light">Open Now</span></span>
-																<span class="time">07:00 AM - 09:00 PM</span>
+																{% for shift in schedule.shifts.all %}
+																<span class="time">{{shift.start_time}} - {{shift.end_time}}</span>
+																{% endfor %}
 															</div>
 														</div>
+														{% endif %}
+
+														{% endfor %}
+
+
+														{% for schedule in doctor.schedules.all %}
+														{% if  day_name != schedule.get_day_display  %}
 														<div class="listing-day">
-															<div class="day">Monday</div>
+															<div class="day">{{schedule.get_day_display}}</div>
 															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
+																<br>
+																{% for shift in schedule.shifts.all %}
+																<span class="time">{{shift.start_time}} - {{shift.end_time}}</span>
+																{% endfor %}
 															</div>
 														</div>
-														<div class="listing-day">
-															<div class="day">Tuesday</div>
-															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
-															</div>
-														</div>
-														<div class="listing-day">
-															<div class="day">Wednesday</div>
-															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
-															</div>
-														</div>
-														<div class="listing-day">
-															<div class="day">Thursday</div>
-															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
-															</div>
-														</div>
-														<div class="listing-day">
-															<div class="day">Friday</div>
-															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
-															</div>
-														</div>
-														<div class="listing-day">
-															<div class="day">Saturday</div>
-															<div class="time-items">
-																<span class="time">07:00 AM - 09:00 PM</span>
-															</div>
-														</div>
-														<div class="listing-day closed">
+														{% endif %}
+
+														{% endfor %}
+														{% comment %} <div class="listing-day closed">
 															<div class="day">Sunday</div>
 															<div class="time-items">
 																<span class="time"><span class="badge bg-danger-light">Closed</span></span>
 															</div>
-														</div>
+														</div> {% endcomment %}
 													</div>
 												</div>
 											</div>
@@ -580,4 +410,47 @@
 			</div>		
 			<!-- /Page Content -->
    
+			
+						
+			<script>
+				document.querySelectorAll('.fav-btn').forEach(function(button) {
+					button.addEventListener('click', function() {
+						var doctorId = this.getAttribute('data-doctor-id');
+						
+						fetch("{% url 'home:add_to_favorites' %}", {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',  
+								'X-CSRFToken': '{{ csrf_token }}', 
+							},
+							body: JSON.stringify({
+								'doctor_id': doctorId,
+							}),
+						})
+						.then(response => response.json())  
+						.then(data => {
+							if (data.status === 'success') {
+								var icon = button.querySelector('i');
+								
+								if (!button.classList.contains('btn-red')) {
+									button.classList.add('btn-red');
+								} else {
+									button.classList.remove('btn-red');
+								}
+								/*
+								alert(data.message);
+								*/
+							} else {
+								/*
+								alert(data.message);
+								*/
+							}
+						})
+						.catch(error => {
+							console.error('Error:', error);
+						});
+					});
+				});
+			</script>
+									
             {% endblock %}

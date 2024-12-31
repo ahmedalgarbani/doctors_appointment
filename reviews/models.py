@@ -2,12 +2,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from hospitals.models import Hospital
 from doctors.models import Doctor
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from hospitals.models import BaseModel
+from patients.models import Patients
 
-class Review(BaseModel):
+
+class Review(models.Model):
     hospital = models.ForeignKey(
         Hospital, 
         on_delete=models.CASCADE,
@@ -25,11 +23,12 @@ class Review(BaseModel):
         blank=True  
     )
     user = models.ForeignKey(
-        get_user_model(),
-        verbose_name=_("صاحب المراجعة"),
+        Patients,
         on_delete=models.CASCADE,
+        verbose_name=_("صاحب المراجعة"),
         related_name='reviews'
     )
+   
     rating = models.PositiveSmallIntegerField(
         verbose_name=_("التقييم"),
         choices=[(i, f"{i} نجوم" if i > 1 else "نجمة واحدة") for i in range(1, 6)],
@@ -56,21 +55,27 @@ class Review(BaseModel):
         verbose_name = _("مراجعة")
         verbose_name_plural = _("المراجعات")
         ordering = ['-created_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['hospital', 'user'],
-                name='unique_hospital_user_review'
-            )
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=['doctor', 'user'],
+        #         name='unique_doctor_user_review'
+        #     ),
+        #     models.UniqueConstraint(
+        #         fields=['hospital', 'user'],
+        #         name='unique_hospital_user_review'
+        #     ),
+        # ]
 
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.hospital.name if self.hospital else 'غير محدد'} ({self.rating} نجوم)"
+        target = self.doctor.full_name if self.doctor else self.hospital.name if self.hospital else "غير محدد"
+        return f"{self.user.get_full_name()} - {target} ({self.rating} نجوم)" 
 
-    def clean(self):
-        super().clean()
-        if not self.has_reservation:
-            bookings = self.user.bookings.filter(hospital=self.hospital).exists()
-            if bookings:
-                self.has_reservation = True
-            else:
-                raise ValidationError(_("لا يمكنك كتابة مراجعة لمستشفى او طبيب لم تقم بالحجز عنده"))
+
+    # def clean(self):
+    #     super().clean()
+    #     if not self.has_reservation:
+    #         bookings = self.user.bookings.filter(hospital=self.hospital).exists()
+    #         if bookings:
+    #             self.has_reservation = True
+    #         else:
+    #             raise ValidationError(_("لا يمكنك كتابة مراجعة لمستشفى او طبيب لم تقم بالحجز عنده"))

@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from datetime import datetime
 from home.helpers import group_shifts_by_period
-from  patients.models import Patients
+from  patients.models import Favourites, Patients
 from payments.models import ChoosePayment, Payment, PaymentMethod, PaymentStatus
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
@@ -144,25 +144,64 @@ def profile(request):
 
     return render(request, 'frontend/home/pages/profile.html', ctx)
 
+from math import floor
 def doctor_profile(request, doctor_id):
     doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
-
     reviews = Review.objects.filter(doctor=doctor, status=True)
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-
-    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
-
+    average_rating =  int(floor(average_rating))
+    pricing = doctor.pricing.first() 
+    if request.method == 'POST':
+         Review.objects.create(
+            doctor_id = doctor_id,
+            user = get_object_or_404(Patients,id=1),
+            rating = request.POST.get('rating'),
+            review = request.POST.get('review'),
+            )
+    day_date = datetime.now()  
+    day_name = day_date.strftime("%A")
+    day_date = day_date.strftime("%Y-%m-%d")
+    patient = get_object_or_404(Patients,id=1)
+    isFavorite = patient.favourites.filter(doctor=doctor)
+   
     ctx = {
         'doctor': doctor,
         'reviews': reviews,
-        'average_rating': average_rating,
+        'average_rating': round(average_rating, 1),
         'pricing': pricing,
+        'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
+        'day_date':day_date,
+        'isFavorite':isFavorite
     }
 
     return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
 
+import json
 
+def add_to_favorites(request):
+    try:
+        data = json.loads(request.body)  
+        doctor_id = data.get('doctor_id')  
+
+        if not doctor_id:
+            return JsonResponse({'status': 'error', 'message': 'No doctor ID provided'})
+
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+
+        favorite_entry = Favourites.objects.filter(patient=get_object_or_404(Patients,id=1), doctor=doctor).first()
+
+        if favorite_entry:
+            favorite_entry.delete()
+            return JsonResponse({'status': 'success', 'message': 'Doctor removed from favorites'})
+        else:
+            Favourites.objects.create(patient=get_object_or_404(Patients,id=1), doctor=doctor)
+            return JsonResponse({'status': 'success', 'message': 'Doctor added to favorites'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 
 def search_view(request):
@@ -292,6 +331,9 @@ def search_view(request):
     ).values('doctor').annotate(
         avg_rating=Avg('rating')
     )
+    doctors_with_ratings = Doctor.objects.annotate(
+        avg_rating=Avg('reviews__rating')
+    )
     ctx = {
         'doctors': doctors_page,
         'page_obj': doctors_page,
@@ -307,6 +349,7 @@ def search_view(request):
             'rating': rating
         },
         'price_range': price_range,
+        'doctors_with_ratings':doctors_with_ratings,
         'doctor_ratings': {r['doctor']: r['avg_rating'] for r in doctor_ratings}
     }
 
