@@ -119,3 +119,8 @@ celerybeat.pid
 .env.development
 .env.test
 .env.production
+
+# Ignore Django migrations
+*/migrations/
+*/migrations/*.py
+!*/migrations/__init__.py
