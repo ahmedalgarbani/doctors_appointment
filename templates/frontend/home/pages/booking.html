@@ -48,7 +48,7 @@
                             data-schedule="{{ schedule.id }}" 
                             data-start="{{ schedule.shifts.start_time|time:'H:i' }}" 
                             data-end="{{ schedule.shifts.end_time|time:'H:i' }}">
-                            <h4>{{ schedule.day }}</h4>
+                            <h4>{{ schedule.get_day_display }}</h4>
                             <p>{{ schedule.date|date:"M d" }}</p>
                         </li>
                         {% endfor %}
@@ -101,7 +101,7 @@
                     <ul class="list-group">
                         {% for schedule in dayes %}
                         <li class="list-group-item">
-                            <i class="fas fa-calendar-alt"></i> {{ schedule.day }}
+                            <i class="fas fa-calendar-alt"></i> {{ schedule.get_day_display }}
                         </li>
                         {% empty %}
                         <li class="list-group-item">No schedules available.</li>

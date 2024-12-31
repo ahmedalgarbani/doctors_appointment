@@ -36,4 +36,4 @@ class PaymentAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         # Optionally restrict adding new payments directly from the admin
-        return False
+        return True

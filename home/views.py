@@ -14,6 +14,11 @@ from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
 
+
+from django.shortcuts import render, get_object_or_404
+from doctors.models import Doctor, DoctorPricing
+from django.db.models import Avg
+from reviews.models import Review
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from bookings.models import Booking
@@ -321,7 +326,7 @@ def booking_view(request, doctor_id):
     schedulesShift = sched.shifts.all()
 
     grouped_slots = group_shifts_by_period(schedulesShift)
-
+  
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
@@ -333,6 +338,20 @@ def booking_view(request, doctor_id):
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)
+
+
+def profile(request):
+    doctors = Doctor.objects.filter(status=True)
+    
+    ctx = {
+        'doctors': doctors,
+    }
+
+    return render(request, 'frontend/home/pages/profile.html', ctx)
+
+
+
+
 
 
 
@@ -400,6 +419,7 @@ def payment_process(request):
             appointment_date=get_object_or_404(DoctorSchedules, id=selected_date.id),
             appointment_time=get_object_or_404(DoctorShifts, id=selected_time.id),
             notes=notes,
+            amount=total,
             status='pending'
         )
        
@@ -420,7 +440,7 @@ def payment_process(request):
         context = {
             'doctor': doctor,
             'hospital': hospital,
-            'selected_date': selected_date.day,
+            'selected_date': selected_date.get_day_display,
             'selected_time': selected_time,
             'subtotal': subtotal,
             'discount': discount,

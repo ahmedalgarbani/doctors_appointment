@@ -1,0 +1,12 @@
+{% block content %}
+<h1>قائمة المستشفيات</h1>
+<ul>
+    {% for hospital in hospitals %}
+        <li>
+            <a href="{% url 'dashboard:hospital_detail' hospital.slug %}">
+                {{ hospital.name }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

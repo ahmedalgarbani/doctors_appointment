@@ -264,7 +264,7 @@
                                 <div class="doctor-widget-one">
                                     <div class="doc-info-left">
                                         <div class="doctor-img">
-                                            <a href="doctor-profile.html">
+                                            <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">
                                               {% if doctor.photo %}
                                                 <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}">
                                             {% else %}
@@ -278,7 +278,7 @@
                                         </div>
                                         <div class="doc-info-cont">
                                             <h4 class="doc-name">
-                                                <a href="doctor-profile.html">{{doctor.full_name}}</a>
+                                                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">{{doctor.full_name}}</a>
                                                 <i class="fas fa-circle-check"></i>
                                             </h4>
                                             <p class="doc-speciality">{{ doctor.specialty.name }}</p>
