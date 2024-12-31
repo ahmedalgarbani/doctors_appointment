@@ -69,6 +69,7 @@ class Booking(models.Model):
         choices=TYPE_CHOICES,
         verbose_name=_("نوع الحجز")
     )
+    notes = models.TextField(blank=True, null=True)
     status = models.CharField(
         max_length=20,
         choices=BOOKING_STATUS,

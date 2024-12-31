@@ -77,7 +77,7 @@ class DoctorSchedules(models.Model):
     day = models.IntegerField(choices=DAY_CHOICES)
 
     def __str__(self):
-        return f"{self.doctor.full_name} - {self.get_day_display()}"
+        return f"{self.doctor} - {self.get_day_display()}"
 
     class Meta:
         ordering = ['day', 'doctor']

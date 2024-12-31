@@ -326,7 +326,7 @@ def booking_view(request, doctor_id):
     schedulesShift = sched.shifts.all()
 
     grouped_slots = group_shifts_by_period(schedulesShift)
-
+  
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
@@ -337,7 +337,7 @@ def booking_view(request, doctor_id):
         
     }
 
-
+    return render(request, 'frontend/home/pages/booking.html', context)
 
 
 def profile(request):
@@ -419,6 +419,7 @@ def payment_process(request):
             appointment_date=get_object_or_404(DoctorSchedules, id=selected_date.id),
             appointment_time=get_object_or_404(DoctorShifts, id=selected_time.id),
             notes=notes,
+            amount=total,
             status='pending'
         )
        
@@ -439,7 +440,7 @@ def payment_process(request):
         context = {
             'doctor': doctor,
             'hospital': hospital,
-            'selected_date': selected_date.day,
+            'selected_date': selected_date.get_day_display,
             'selected_time': selected_time,
             'subtotal': subtotal,
             'discount': discount,

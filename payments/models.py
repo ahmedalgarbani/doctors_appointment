@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 # ------------PaymentStatus-------------
 
-class PaymentStatus(BaseModel):
+class PaymentStatus(models.Model):
     payment_status_name = models.CharField(
         max_length=50,
         verbose_name=_("اسم حالة الدفع")
