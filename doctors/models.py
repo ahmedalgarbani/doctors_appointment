@@ -5,10 +5,10 @@ from django.utils.text import slugify
 
 # نموذج التخصصات
 class Specialty(BaseModel):
-    name = models.CharField(max_length=255, verbose_name="اسم التخصص")
-    image = models.ImageField(upload_to='specialty/', blank=True, null=True, verbose_name="صورة التخصص")
-    show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
-    status = models.BooleanField(default=True, verbose_name="الحالة")
+    name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='specialty/', blank=True, null=True)
+    show_at_home = models.BooleanField(default=True)
+    status = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -16,12 +16,12 @@ class Specialty(BaseModel):
 
 # نموذج الأطباء
 class Doctor(BaseModel):
-    STATUS_FAMEL = 0
+    STATUS_FEMALE = 0
     STATUS_MALE = 1
 
     STATUS_CHOICES = [
-        (STATUS_MALE, 'ذكر'),
-        (STATUS_FAMEL, 'أنثى'),
+        (STATUS_MALE, 'Male'),
+        (STATUS_FEMALE, 'Female'),
     ]
 
     full_name = models.CharField(max_length=255, verbose_name="الاسم الكامل")
@@ -32,7 +32,7 @@ class Doctor(BaseModel):
     photo = models.ImageField(upload_to='doctor_images/', blank=True, null=True, verbose_name="الصورة الشخصية")
     gender = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_MALE, verbose_name="الجنس")
     email = models.EmailField(unique=True, verbose_name="البريد الإلكتروني")
-    experience = models.IntegerField(default=0, verbose_name="الخبرة")
+    experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
     about = models.TextField(verbose_name="نبذة عن الطبيب")
@@ -46,13 +46,14 @@ class Doctor(BaseModel):
         if not self.slug:
             self.slug = slugify(self.full_name)
         
-        if not self.slug:
-            self.slug = 'default-slug'
-
-        # تحقق من وجود الـ slug في قاعدة البيانات وإذا كان مكررًا، أضف معرف فريد
+        # Handle slug duplication
         from django.db.models import Q
-        while Doctor.objects.filter(slug=self.slug).exists():
-            self.slug = f"{self.slug}-{self.id}"
+        unique_slug = self.slug
+        counter = 1
+        while Doctor.objects.filter(slug=unique_slug).exclude(pk=self.pk).exists():
+            unique_slug = f"{self.slug}-{counter}"
+            counter += 1
+        self.slug = unique_slug
 
         super().save(*args, **kwargs)
 
@@ -62,30 +63,44 @@ class Doctor(BaseModel):
 
 # نموذج مواعيد الأطباء
 class DoctorSchedules(models.Model):
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='schedules', verbose_name="الطبيب")
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True, blank=True, verbose_name="المستشفى")
-    day = models.CharField(max_length=20, verbose_name="اليوم")
-    start_time = models.TimeField(verbose_name="وقت البدء")
-    end_time = models.TimeField(verbose_name="وقت الانتهاء")
-    available_slots = models.PositiveIntegerField(default=0, verbose_name="عدد المواعيد المتاحة")
+    DAY_CHOICES = [
+        (0, 'Saturday'),
+        (1, 'Sunday'),
+        (2, 'Monday'),
+        (3, 'Tuesday'),
+        (4, 'Wednesday'),
+        (5, 'Thursday'),
+        (6, 'Friday'),
+    ]
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='schedules')
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True, blank=True)
+    day = models.IntegerField(choices=DAY_CHOICES)
 
     def __str__(self):
-        return f"{self.doctor} - {self.day}"
+        return f"{self.doctor.full_name} - {self.get_day_display()}"
 
     class Meta:
-        verbose_name = "جدول الطبيب"
-        verbose_name_plural = "جداول الأطباء"
-        ordering = ['day', 'start_time']
+        ordering = ['day', 'doctor']
 
 
-# نموذج أسعار الأطباء
+class DoctorShifts(models.Model):
+    doctor_schedule = models.ForeignKey('DoctorSchedules', on_delete=models.CASCADE, related_name='shifts')
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    available_slots = models.PositiveIntegerField(default=0)
+    booked_slots = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Shift: {self.start_time} - {self.end_time}"
+
+
 class DoctorPricing(models.Model):
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='pricing', verbose_name="الطبيب")
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_prices', null=True, blank=True, verbose_name="المستشفى")
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='pricing')
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_prices', null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر")
 
     def __str__(self):
-        hospital_name = self.hospital.name if self.hospital else "لا يوجد مستشفى"
+        hospital_name = self.hospital.name if self.hospital else "No Hospital"
         return f"{self.doctor.full_name} - {hospital_name} - {self.amount}"
 
     class Meta:
