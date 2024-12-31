@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'doctor_a'),
+        'NAME': os.environ.get('DB_NAME', 'doctor_appointment'),
         'USER': os.environ.get('DB_USER', 'root'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
