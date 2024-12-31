@@ -53,7 +53,7 @@ class Patients(BaseModel):
 
 
 class Favourites(BaseModel):
-    patient = models.ForeignKey(  # Link directly to Patients
+    patient = models.ForeignKey( 
         Patients,
         on_delete=models.CASCADE,
         related_name='favourites',

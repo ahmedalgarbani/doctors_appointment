@@ -2,6 +2,7 @@ from django.db import models
 from hospitals.models import BaseModel
 from django.urls import reverse
 from django.utils.text import slugify
+from ckeditor.fields import RichTextField
 
 # نموذج التخصصات
 class Specialty(BaseModel):
@@ -35,7 +36,7 @@ class Doctor(BaseModel):
     experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
-    about = models.TextField(verbose_name="نبذة عن الطبيب")
+    about = RichTextField()
     status = models.BooleanField(default=True, verbose_name="الحالة")
     show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
 

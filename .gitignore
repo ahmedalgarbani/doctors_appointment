@@ -122,5 +122,6 @@ celerybeat.pid
 
 # Ignore Django migrations
 */migrations/
+*./migrations/
 */migrations/*.py
 !*/migrations/__init__.py
