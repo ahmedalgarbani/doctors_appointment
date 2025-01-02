@@ -95,13 +95,17 @@
                                                 <td>
                                                     <h2 class="table-avatar">
                                                         <a href="#" class="avatar avatar-sm me-2">
+                                                            {% if patient.profile_picture %}
                                                             <img class="avatar-img rounded-circle" src="{{ patient.profile_picture.url }}" alt="User Image">
+                                                            {% else %}
+                                                            <img src="{% static 'img/profiel.jpg' %}" alt="Default Profile Picture">
+                                                            {% endif %}
                                                         </a>
                                                         <a href="#">{{ booking.patient }} <span>#PT{{ booking.patient.id }}</span></a>
                                                     </h2>
                                                 </td>
                                                 <td>{{ booking.doctor }}</td>
-                                                <td>{{ booking.date }} <span class="d-block text-info">{{ booking.time }}</span></td>
+                                                <td>{{ booking.appointment_date }} <span class="d-block text-info">{{ booking.appointment_time }}</span></td>
                                                 <td>{{ booking.get_purpose_display }}</td>
                                                 <td>{{ booking.get_type_display }}</td>
                                                 <td>${{ booking.amount }}</td>
@@ -161,7 +165,7 @@
                                                     </h2>
                                                 </td>
                                                 <td>{{ booking.doctor.name }}</td>
-                                                <td>{{ booking.date }} <span class="d-block text-info">{{ booking.time }}</span></td>
+                                                <td>{{ booking.appointment_date }} <span class="d-block text-info">{{ booking.appointment_time }}</span></td>
                                                 <td>{{ booking.get_purpose_display }}</td>
                                                 <td>{{ booking.get_type_display }}</td>
 												<td>${{ booking.amount }}</td>
