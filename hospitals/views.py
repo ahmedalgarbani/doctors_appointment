@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 
 def index(request):
     
-    return render(request, 'frontend/dashboard/patient/index.html')
+    return render(request, 'frontend/dashboard/hospitals/index.html')
 
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
