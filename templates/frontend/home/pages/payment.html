@@ -1,85 +1,74 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
 
-
 {% block content %}
 <!-- Page Content -->
 <div class="doctor-content">
     <div class="container">
-
         <!-- Payment -->
         <div class="row">
             <div class="col-md-12">
                 <div class="back-link">
-                    <a href="{% url 'home:booking' doctor.id %}"><i class="fa-solid fa-arrow-left-long"></i> Back</a>
+                    <a href="{% url 'home:booking' doctor.id %}"><i class="fa-solid fa-arrow-right-long"></i> رجوع</a>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-lg-8 col-md-12">
                 <div class="paitent-header">
-                    <h4 class="paitent-title">Payment</h4>
+                    <h4 class="paitent-title">الدفع</h4>
                 </div>
                 <div class="booking-header">
-                    <h4 class="booking-title">Payments Methods</h4>
+                    <h4 class="booking-title">طرق الدفع المتاحة</h4>
                 </div>
-                <form action="{% url 'home:payment'  %}" method="POST">
+                <form id="payment-form" action="{% url 'home:payment' doctor.id %}?day={{ schedule.id }}&date={{ shift.id }}&booking_date={{ booking_date }}&type={% if is_online %}online{% else %}offline{% endif %}" method="POST">
                     {% csrf_token %}
-                <div class="payments-form">
-                    <div class="payment-mb-3">
-                        {% for payment_methods in payment_methods %}
-                        <div class="mb-3">
-                            <label style="color: black;" >
-                                <input type="radio"z id="contactChoice_{{payment_methods.id}}" name="payment" value="{{ payment_methods.id }}" data-description="{{ payment_methods.description }}" data-account-number="{{ payment_methods.account_number }}" id="payment-method-{{ payment_methods.id }}">
-                                
-                                <!-- Display the payment method image with a rectangular shape -->
-                                <div class="payment-method-item" style="display: flex;align-items: center;">
-                                    {% if payment_methods.payment_option.logo %}
-                                        <img src="{{ payment_methods.payment_option.logo.url }}" alt="{{ payment_methods.payment_option.method_name }}" class="payment-method-logo" style="width: 60px;height: 40px;object-fit: cover;margin-right: 10px;">
-                                    {% endif %}
-                                    <span class="checkmark"></span> {{ payment_methods.payment_option.method_name }}
-                                </div>
-                            </label>
+                    <div class="payments-form">
+                        <div class="payment-methods mb-4">
+                            {% for method in payment_methods %}
+                            <div class="payment-method-item mb-3">
+                                <label class="d-flex align-items-center p-3 border rounded {% if forloop.first %}active{% endif %}">
+                                    <input type="radio" name="payment_method" value="{{ method.id }}" class="me-3" {% if forloop.first %}checked{% endif %}>
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        {% if method.payment_option.logo %}
+                                        <img src="{{ method.payment_option.logo.url }}" alt="{{ method.payment_option.method_name }}" class="payment-logo me-3" style="width: 60px; height: 40px; object-fit: contain;">
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1">{{ method.payment_option.method_name }}</h5>
+                                            <div class="payment-details" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                                                <p class="mb-1"><strong>اسم الحساب:</strong> {{ method.account_name }}</p>
+                                                <p class="mb-1"><strong>رقم الحساب:</strong> {{ method.account_number }}</p>
+                                                <p class="mb-1"><strong>رقم الآيبان:</strong> {{ method.iban }}</p>
+                                                <p class="mb-0"><strong>تعليمات الدفع:</strong> {{ method.description }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
                         </div>
-                        
-                        
-                        {% endfor %}
-
-                        <div id="payment-details">
-                            <div class="booking-header">
-                                <h4 class="booking-title" id="payment-description"></h4>
-                                <h4 class="booking-title" id="payment-account-number"></h4>
+                        <div class="form-group mb-4">
+                            <label for="transfer_number" class="form-label">رقم الحوالة</label>
+                            <input type="text" id="transfer_number" name="transfer_number" class="form-control" required pattern="[0-9]{5,}" title="يجب أن يكون رقم الحوالة 5 أرقام على الأقل" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <div class="invalid-feedback">
+                                يجب أن يكون رقم الحوالة 5 أرقام على الأقل
                             </div>
                         </div>
+                        <button type="submit" class="btn btn-primary">تأكيد الحجز</button>
                     </div>
-                    
-                        <input type="hidden" name="selected_date" value="{{ selected_date.id }}">
-                        <input type="hidden" name="selected_time" value="{{ selected_time.id }}">
-                        <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
-                        <div class="mb-3 card-label">
-                            <label class="mb-2">Transfer Number</label>
-                            <input type="text" name="transfer_number" class="form-control" placeholder="Enter NUmber of transfer">
-                        </div>
-                        <div class="mb-3 mb-0">
-                            <div class="booking-btn">
-                                <button type="submit" class="btn btn-primary prime-btn justify-content-center align-items-center">
-                                    Next <i class="feather-arrow-right-circle"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                </form>
             </div>
+
             <div class="col-lg-4 col-md-12">
                 <div class="booking-header">
-                    <h4 class="booking-title">Booking Summary</h4>
+                    <h4 class="booking-title">ملخص الحجز</h4>
                 </div>
                 <div class="card booking-card">
-                    <div class="card-body booking-card-body">
+                    <div class="card-body">
                         <div class="booking-doctor-details">
                             <div class="booking-doctor-left">
                                 <div class="booking-doctor-img">
-                                    <a href="{% url 'doctors:doctor_detail' doctor.slug %}">
+                                    <a href="{% url 'home:doctor_profile' doctor.id %}">
                                         {% if doctor.photo %}
                                             <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}">
                                         {% else %}
@@ -88,73 +77,59 @@
                                     </a>
                                 </div>
                                 <div class="booking-doctor-info">
-                                    <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
-                                    <p>{{ doctor.specialty.name }}</p>
+                                    <h4><a href="{% url 'home:doctor_profile' doctor.id %}">{{ doctor.full_name }}</a></h4>
+                                    <p>{{ doctor.specialization.name }}</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card booking-card">
-                    <div class="card-body booking-card-body booking-list-body">
-                        <div class="booking-list">
-                            <div class="booking-date-list">
-                                <ul>
-                                    <li>Booking Date: <span>{{ selected_date.get_day_display }}</span></li>
-                                    <li>Booking Time: <span>{{ selected_time }}</span></li>
-                                </ul>
+                        <div class="booking-summary mt-4">
+                            <div class="booking-item">
+                                <span>التاريخ:</span>
+                                <span>{{ booking_date }}</span>
                             </div>
-                            <div class="booking-doctor-right">
-                                <p>
-                                    <a href="{% url 'home:booking' doctor.id %}">Edit</a>
-                                </p>
+                            <div class="booking-item">
+                                <span>اليوم:</span>
+                                <span>{{ schedule.get_day_display }}</span>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card booking-card">
-                    <div class="card-body booking-card-body booking-list-body">
-                        <div class="booking-list">
-                            <div class="booking-date-list consultation-date-list">
-                                <ul>
-                                    <li>Consultation Fee: <span>${{ amount }}</span></li>
-                                    <!-- <li>Booking Fee: <span>$8.00</span></li> -->
-                                    <!-- <li>Tax: <span>$5.00</span></li> -->
-                                    <li><span class="total-amount"></span>Total <span><span>${{ amount }}</span></li>
-                                </ul>
+                            <div class="booking-item">
+                                <span>الوقت:</span>
+                                <span>{{ shift.start_time|time:"g:i A" }} - {{ shift.end_time|time:"g:i A" }}</span>
+                            </div>
+                            <div class="booking-item">
+                                <span>نوع الكشف:</span>
+                                <span>{% if is_online %}استشارة عن بعد{% else %}كشف في العيادة{% endif %}</span>
+                            </div>
+                            <div class="booking-item">
+                                <span>المستشفى:</span>
+                                <span>{{ hospital.name }}</span>
+                            </div>
+                            <div class="booking-total">
+                                <span>المبلغ الإجمالي:</span>
+                                <span>{{ amount }} ريال</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- /Payment -->
-
     </div>
 </div>
-<!-- /Page Content -->
+{% endblock %}
 
-<!-- Cursor -->
-<div class="mouse-cursor cursor-outer"></div>
-<div class="mouse-cursor cursor-inner"></div>
-
+{% block extra_js %}
 <script>
-    document.querySelectorAll('input[name="payment"]').forEach(function(input) {
-        input.addEventListener('change', function() {
-            const description = this.getAttribute('data-description');
-            const accountNumber = this.getAttribute('data-account-number');
-    
-            document.getElementById('payment-description').textContent = description ? description : 'No description available';
-            document.getElementById('payment-account-number').textContent = accountNumber ? accountNumber : 'No account number available';
-    
-            document.querySelectorAll('.custom_radio').forEach(function(label) {
-                label.classList.remove('active');  
-            });
-    
-            this.parentElement.classList.add('active');
-        });
+$(document).ready(function() {
+    // عند تغيير طريقة الدفع
+    $('input[name="payment_method"]').change(function() {
+        // إخفاء جميع التفاصيل
+        $('.payment-details').hide();
+        // إزالة الفئة النشطة من جميع العناصر
+        $('.payment-method-item label').removeClass('active');
+        
+        // إظهار تفاصيل طريقة الدفع المحددة
+        $(this).closest('label').addClass('active')
+            .find('.payment-details').show();
     });
-    
+});
 </script>
-
 {% endblock %}

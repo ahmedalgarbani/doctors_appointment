@@ -65,11 +65,17 @@ class Review(models.Model):
         #         name='unique_hospital_user_review'
         #     ),
         # ]
+    def get_full_name(self):
+        if self.doctor:
+            return f"{self.doctor.full_name}"
+        elif self.hospital:
+            return self.hospital.name
+        else:
+         return f"{self.full_name} "
 
+   
     def __str__(self):
-        target = self.doctor.full_name if self.doctor else self.hospital.name if self.hospital else "غير محدد"
-        return f"{self.user.get_full_name()} - {target} ({self.rating} نجوم)" 
-
+        return self.get_full_name()
 
     # def clean(self):
     #     super().clean()

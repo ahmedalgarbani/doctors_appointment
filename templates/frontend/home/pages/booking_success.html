@@ -1,0 +1,55 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Page Content -->
+<div class="doctor-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-12">
+                <div class="booking-success text-center">
+                    <div class="success-icon mb-4">
+                        <i class="fa-solid fa-circle-check text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="mb-4">تم الحجز بنجاح!</h2>
+                    <div class="booking-details bg-light p-4 rounded mb-4">
+                        <h4 class="mb-3">تفاصيل الحجز</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>رقم الحجز:</strong> #{{ booking.id }}</p>
+                                <p><strong>اسم الطبيب:</strong> {{ booking.doctor.name }}</p>
+                                <p><strong>المستشفى:</strong> {{ booking.hospital.name }}</p>
+                                <p><strong>نوع الحجز:</strong> {% if booking.is_online %}استشارة عن بعد{% else %}زيارة في العيادة{% endif %}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>اليوم:</strong> {{ booking.appointment_date.day_name }}</p>
+                                <p><strong>التاريخ:</strong> {{ booking.booking_date }}</p>
+                                <p><strong>الوقت:</strong> {{ booking.appointment_time.start_time|time:"g:i A" }}</p>
+                                <p><strong>المبلغ:</strong> {{ booking.amount }} ريال</p>
+                            </div>
+                        </div>
+                        <div class="payment-info mt-3">
+                            <p><strong>حالة الحجز:</strong> <span class="badge bg-warning">في انتظار تأكيد الدفع</span></p>
+                            <p><strong>رقم الحوالة:</strong> {{ booking.transfer_number }}</p>
+                            <p><strong>طريقة الدفع:</strong> {{ booking.payment_method.payment_option.method_name }}</p>
+                        </div>
+                    </div>
+                    <div class="booking-notes bg-light p-4 rounded mb-4">
+                        <h4 class="mb-3">ملاحظات هامة</h4>
+                        <ul class="text-right list-unstyled">
+                            <li class="mb-2">• سيتم مراجعة بيانات الدفع والتأكد منها خلال ساعات العمل.</li>
+                            <li class="mb-2">• سيتم إرسال رسالة تأكيد على جوالك ويمكنك متابعة حالة الحجز من صفحة حجوزاتي.</li>
+                            <li class="mb-2">• في حال عدم التأكد من بيانات الدفع سيتم التواصل معك.</li>
+                            <li class="mb-2">• يمكنك إلغاء الحجز قبل 24 ساعة من موعد الزيارة.</li>
+                        </ul>
+                    </div>
+                    <div class="booking-actions">
+                        <a href="{% url 'home:home' %}" class="btn btn-primary me-2">العودة للرئيسية</a>
+                        <a href="#" class="btn btn-outline-primary">طباعة التفاصيل</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

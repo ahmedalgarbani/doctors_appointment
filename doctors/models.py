@@ -65,34 +65,59 @@ class Doctor(BaseModel):
 # نموذج مواعيد الأطباء
 class DoctorSchedules(models.Model):
     DAY_CHOICES = [
-        (0, 'Saturday'),
-        (1, 'Sunday'),
-        (2, 'Monday'),
-        (3, 'Tuesday'),
-        (4, 'Wednesday'),
-        (5, 'Thursday'),
-        (6, 'Friday'),
+        (0, 'السبت'),
+        (1, 'الأحد'),
+        (2, 'الإثنين'),
+        (3, 'الثلاثاء'),
+        (4, 'الأربعاء'),
+        (5, 'الخميس'),
+        (6, 'الجمعة'),
     ]
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='schedules')
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True, blank=True)
-    day = models.IntegerField(choices=DAY_CHOICES)
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='schedules', verbose_name="الطبيب")
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_schedules', null=True, blank=True, verbose_name="المستشفى")
+    day = models.IntegerField(choices=DAY_CHOICES, verbose_name="اليوم")
 
     def __str__(self):
         return f"{self.doctor} - {self.get_day_display()}"
 
     class Meta:
         ordering = ['day', 'doctor']
+        verbose_name = "جدول الطبيب"
+        verbose_name_plural = "جداول الأطباء"
+        unique_together = ['doctor', 'day']  # لا يمكن للطبيب أن يكون له أكثر من جدول في نفس اليوم
 
 
 class DoctorShifts(models.Model):
-    doctor_schedule = models.ForeignKey('DoctorSchedules', on_delete=models.CASCADE, related_name='shifts')
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    available_slots = models.PositiveIntegerField(default=0)
-    booked_slots = models.PositiveIntegerField(default=0)
+    doctor_schedule = models.ForeignKey('DoctorSchedules', on_delete=models.CASCADE, related_name='shifts', verbose_name="جدول الطبيب")
+    start_time = models.TimeField(verbose_name="وقت البداية")
+    end_time = models.TimeField(verbose_name="وقت النهاية")
+    available_slots = models.PositiveIntegerField(default=0, verbose_name="المواعيد المتاحة")
+    booked_slots = models.PositiveIntegerField(default=0, verbose_name="المواعيد المحجوزة")
 
     def __str__(self):
-        return f"Shift: {self.start_time} - {self.end_time}"
+        return f"{self.doctor_schedule} ({self.start_time} - {self.end_time})"
+    
+    @property
+    def is_available(self):
+        return self.available_slots > self.booked_slots
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.start_time >= self.end_time:
+            raise ValidationError('وقت البداية يجب أن يكون قبل وقت النهاية')
+        
+        if self.available_slots < self.booked_slots:
+            raise ValidationError('عدد المواعيد المتاحة لا يمكن أن يكون أقل من المواعيد المحجوزة')
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['doctor_schedule', 'start_time']
+        verbose_name = "موعد"
+        verbose_name_plural = "المواعيد"
+        unique_together = ['doctor_schedule', 'start_time']  # لا يمكن أن يكون هناك موعدان بنفس وقت البداية لنفس الجدول
 
 
 class DoctorPricing(models.Model):
