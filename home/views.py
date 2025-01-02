@@ -365,7 +365,8 @@ def booking_view(request, doctor_id):
     request.session['selected_doctor'] = selected_doctor.id    
     dayes = selected_doctor.schedules.all()  
     sched = dayes[0]  
-
+    
+    
     schedulesShift = sched.shifts.all()
 
     grouped_slots = group_shifts_by_period(schedulesShift)
@@ -399,8 +400,7 @@ def profile(request):
 
 
 def get_time_slots(request,schedule_id,doctor_id,):
-    request.session['selected_day'] = schedule_id    
-
+    request.session['selected_day'] = schedule_id
     if not schedule_id:
         return JsonResponse({'error': 'No schedule ID provided'}, status=400)
 
@@ -429,17 +429,21 @@ def payment_process(request):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     selected_date = request.session.get('selected_date', 0)
     selected_time = request.session.get('selected_time', 0)
+    booking_date = request.session.get('booking_date', 0)
 
     if request.method == 'GET':
         selected_date = get_object_or_404(DoctorSchedules, id=request.GET.get('day'))
         selected_time = get_object_or_404(DoctorShifts, id=request.GET.get('date'))
+        request.session['booking_date'] = request.GET.get('booking_date') 
         request.session['selected_date'] = selected_date.id
         request.session['selected_time'] = selected_time.id
+        
     elif request.method == 'POST':
         selected_date = get_object_or_404(DoctorSchedules, id=request.POST.get('selected_date', 0))
         selected_time = get_object_or_404(DoctorShifts, id=request.POST.get('selected_time', 0))
         request.session['selected_date'] = selected_date.id
         request.session['selected_time'] = selected_time.id
+
 
     hospital = doctor.hospitals.first()
     payment_methods = ChoosePayment.objects.filter(status=True)
@@ -448,13 +452,15 @@ def payment_process(request):
     amount = pricing.amount if pricing else 0
 
     if request.method == 'POST':
+     
         notes = request.POST.get('notes', '')
         subtotal = float(request.POST.get('subtotal', 0)) if float(request.POST.get('subtotal', 0)) > 0 else float(amount)
         discount = float(request.POST.get('discount', 0))
         total = subtotal - discount
         transfer_number = request.POST.get('transfer_number', None)
         payment_method = request.POST.get('payment', 'cash')
-     
+        booking_date_with_time = datetime.strptime(request.session['booking_date'], "%Y-%m-%d")
+
         booking = Booking.objects.create(
             doctor=doctor,
             patient=get_object_or_404(Patients, id=1),
@@ -463,6 +469,7 @@ def payment_process(request):
             appointment_time=get_object_or_404(DoctorShifts, id=selected_time.id),
             notes=notes,
             amount=total,
+            booking_date= booking_date_with_time,
             status='pending'
         )
        
@@ -492,7 +499,7 @@ def payment_process(request):
             'payment_method': payment_method,
         }
         return render(request, 'frontend/home/pages/booking-success.html', context)
-
+   
     context = {
         'doctor': doctor,
         'hospital': hospital,

@@ -1,6 +1,5 @@
 {% extends "frontend/layouts/master.html" %}
-{% load static %}
-{% block content %}
+{% load static %}{% block content %}
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
     <div class="container">
@@ -22,151 +21,134 @@
 <div class="content content-space">
     <div class="container">
        <!-- Booking -->
-<div class="row">
-    <div class="col-lg-8 col-md-12">
-        <div class="booking-header">
-            <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
-            <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
-        </div>
-        <div class="booking-date choose-date-book">
-            <p>Choose a Date</p>
-            <div class="booking-range">
-                <div class="bookingrange btn">
-                    <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
-                    <span></span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-        </div>
-        <div class="card booking-card">
-            <div class="card-body time-slot-card-body">
-                <div class="booking-date-slider">
-                    <ul class="date-slider slick">
-                        {% for schedule in dayes %}
-                        <li 
-                            class="{% if schedule.id == selected_day %}active{% endif %}" 
-                            data-schedule="{{ schedule.id }}" 
-                            data-start="{{ schedule.shifts.start_time|time:'H:i' }}" 
-                            data-end="{{ schedule.shifts.end_time|time:'H:i' }}">
-                            <h4>{{ schedule.get_day_display }}</h4>
-                            <p>{{ schedule.date|date:"M d" }}</p>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Time Details Display -->
-                <div id="time-details" class="time-details mt-3">
-                    {% include "frontend/home/pages/time_slots.html" %}
-                </div>
-            </div>
-        </div>
+       <div class="row">
+           <div class="col-lg-8 col-md-12">
+               <div class="booking-header">
+                   <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
+                   <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
+               </div>
+               <div class="booking-date choose-date-book">
+                   <p>Choose a Date</p>
+                   <div class="booking-range">
+                       <div class="bookingrange btn">
+                           <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
+                           <span></span>
+                           <input id="datepicker" class="form-control" name="booking_date" placeholder="Select a date">
+                           <i class="fas fa-chevron-down"></i>
+                       </div>
+                   </div>
+               </div>
+               <div class="card booking-card">
+                   <div class="card-body time-slot-card-body">
+                       <div class="booking-date-slider">
+                           <ul class="date-slider slick">
+                               {% for schedule in dayes %}
+                               <li 
+                                   class="{% if schedule.id == selected_day %}active{% endif %}" 
+                                   data-schedule="{{ schedule.id }}" 
+                                   data-start="{{ schedule.shifts.start_time|time:'H:i' }}" 
+                                   data-end="{{ schedule.shifts.end_time|time:'H:i' }}">
+                                   <h4>{{ schedule.get_day_display }}</h4>
+                                   <p>{{ schedule.date|date:"M d" }}</p>
+                               </li>
+                               {% endfor %}
+                           </ul>
+                       </div>
+                       <!-- Time Details Display -->
+                       <div id="time-details" class="time-details mt-3">
+                           {% include "frontend/home/pages/time_slots.html" %}
+                       </div>
+                   </div>
+               </div>
 
-        <!-- Form for next step -->
-        <form id="booking-form" action="{% url 'home:payment' %}" method="GET">
+               <!-- Form for next step -->
+               <form id="booking-form" action="{% url 'home:payment' %}" method="GET">
+                   <input type="hidden" name="day" id="day_id">
+                   <input type="hidden" name="date" id="date_id">
+                   <input type="hidden" name="booking_date" id="booking_date_input">
+                   <div class="booking-btn">
+                       <button type="submit" class="btn btn-primary prime-btn justify-content-center align-items-center">
+                           Next <i class="feather-arrow-right-circle"></i>
+                       </button>
+                   </div>
+               </form>
+           </div>
 
-            <input type="hidden" name="day" id="day_id" >
-            <input type="hidden" name="date" id="date_id" >
-                        <!-- Hidden Inputs for day_id and date_id -->
-            <div class="booking-btn">
-                <button type="submit" class="btn btn-primary prime-btn justify-content-center align-items-center">
-                    Next <i class="feather-arrow-right-circle"></i>
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div class="col-lg-4 col-md-12">
-        <div class="booking-header">
-            <h4 class="booking-title">Booking Summary</h4>
-        </div>
-        <div class="card booking-card">
-            <div class="card-body booking-card-body">
-                <div class="booking-doctor-details">
-                    <div class="booking-doctor-left">
-                        <div class="booking-doctor-img">
-                            {% if doctor.image %}
-                            <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
-                            {% else %}
-                            <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
-                            {% endif %}
-                        </div>
-                        <div class="booking-doctor-info">
-                            <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
-                            <p>{{ doctor.specialty.name }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="booking-availability">
-                    <h5>Available Days:</h5>
-                    <ul class="list-group">
-                        {% for schedule in dayes %}
-                        <li class="list-group-item">
-                            <i class="fas fa-calendar-alt"></i> {{ schedule.get_day_display }}
-                        </li>
-                        {% empty %}
-                        <li class="list-group-item">No schedules available.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
+           <div class="col-lg-4 col-md-12">
+               <div class="booking-header">
+                   <h4 class="booking-title">Booking Summary</h4>
+               </div>
+               <div class="card booking-card">
+                   <div class="card-body booking-card-body">
+                       <div class="booking-doctor-details">
+                           <div class="booking-doctor-left">
+                               <div class="booking-doctor-img">
+                                   {% if doctor.image %}
+                                   <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+                                   {% else %}
+                                   <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
+                                   {% endif %}
+                               </div>
+                               <div class="booking-doctor-info">
+                                   <h4><a href="{% url 'doctors:doctor_detail' doctor.slug %}">Dr. {{ doctor.full_name }}</a></h4>
+                                   <p>{{ doctor.specialty.name }}</p>
+                               </div>
+                           </div>
+                       </div>
+                       <div class="booking-availability">
+                           <h5>Available Days:</h5>
+                           <ul class="list-group">
+                               {% for schedule in dayes %}
+                               <li class="list-group-item">
+                                   <i class="fas fa-calendar-alt"></i> {{ schedule.get_day_display }}
+                               </li>
+                               {% empty %}
+                               <li class="list-group-item">No schedules available.</li>
+                               {% endfor %}
+                           </ul>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
     </div>
 </div>
-
-    </div>
-</div>		
 <!-- /Page Content -->
 {% endblock %}
 
 {% block extra_js %}
+<!-- Include jQuery and jQuery UI -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
 <script>
-  
-    $(document).ready(function () {
-        $('#day_id').val('{{ selected_day }}');
-    
-        let selectedDate = '';
-        let selectedScheduleId = '';
-    
-        $('.date-slider li').on('click', function () {
-            selectedScheduleId = $(this).data('schedule'); 
-            $('.date-slider li').removeClass('active'); 
-            $(this).addClass('active'); 
-    
-            $('#day_id').val(selectedScheduleId);
-    
-            const url = "{% url 'home:get_time_slots' 0 0 %}"
-                .replace("0", selectedScheduleId)
-                .replace("0", 0); 
-            window.location.href = url;
-        });
-    
-        $('.timing').on('click', function () {
-            const scheduleId = $(this).data('schedule'); 
-            $('.timing').removeClass('selected'); 
-            $(this).addClass('selected'); 
-            $('#date_id').val(scheduleId);
-        });
+$(document).ready(function () {
+    // Initialize Datepicker
+    $("#datepicker").datepicker({
+        dateFormat: "yy-mm-dd",
+        minDate: 0, // Disable past dates
+        onSelect: function (dateText) {
+            $("#booking_date_input").val(dateText); // Update hidden input
+        }
     });
-    /*
-    $(document).ready(function () {
-        $('#booking-form').on('submit', function (e) {
-            e.preventDefault();
-    
-            const dayId = $('#day_id').val();
-            const dateId = $('#date_id').val();
-    
-     
-                .replace("0", dayId)
-                .replace("0", dateId);
-                       
-            window.location.href = url;
-        });
-    });
-    */
-    </script>
-    
 
+    // Pre-fill hidden inputs
+    $('#day_id').val('{{ selected_day }}');
+
+    $('.date-slider li').on('click', function () {
+        const selectedScheduleId = $(this).data('schedule');
+        $('.date-slider li').removeClass('active');
+        $(this).addClass('active');
+        $('#day_id').val(selectedScheduleId);
+    });
+
+    $('.timing').on('click', function () {
+        const scheduleId = $(this).data('schedule');
+        $('.timing').removeClass('selected');
+        $(this).addClass('selected');
+        $('#date_id').val(scheduleId);
+    });
+});
+</script>
 {% endblock %}
-

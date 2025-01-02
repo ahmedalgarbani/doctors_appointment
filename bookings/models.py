@@ -54,6 +54,7 @@ class Booking(models.Model):
         on_delete=models.CASCADE,
         related_name='time'
     )
+    booking_date =models.DateTimeField(null=True)
     amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
