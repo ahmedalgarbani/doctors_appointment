@@ -6,9 +6,9 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 
-def hospital_list(request):
-    hospitals = Hospital.objects.all()
-    return render(request, 'hospital_list.html', {'hospitals': hospitals})
+def index(request):
+    
+    return render(request, 'frontend/dashboard/hospitals/index.html')
 
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
