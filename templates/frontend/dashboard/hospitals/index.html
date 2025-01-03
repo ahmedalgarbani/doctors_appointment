@@ -1,6 +1,6 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
-
+{% load widget_tweaks %}
 {% block content %}
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
@@ -30,12 +30,12 @@
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
               <a href="#" class="booking-doc-img">
-                <img src="{% static 'img/reviews/review-03.jpg' %}" alt="User Image" />
+                <img src="{{hospital.details.photo.url}}" alt="User Image" />
               </a>
               <div class="profile-det-info">
-                <h3>Dr. Darren Elder</h3>
+                <h3>{{hospital.name}}</h3>
                 <div class="patient-details">
-                  <h5 class="mb-0">BDS, MDS - Oral & Maxillofacial Surgery</h5>
+                  <h5 class="mb-0">{{hospital.details.sub_title}}</h5>
                 </div>
               </div>
             </div>
@@ -44,7 +44,7 @@
             <nav class="dashboard-menu">
               <ul>
                 <li>
-                  <a href="javascript:;" data-method="doctor_dashboard" data-section="doctor_dashboard" >
+                  <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard" >
                     <i class="fas fa-columns"></i>
                     <span>Dashboard</span>
                   </a>
@@ -87,6 +87,12 @@
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Payment Settings</span>
+                  </a>
+                </li>
+                <li>
                   <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
                     <i class="fas fa-user-cog"></i>
                     <span>Profile Settings</span>
@@ -117,14 +123,17 @@
         <!-- /Profile Sidebar -->
       </div>
 
-      <!-- Include Sections -->
-      
+      <!-- Include Sections -->      
+
+      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/available-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-add-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-blog.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoice-view.html" %}

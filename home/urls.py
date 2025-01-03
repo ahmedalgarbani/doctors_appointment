@@ -19,9 +19,7 @@ urlpatterns = [
     path('terms-condition',views.terms_condition,name='terms_condition'),
     path('search/', views.search_view, name='search_view'),
     
-    # صفحة عرض الأطباء (الملف الشخصي للأطباء)
-    path('doctors/profile/', views.profile, name='doctors_profile'),
-    
+  
     # صفحة تفاصيل الطبيب (باستخدام ID الطبيب)
     path('doctors/<int:doctor_id>/', views.doctor_profile, name='doctor_profile'),
     path('add-to-favorites/', views.add_to_favorites, name='add_to_favorites'),
