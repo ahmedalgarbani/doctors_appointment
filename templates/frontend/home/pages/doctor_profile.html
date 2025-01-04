@@ -51,7 +51,7 @@
 									</p>
 
 									 <!-- التقييمات -->
-									 <div class="rating">
+									<div class="rating">
 										<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
 										<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
 										<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
@@ -265,12 +265,12 @@
 														<span class="comment-date">Reviewed {{ review.created_at }}</span>
 														<div class="review-count rating">
 															<i class="fas fa-star {% if review.rating >= 1 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if review.rating >= 2 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if review.rating >= 3 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
-										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
-												</div>
+															<i class="fas fa-star {% if review.rating >= 2 %}filled{% endif %}"></i>
+															<i class="fas fa-star {% if review.rating >= 3 %}filled{% endif %}"></i>
+															<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
+															<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
+															<span class="d-inline-block average-rating">({{ reviews.count }})</span>
+														</div>
 													</div>
 													{% comment %} <p class="recommended"><i class="far fa-thumbs-up"></i> I recommend the doctor</p> {% endcomment %}
 													<p class="comment-content">
