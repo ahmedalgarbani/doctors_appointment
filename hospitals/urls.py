@@ -21,8 +21,7 @@ urlpatterns = [
     path('hospital/<slug:slug>', views.hospital_detail, name='hospital_detail'),
 
 
-    
-    path('appointments/', views.appointments, name='appointments'),
+
 ]
 
 

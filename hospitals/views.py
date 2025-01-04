@@ -22,11 +22,13 @@ import json
 def index(request):
     hospital=get_object_or_404(Hospital,id=1)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
-   
+    bookings = Booking.objects.filter(hospital=hospital)
     ctx  = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
-        'hospital':hospital
+        'hospital':hospital,
+        'bookings': bookings,
+        'hospital': hospital
     }
     return render(request, 'frontend/dashboard/hospitals/index.html',ctx)
 
@@ -230,13 +232,3 @@ def toggle_payment_status(request):
             return HttpResponseBadRequest(str(e))
 
     return HttpResponseBadRequest("Invalid request method")
-def appointments(request):
-    hospital = request.user.hospital
-    bookings = Booking.objects.filter(hospital=hospital)
-    print(bookings)
-    print(hospital)
-    context = {
-        'bookings': bookings,
-        'hospital': hospital
-    }
-    return render(request, 'frontend/dashboard/hospitals/index.html', context)
