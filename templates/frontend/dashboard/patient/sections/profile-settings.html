@@ -1,110 +1,116 @@
+
 <div class="col-md-7 col-lg-8 col-xl-9 section d-none profile_settings">
-	<div class="card">
-		<div class="card-body">
-			
-			<!-- Profile Settings Form -->
-			<form>
-				<div class="row">
-					<div class="col-12 col-md-12">
-						<div class="mb-3">
-							<div class="change-avatar">
-								<div class="profile-img">
-									<img src="assets/img/patients/patient.jpg" alt="User Image">
-								</div>
-								<div class="upload-img">
-									<div class="change-photo-btn">
-										<span><i class="fa fa-upload"></i> Upload Photo</span>
-										<input type="file" class="upload">
-									</div>
-									<small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of 2MB</small>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">First Name</label>
-							<input type="text" class="form-control" value="Richard">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Last Name</label>
-							<input type="text" class="form-control" value="Wilson">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Date of Birth</label>
-							<div class="cal-icon">
-								<input type="text" class="form-control datetimepicker" value="24-07-1983">
-							</div>
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Blood Group</label>
-							<select class="form-select form-control">
-								<option>A-</option>
-								<option>A+</option>
-								<option>B-</option>
-								<option>B+</option>
-								<option>AB-</option>
-								<option>AB+</option>
-								<option>O-</option>
-								<option>O+</option>
-							</select>
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Email ID</label>
-							<input type="email" class="form-control" value="richard@example.com">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Mobile</label>
-							<input type="text" value="+1 202-555-0125" class="form-control">
-						</div>
-					</div>
-					<div class="col-12">
-						<div class="mb-3">
-						<label class="mb-2">Address</label>
-							<input type="text" class="form-control" value="806 Twin Willow Lane">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">City</label>
-							<input type="text" class="form-control" value="Old Forge">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">State</label>
-							<input type="text" class="form-control" value="Newyork">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Zip Code</label>
-							<input type="text" class="form-control" value="13420">
-						</div>
-					</div>
-					<div class="col-12 col-md-6">
-						<div class="mb-3">
-							<label class="mb-2">Country</label>
-							<input type="text" class="form-control" value="United States">
-						</div>
-					</div>
-				</div>
-				<div class="submit-section">
-					<button type="submit" class="btn btn-primary submit-btn">Save Changes</button>
-				</div>
-			</form>
-			<!-- /Profile Settings Form -->
-			
-		</div>
-	</div>
+    <div class="card">
+        <div class="card-body">
+            
+            <!-- Profile Settings Form -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-12 col-md-12">
+                        <div class="mb-3">
+                            <div class="change-avatar">
+                                <div class="profile-img">
+                                    <!-- الصورة الحالية للمريض -->
+                                    <img id="profile-image" src="{{ patient.profile_picture.url }}" alt="User Image">
+                                </div>
+                                <div class="upload-img">
+                                    <div class="change-photo-btn">
+                                        <span><i class="fa fa-upload"></i> تحميل الصوره</span>
+                                        <input type="file" class="upload" name="profile_picture" id="profile_picture">
+                                    </div>
+                                    <small class="form-text text-muted">مسموح بصيغة JPG أو GIF أو PNG, الحجم الأقصى 2 ميجابايت</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Full Name -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">الأسم</label>
+                            <input type="text" class="form-control" name="full_name" value="{{ patient.full_name }}">
+                        </div>
+                    </div>
+            
+                    <!-- Date of Birth -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">تاريخ الميلاد</label>
+                            <input type="date" class="form-control" name="birth_date" value="{{ patient.birth_date|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+            
+                    <!-- Gender -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">الجنس</label>
+                            <select class="form-select form-control" name="gender">
+                                <option value="0" {% if patient.gender == '0' %}selected{% endif %}>ذكر</option>
+                                <option value="1" {% if patient.gender == '1' %}selected{% endif %}>أنثى</option>
+                            </select>
+                        </div>
+                    </div>
+            
+                    <!-- Email -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">البريد الالكتروني</label>
+                            <input type="email" class="form-control" name="email" value="{{ patient.email }}">
+                        </div>
+                    </div>
+            
+                    <!-- Mobile -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">رقم الهاتف</label>
+                            <input type="text" class="form-control" name="phone_number" value="{{ patient.phone_number }}">
+                        </div>
+                    </div>
+            
+                    <!-- Address -->
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="mb-2">العنوان</label>
+                            <input type="text" class="form-control" name="address" value="{{ patient.address }}">
+                        </div>
+                    </div>
+            
+                    <!-- Notes -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">Notes</label>
+                            <textarea class="form-control" name="notes">{{ patient.notes }}</textarea>
+                        </div>
+                    </div>
+            
+                    <!-- Save Button -->
+                    <div class="submit-section">
+                        <button type="submit" class="btn btn-primary submit-btn">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- /Profile Settings Form -->
+            
+        </div>
+    </div>
 </div>
+
+<script>
+    // عند اختيار صورة جديدة من المستخدم
+    document.getElementById('profile_picture').addEventListener('change', function(event) {
+        var reader = new FileReader();
+
+        reader.onload = function() {
+            // تغيير مصدر الصورة لعرض الصورة المحددة
+            var profileImage = document.getElementById('profile-image');
+            profileImage.src = reader.result;
+        }
+
+        // التأكد من أن المستخدم قد اختار ملفًا
+        if (event.target.files.length > 0) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+</script>
