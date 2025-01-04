@@ -1,6 +1,7 @@
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 
+from bookings.models import Booking
 from hospitals.forms import DoctorForm
 from payments.models import HospitalPaymentMethod, PaymentOption
 from .models import Hospital, HospitalAccountRequest,HospitalDetail
@@ -229,3 +230,13 @@ def toggle_payment_status(request):
             return HttpResponseBadRequest(str(e))
 
     return HttpResponseBadRequest("Invalid request method")
+def appointments(request):
+    hospital = request.user.hospital
+    bookings = Booking.objects.filter(hospital=hospital)
+    print(bookings)
+    print(hospital)
+    context = {
+        'bookings': bookings,
+        'hospital': hospital
+    }
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
