@@ -1,14 +1,33 @@
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Hospital, HospitalAccountRequest
+
+from hospitals.forms import DoctorForm
+from payments.models import HospitalPaymentMethod, PaymentOption
+from .models import Hospital, HospitalAccountRequest,HospitalDetail
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseBadRequest
+from doctors.models import Doctor
+from hospitals.models import Hospital
+from doctors.models import Specialty   
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 def index(request):
-    
-    return render(request, 'frontend/dashboard/hospitals/index.html')
+    hospital=get_object_or_404(Hospital,id=1)
+    payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
+   
+    ctx  = {
+        "payment_options": PaymentOption.objects.filter(is_active=True),
+        "payment_methods": payment_method,
+        'hospital':hospital
+    }
+    return render(request, 'frontend/dashboard/hospitals/index.html',ctx)
 
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
@@ -91,3 +110,122 @@ def hospital_request_status(request, request_id):
     return render(request, 'frontend/auth/hospital-request-status.html', {
         'request': hospital_request
     })
+
+
+def add_doctor(request):
+    if request.method == "POST":
+        # Extract form data
+        full_name = request.POST.get("full_name")
+        birthday = request.POST.get("birthday")
+        phone_number = request.POST.get("phone_number")
+        email = request.POST.get("email")
+        gender = request.POST.get("gender")
+        specialty_id = 1
+        hospital_id = 1
+        experience_years = request.POST.get("experience_years")
+        sub_title = request.POST.get("sub_title")
+        slug = request.POST.get("slug")
+        about = request.POST.get("about")
+        photo = request.FILES.get("photo")
+        status = request.POST.get("status") == "1"
+        show_at_home = request.POST.get("show_at_home") == "1"
+
+        if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
+            return HttpResponseBadRequest("Missing required fields")
+
+        try:
+            specialty = Specialty.objects.get(id=specialty_id) if specialty_id else None
+            hospital = Hospital.objects.get(id=hospital_id)
+        except (Specialty.DoesNotExist, Hospital.DoesNotExist):
+            return HttpResponseBadRequest("Invalid specialty or hospital ID")
+
+        doctor = Doctor.objects.create(
+            full_name=full_name,
+            birthday=birthday,
+            phone_number=phone_number,
+            email=email,
+            gender=gender,
+            specialty=specialty,
+            experience_years=experience_years,
+            sub_title=sub_title,
+            slug=slug,
+            about=about,
+            photo=photo,
+            status=status,
+            show_at_home=show_at_home,
+        )
+
+        doctor.hospitals.set([hospital])  
+        doctor.save()
+
+        return render(request, "frontend/dashboard/hospitals/index.html")
+
+    context = {
+        "hospitals": Hospital.objects.all(), 
+        "specialties": Specialty.objects.all(),  
+    }
+    return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+def add_payment_method(request):
+    if request.method == "POST":
+        hospital_id = 1
+        payment_option_id = request.POST.get("payment_option")
+        account_name = request.POST.get("account_name")
+        account_number = request.POST.get("account_number")
+        iban = request.POST.get("iban")
+        description = request.POST.get("description")
+        is_active = request.POST.get("is_active") == "1"
+
+        if not all([hospital_id, payment_option_id, account_name, account_number, iban, description]):
+            return HttpResponseBadRequest("Missing required fields")
+
+        try:
+            hospital = Hospital.objects.get(id=hospital_id)
+            payment_option = PaymentOption.objects.get(id=payment_option_id)
+        except (Hospital.DoesNotExist, PaymentOption.DoesNotExist):
+            return HttpResponseBadRequest("Invalid hospital or payment option ID")
+
+        HospitalPaymentMethod.objects.create(
+            hospital=hospital,
+            payment_option=payment_option,
+            account_name=account_name,
+            account_number=account_number,
+            iban=iban,
+            description=description,
+            is_active=is_active,
+        )
+
+        return redirect("hospitals:index")  
+
+    context = {
+        "payment_options": PaymentOption.objects.all(),
+        "hospitals": Hospital.objects.all(),  
+    }
+    return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+
+@csrf_exempt
+def toggle_payment_status(request):
+    if request.method == "POST":
+        try:
+            # Parse JSON data from the request
+            data = json.loads(request.body)
+            method_id = data.get("method_id")
+            is_active = data.get("is_active")
+
+            # Validate the method ID
+            method = HospitalPaymentMethod.objects.get(id=method_id)
+
+            # Update the status
+            method.is_active = is_active
+            method.save()
+
+            return JsonResponse({"message": "Status updated successfully"})
+        except HospitalPaymentMethod.DoesNotExist:
+            return HttpResponseBadRequest("Invalid payment method ID")
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
+
+    return HttpResponseBadRequest("Invalid request method")

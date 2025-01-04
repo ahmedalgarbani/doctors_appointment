@@ -12,6 +12,8 @@ urlpatterns = [
     path('doctors/', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
     path('hospital/', include('hospitals.urls', namespace='hospitals')),
+    path('patients/', include(('patients.urls', 'patients'), namespace='patients')),  # رابط المرضى
+
 ]
 
 # إذا كانت البيئة في وضع التطوير (DEBUG = True)، يتم إضافة إعدادات خدمة الملفات الإعلامية (Media Files)

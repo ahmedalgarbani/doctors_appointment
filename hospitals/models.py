@@ -76,7 +76,7 @@ class HospitalDetail(BaseModel):
     show_at_home = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Details for {self.hospital.description}"
+        return f"Details for {self.hospital}"
 
 
 # أرقام الهواتف
