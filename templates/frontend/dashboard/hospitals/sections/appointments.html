@@ -54,9 +54,9 @@
                                                 </td>
                                                 <td>
                                                     <div class="table-action">
-                                                        <a href="#" class="btn btn-sm bg-info-light" data-bs-toggle="modal" data-bs-target="#appointment_details_{{booking.id}}">
-                                                            <i class="far fa-eye"></i> عرض
-                                                        </a>
+                                                        <a href="#" class="btn btn-sm bg-info-light" onclick="$('#appointment_details_{{booking.id}}').modal('show');">
+    <i class="far fa-eye"></i> عرض
+</a>
                                                         <a href="#" class="btn btn-sm bg-success-light">
                                                             <i class="fas fa-check"></i> قبول
                                                         </a>
@@ -68,7 +68,7 @@
                                             </tr>
                                             
                                             <!-- Modal تفاصيل الحجز -->
-                                            <div class="modal fade" id="appointment_details_{{booking.id}}" tabindex="-1" aria-labelledby="appointmentDetailsLabel" aria-hidden="true">
+                                            <div class="modal fade" id="appointment_details_{{booking.id}}" tabindex="-2" aria-labelledby="appointmentDetailsLabel" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
@@ -166,7 +166,7 @@
         </div>
     </div>
 </div>
-
+{% block extra_js %}
 <script>
 function filterAppointments() {
     const input = document.getElementById('search-input');
@@ -187,6 +187,9 @@ function filterAppointments() {
         }
     }
 }
+
+
+
 
 let currentPage = 1;
 const rowsPerPage = 5;
@@ -217,3 +220,4 @@ function changePage(direction) {
 
 document.addEventListener('DOMContentLoaded', displayRows);
 </script>
+{% endblock extra_js %}
