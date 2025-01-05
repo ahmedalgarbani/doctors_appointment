@@ -4,7 +4,10 @@ from . import views
 app_name = 'hospitals'
 
 urlpatterns = [
-    # path('hospitals/', views.HospitalListView.as_view(), name='hospital_list'),
+    path('', views.index, name='index'),
+    path('add-doctor/', views.add_doctor, name='add_doctor'),
+    path('add-payment/', views.add_payment_method, name='add_payment_method'),
+    path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
     # path('hospitals/<int:pk>/', views.HospitalDetailView.as_view(), name='hospital_detail'),
     # path('hospital-details/<int:pk>/', views.HospitalDetailDetailView.as_view(), name='hospital_detail_detail'),
     # path('phone-numbers/', views.PhoneNumberListView.as_view(), name='phone_number_list'),

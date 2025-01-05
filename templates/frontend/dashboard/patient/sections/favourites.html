@@ -18,12 +18,13 @@
                             <i class="fas fa-check-circle verified"></i>
                         </h3>
                         <p class="speciality">{{ doctor.specialty }}</p>
+					
 						<div class="review-count rating">
-							<i class="fas fa-star {% if review.rating >= 1 %}filled{% endif %}"></i>
-							<i class="fas fa-star {% if review.rating >= 2 %}filled{% endif %}"></i>
-							<i class="fas fa-star {% if review.rating >= 3 %}filled{% endif %}"></i>
-							<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
-							<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
+							<i class="fas fa-star {% if doctor.average_rating >= 1 %}filled{% endif %}"></i>
+							<i class="fas fa-star {% if doctor.average_rating >= 2 %}filled{% endif %}"></i>
+							<i class="fas fa-star {% if doctor.average_rating >= 3 %}filled{% endif %}"></i>
+							<i class="fas fa-star {% if doctor.average_rating >= 4 %}filled{% endif %}"></i>
+							<i class="fas fa-star {% if doctor.average_rating >= 5 %}filled{% endif %}"></i>
 							<span class="d-inline-block average-rating">({{ doctor.reviews.count }})</span>
 						</div>
                         <ul class="available-info">

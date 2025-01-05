@@ -1,0 +1,59 @@
+<div class="col-md-7 col-lg-8 col-xl-9 add_payment_page section d-none">
+    <div class="col-md-4 mb-3">
+        <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
+            <i class="fas fa-md"></i> الرجوع  
+        </a>
+    </div>
+
+    <form action="{% url 'hospitals:add_payment_method' %}" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Payment Option -->
+            <div class="col-md-6 mb-3">
+                <label for="payment_option" class="form-label">طريقة الدفع</label>
+                <select id="payment_option" name="payment_option" class="form-select" required>
+                    {% for payment_option in payment_options %}
+                    <option value="{{ payment_option.id }}">{{ payment_option.method_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Account Name -->
+            <div class="col-md-6 mb-3">
+                <label for="account_name" class="form-label">اسم الحساب</label>
+                <input type="text" id="account_name" name="account_name" class="form-control" maxlength="100" required>
+            </div>
+
+            <!-- Account Number -->
+            <div class="col-md-6 mb-3">
+                <label for="account_number" class="form-label">رقم الحساب</label>
+                <input type="text" id="account_number" name="account_number" class="form-control" maxlength="50" required>
+            </div>
+
+            <!-- IBAN -->
+            <div class="col-md-6 mb-3">
+                <label for="iban" class="form-label">رقم الآيبان</label>
+                <input type="text" id="iban" name="iban" class="form-control" maxlength="50" required>
+            </div>
+
+            <!-- Description -->
+            <div class="col-md-12 mb-3">
+                <label for="description" class="form-label">تعليمات الدفع</label>
+                <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
+            </div>
+
+            <!-- Active Status -->
+            <div class="col-md-6 mb-3">
+                <div class="form-check">
+                    <input type="checkbox" id="is_active" name="is_active" class="form-check-input" value="1" checked>
+                    <label for="is_active" class="form-check-label">نشط</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+    </form>
+</div>

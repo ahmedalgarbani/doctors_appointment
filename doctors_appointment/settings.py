@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'blog',
     'menu_generator',
     'ckeditor',
+        'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -108,11 +109,7 @@ DATABASE_OPTIONS = {
     # }
 
 
-
-
 AUTH_USER_MODEL='users.CustomUser'
-
-    
 
 
 # Password validation
@@ -155,26 +152,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, '/static')
 
 
 
-
-
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
-
-
-
 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
 
 
 ####################################################################################
@@ -225,7 +213,6 @@ NAV_MENU_TOP = [
         "url": "/blog",
     },
 ]
-
 
 
 FOOTER_MENU_ONE = [

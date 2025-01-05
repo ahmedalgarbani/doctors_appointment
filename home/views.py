@@ -1,5 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import redirect, render, get_object_or_404
 from datetime import datetime
+from bookings.models import Booking
 from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
 from payments.models import Payment, PaymentStatus, PaymentOption, HospitalPaymentMethod
@@ -127,14 +129,6 @@ def terms_condition(request):
     }
     return render(request, 'frontend/home/pages/term-condition.html', ctx)
 
-def profile(request):
-    doctors = Doctor.objects.filter(status=True)
-    
-    ctx = {
-        'doctors': doctors,
-    }
-
-    return render(request, 'frontend/home/pages/profile.html', ctx)
 
 from math import floor
 def doctor_profile(request, doctor_id):
@@ -376,21 +370,8 @@ def booking_view(request, doctor_id):
     return render(request, 'frontend/home/pages/booking.html', context)
 
 
-def profile(request):
-    doctors = Doctor.objects.filter(status=True)
-    
-    ctx = {
-        'doctors': doctors,
-    }
 
-    return render(request, 'frontend/home/pages/profile.html', ctx)
-
-
-
-
-
-
-
+from django.template.loader import render_to_string
 def get_time_slots(request,schedule_id,doctor_id,):
     if not schedule_id:
         return JsonResponse({'error': 'No schedule ID provided'}, status=400)
@@ -419,77 +400,3 @@ def get_time_slots(request,schedule_id,doctor_id,):
         }, status=500)
 
 
-
-def payment_process(request):
-    doctor = get_object_or_404(Doctor, id=request.session.get('selected_doctor', 0))
-    
-    if request.method == 'GET':
-        selected_date = get_object_or_404(DoctorSchedules, id=request.GET.get('day'))
-        selected_time = get_object_or_404(DoctorShifts, id=request.GET.get('date'))
-        request.session['booking_date'] = request.GET.get('booking_date') 
-        request.session['selected_date'] = selected_date.id
-        request.session['selected_time'] = selected_time.id
-        
-    elif request.method == 'POST':
-        selected_date = get_object_or_404(DoctorSchedules, id=request.POST.get('selected_date', 0))
-        selected_time = get_object_or_404(DoctorShifts, id=request.POST.get('selected_time', 0))
-        request.session['selected_date'] = selected_date.id
-        request.session['selected_time'] = selected_time.id
-
-    hospital = doctor.hospitals.first()
-    payment_methods = HospitalPaymentMethod.objects.filter(hospital=hospital, is_active=True)
-
-    pricing = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
-    amount = pricing.amount if pricing else 0
-
-    if request.method == 'POST':
-        notes = request.POST.get('notes', '')
-        subtotal = float(request.POST.get('subtotal', 0)) if float(request.POST.get('subtotal', 0)) > 0 else float(amount)
-        discount = float(request.POST.get('discount', 0))
-        total = subtotal - discount
-        transfer_number = request.POST.get('transfer_number', None)
-        payment_method_id = request.POST.get('payment_method')
-        booking_date_with_time = datetime.strptime(request.session['booking_date'], "%Y-%m-%d")
-
-        try:
-            payment_method = HospitalPaymentMethod.objects.get(id=payment_method_id, hospital=hospital, is_active=True)
-        except HospitalPaymentMethod.DoesNotExist:
-            return HttpResponseBadRequest('طريقة الدفع غير صالحة')
-
-        booking = Booking.objects.create(
-            doctor=doctor,
-            patient=get_object_or_404(Patients, user=request.user),
-            hospital=hospital,
-            appointment_date=selected_date,
-            appointment_time=selected_time,
-            notes=notes,
-            amount=total,
-            booking_date=booking_date_with_time,
-            status='pending',
-            transfer_number=transfer_number,
-            payment_method=payment_method
-        )
-
-        Payment.objects.create(
-            booking=booking,
-            payment_method=payment_method,
-            payment_status=get_object_or_404(PaymentStatus, status_code=1),  # حالة معلق
-            payment_subtotal=subtotal,
-            payment_discount=discount,
-            payment_totalamount=total,
-            payment_currency=payment_method.payment_option.currency,
-            payment_note=notes,
-            payment_type='e_pay' if payment_method else 'cash'
-        )
-
-        return redirect('bookings:booking_success', booking_id=booking.id)
-   
-    context = {
-        'doctor': doctor,
-        'hospital': hospital,
-        'selected_date': selected_date,
-        'selected_time': selected_time,
-        'amount': amount,
-        'payment_methods': payment_methods,
-    }
-    return render(request, 'frontend/home/pages/payment.html', context)
