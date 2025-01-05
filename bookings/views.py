@@ -197,6 +197,7 @@ def booking_success(request, booking_id):
     """عرض صفحة نجاح الحجز"""
     booking = get_object_or_404(Booking, id=booking_id, patient__user=request.user)
     return render(request, 'frontend/home/pages/booking_success.html', {'booking': booking})
+
 def appointment_details(request, booking_id):
     """عرض تفاصيل الحجز في صفحة منفصلة"""
     booking = get_object_or_404(Booking, id=booking_id)

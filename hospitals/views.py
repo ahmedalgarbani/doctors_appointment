@@ -1,11 +1,13 @@
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
-
+from django.contrib import messages
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from bookings.models import Booking
 from hospitals.forms import DoctorForm
-from payments.models import HospitalPaymentMethod, PaymentOption
+from payments.models import HospitalPaymentMethod, PaymentOption, PaymentStatus
 from .models import Hospital, HospitalAccountRequest,HospitalDetail
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -17,6 +19,7 @@ from doctors.models import Specialty
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
+from payments.models import Payment
 
 
 def index(request):
@@ -232,3 +235,50 @@ def toggle_payment_status(request):
             return HttpResponseBadRequest(str(e))
 
     return HttpResponseBadRequest("Invalid request method")
+
+
+    
+@login_required
+def accept_appointment(request, booking_id):
+    """قبول الحجز وتحديث حالته"""
+    # التحقق من أن المستخدم هو مسؤول في المستشفى
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        payment = get_object_or_404(Payment,booking=booking)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+        
+        # تحديث حالة الحجز
+        booking.status = 'confirmed'
+        # تحديث حالة التحقق من الدفع
+        booking.payment_verified = True
+        booking.payment_verified_at = timezone.now()
+        booking.payment_verified_by = request.user
+        booking.save()
+
+        payment.payment_status=get_object_or_404(PaymentStatus, status_code=2)
+        payment.save()
+
+        
+        messages.success(request, 'تم قبول الحجز وتأكيد الدفع بنجاح')
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم قبول الحجز وتأكيد الدفع بنجاح',
+            'booking_id': booking_id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)

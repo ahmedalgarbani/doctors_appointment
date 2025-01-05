@@ -20,7 +20,7 @@ urlpatterns = [
     path('account/request/success/', views.hospital_request_success, name='hospital_request_success'),
     path('account/request/<int:request_id>/status/', views.hospital_request_status, name='hospital_request_status'),
     path('hospital/<slug:slug>', views.hospital_detail, name='hospital_detail'),
-
+    path('accept-appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
     
 
 ]
