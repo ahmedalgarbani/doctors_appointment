@@ -1,165 +1,268 @@
+
 {% csrf_token %}
 <div class="col-md-7 col-lg-8 col-xl-9 appointments section d-none">
     <div class="row">
         <div class="col-md-12">
-            <h4 class="mb-4">الحجوزات</h4>
-            <div class="appointment-tab">
-                <div class="tab-content">
-                    <div class="tab-pane show active" id="upcoming-appointments">
-                        <div class="card card-table mb-0">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <div class="mb-3">
-                                        <input type="text" id="search-input" class="form-control" placeholder="ابحث عن حجز..." onkeyup="filterAppointments()">
-                                    </div>
-                                    <table class="table table-hover table-center mb-0" id="appointments-table">
-                                        <thead>
-                                            <tr>
-                                                <th>المريض</th>
-                                                <th>الطبيب</th>
-                                                <th>تاريخ الحجز</th>
-                                                <th>حالة الحجز</th>
-                                                <th>رقم الحوالة"</th>
-                                                <th>الإجراءات</th>
-                                                
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for booking in bookings %}
-                                            <tr>
-                                                <td>
-                                                    <h2 class="table-avatar">
-                                                        {% if booking.patient.profile_picture %}
-                                                            <img src="{{ booking.patient.profile_picture.url }}" alt="Patient Image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
-                                                        {% endif %}
-                                                        <a href="javascript:void(0);">{{ booking.patient.full_name }}</a>
-                                                    </h2>
-                                                </td>
-                                                <td>
-                                                    <h2 class="table-avatar">
-                                                        {% if booking.doctor.profile_image %}
-                                                            <img class="avatar-img rounded-circle" src="{{ booking.doctor.profile_image.url }}" alt="Doctor Image">
-                                                        {% endif %}
-                                                        <a href="javascript:void(0);">د. {{ booking.doctor.full_name }}</a>
-                                                    </h2>
-                                                </td>
-                                                <td>{{ booking.booking_date }}</td>
-                                                <td>
-                                                    {% if booking.status == 'pending' %}
-                                                        <span class="badge rounded-pill bg-warning">قيد الانتظار</span>
-                                                    {% elif booking.status == 'confirmed' %}
-                                                        <span class="badge rounded-pill bg-success">مؤكد</span>
-                                                    {% elif booking.status == 'cancelled' %}
-                                                        <span class="badge rounded-pill bg-danger">ملغي</span>
-                                                    {% elif booking.status == 'completed' %}
-                                                        <span class="badge rounded-pill bg-info">مكتمل</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{booking.transfer_number}}
-                                                </td>
-                                                <td>
-                                                    <div class="table-action">
-
-                                                    													<a href="{% url 'bookings:appointment_details' booking.id %}"  data-method="appointment_details" data-section="appointment_details" class="btn btn-sm bg-info-light">
-                                                       <i class="far fa-eye"> عرض</i>
-                                                    </a>
-                                                        {% comment %} <a href="{% url 'bookings:appointment_details' booking.id %}" class="btn btn-sm bg-info-light">
-                                                            <i class="far fa-eye"></i> 
-                                                        </a> {% endcomment %}
-                                                        {% if booking.status == 'pending' %}
-                                                        <button type="button" class="btn badge bg-success accept-booking" data-booking-id="{{ booking.id }}"> قبول الحجز </button>
-                                                        {% endif %}
-                                                        {% if booking.status == 'confirmed' %}
-                                                         <button type="button" class="btn badge bg-info confirmed-booking" data-booking-id-confirmed="{{ booking.id }}">تاكيد الحجز</button>
-                                                        {% endif %}
-                                                            
-                                                        <a href="#" class="btn btn-sm bg-danger-light">
-                                                            <i class="fas fa-times"></i> رفض
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="5" class="text-center">لا توجد حجوزات حالياً</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-title">الحجوزات</h4>
+                        </div>
+                        <div class="col-auto">
+                            <div class="status-filter">
+                                <select class="form-select" id="status-filter">
+                                    <option value="all">جميع الحجوزات</option>
+                                    <option value="pending">قيد الانتظار</option>
+                                    <option value="confirmed">مؤكدة</option>
+                                    <option value="completed">مكتملة</option>
+                                    <option value="cancelled">ملغية</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <div class="mb-3">
+                            <input type="text" id="search-input" class="form-control" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
+                        </div>
+                        <table class="table table-hover table-center mb-0" id="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>المريض</th>
+                                    <th>الطبيب</th>
+                                    <th>التخصص</th>
+                                    <th>موعد الحجز</th>
+                                    <th>المبلغ</th>
+                                    <th>رقم الحوالة</th>
+                                    <th>حالة الحجز</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <h2 class="table-avatar">
+                                            {% if booking.patient.profile_picture %}
+                                                <img src="{{ booking.patient.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
+                                            {% endif %}
+                                            <a href="javascript:void(0);" class="ms-2">
+                                                {{ booking.patient.full_name }}
+                                                <small class="d-block text-muted">
+                                                    {{ booking.patient.mobile_number }}
+                                                </small>
+                                            </a>
+                                        </h2>
+                                    </td>
+                                    <td>
+                                        <h2 class="table-avatar">
+                                            {% if booking.doctor.profile_image %}
+                                                <img src="{{ booking.doctor.profile_image.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
+                                            {% endif %}
+                                            <a href="javascript:void(0);" class="ms-2">
+                                                د. {{ booking.doctor.full_name }}
+                                            </a>
+                                        </h2>
+                                    </td>
+                                    <td>{{ booking.doctor.specialty.name }}</td>
+                                    <td>
+                                        <span class="d-block">{{ booking.booking_date }}</span>
+                                        <small class="text-muted">{{ booking.appointment_time.start_time|time:"g:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-bold">{{ booking.amount }} ريال</span>
+                                    </td>
+                                    <td>
+                                        {% if booking.transfer_number %}
+                                            <span class="badge bg-info">{{ booking.transfer_number }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">لم يتم التحويل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                            <span class="badge rounded-pill bg-warning">قيد الانتظار</span>
+                                        {% elif booking.status == 'confirmed' %}
+                                            <span class="badge rounded-pill bg-success">مؤكد</span>
+                                        {% elif booking.status == 'cancelled' %}
+                                            <span class="badge rounded-pill bg-danger">ملغي</span>
+                                        {% elif booking.status == 'completed' %}
+                                            <span class="badge rounded-pill bg-info">مكتمل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'bookings:appointment_details' booking.id %}" 
+                                               class="btn btn-sm bg-info-light" 
+                                               data-bs-toggle="tooltip" 
+                                               title="عرض التفاصيل">
+                                                <i class="far fa-eye"></i>
+                                            </a>
+                                            {% if booking.status == 'pending' %}
+                                                <button type="button" 
+                                                        class="btn btn-sm bg-success-light accept-booking" 
+                                                        data-booking-id="{{ booking.id }}"
+                                                        data-bs-toggle="tooltip"
+                                                        title="قبول الحجز">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            {% endif %}
+                                            {% if booking.status == 'confirmed' %}
+                                                <button type="button" 
+                                                        class="btn btn-sm bg-info-light confirmed-booking" 
+                                                        data-booking-id-confirmed="{{ booking.id }}"
+                                                        data-bs-toggle="tooltip"
+                                                        title="تأكيد اكتمال الحجز">
+                                                    <i class="fas fa-check-double"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">لا توجد حجوزات حالياً</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="pagination mb-3">
+             <div class="pagination mb-3">
                 <button id="prev-page" class="btn btn-secondary" onclick="changePage(-1)">الصفحة السابقة</button>
                 <button id="next-page" class="btn btn-secondary" onclick="changePage(1)">الصفحة التالية</button>
             </div>
         </div>
     </div>
 </div>
+
 {% block extra_js %}
 <script>
-    function filterAppointments() {
-        const input = document.getElementById('search-input');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('appointments-table');
-        const tr = table.getElementsByTagName('tr');
-        for (let i = 1; i < tr.length; i++) {
-            const tdPatient = tr[i].getElementsByTagName('td')[0];
-            const tdDoctor = tr[i].getElementsByTagName('td')[1];
-            if (tdPatient || tdDoctor) {
-                const txtValuePatient = tdPatient.textContent || tdPatient.innerText;
-                const txtValueDoctor = tdDoctor.textContent || tdDoctor.innerText;
-                if (txtValuePatient.toLowerCase().indexOf(filter) > -1 || txtValueDoctor.toLowerCase().indexOf(filter) > -1) {
-                    tr[i].style.display = '';
-                } else {
-                    tr[i].style.display = 'none';
-                }
-            }
-        }
-    }
-
     let currentPage = 1;
     const rowsPerPage = 5;
-
-    function displayRows() {
+    
+    // دالة للبحث في الحجوزات
+    function filterAppointments() {
+        const searchInput = document.getElementById('search-input').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
         const table = document.getElementById('appointments-table');
-        const rows = table.getElementsByTagName('tr');
-        const totalRows = rows.length - 1;
-        for (let i = 1; i < rows.length; i++) {
-            if (i <= (currentPage * rowsPerPage) && i > ((currentPage - 1) * rowsPerPage)) {
-                rows[i].style.display = '';
-            } else {
-                rows[i].style.display = 'none';
+        const rows = Array.from(table.getElementsByTagName('tr')).slice(1);
+
+        // تطبيق الفلتر على كل صف
+        rows.forEach(row => {
+            let display = true;
+            const searchableColumns = [
+                row.getElementsByTagName('td')[0], // المريض
+                row.getElementsByTagName('td')[1], // الطبيب
+                row.getElementsByTagName('td')[2], // التخصص
+                row.getElementsByTagName('td')[5]  // رقم الحوالة
+            ];
+
+            // البحث النصي
+            let textMatch = searchInput === '' || searchableColumns.some(column => 
+                column && column.textContent.toLowerCase().includes(searchInput)
+            );
+
+            // فلترة حسب الحالة
+            const statusCell = row.getElementsByTagName('td')[6];
+            let statusMatch = statusFilter === 'all';
+            
+            if (statusCell) {
+                const statusText = statusCell.textContent.trim().toLowerCase();
+                if (statusFilter === 'pending' && statusText.includes('قيد الانتظار')) {
+                    statusMatch = true;
+                } else if (statusFilter === 'confirmed' && statusText.includes('مؤكد')) {
+                    statusMatch = true;
+                } else if (statusFilter === 'completed' && statusText.includes('مكتمل')) {
+                    statusMatch = true;
+                } else if (statusFilter === 'cancelled' && statusText.includes('ملغي')) {
+                    statusMatch = true;
+                }
             }
-        }
-    }
 
-    function changePage(direction) {
-        const table = document.getElementById('appointments-table');
-        const rows = table.getElementsByTagName('tr');
-        const totalRows = rows.length - 1;
-        const totalPages = Math.ceil(totalRows / rowsPerPage);
-        currentPage += direction;
-        if (currentPage < 1) currentPage = 1;
-        if (currentPage > totalPages) currentPage = totalPages;
+            // تحديد ما إذا كان سيتم عرض الصف
+            row.dataset.visible = textMatch && statusMatch ? 'true' : 'false';
+        });
+
+        // إعادة تعيين رقم الصفحة الحالية وعرض الصفوف
+        currentPage = 1;
         displayRows();
     }
 
-    document.addEventListener('DOMContentLoaded', displayRows);
+    // دالة لعرض الصفوف للصفحة الحالية
+    function displayRows() {
+        const table = document.getElementById('appointments-table');
+        const rows = Array.from(table.getElementsByTagName('tr')).slice(1);
+        const visibleRows = rows.filter(row => row.dataset.visible !== 'false');
+        
+        // حساب نطاق الصفوف للصفحة الحالية
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        
+        // إخفاء جميع الصفوف أولاً
+        rows.forEach(row => row.style.display = 'none');
+        
+        // عرض الصفوف المطلوبة فقط
+        visibleRows.slice(start, end).forEach(row => row.style.display = '');
+        
+        // تحديث حالة أزرار التنقل
+        updatePaginationButtons(visibleRows.length);
+    }
 
-    // تهيئة Bootstrap Modal
+    // دالة لتحديث حالة أزرار التنقل
+    function updatePaginationButtons(totalVisibleRows) {
+        const totalPages = Math.ceil(totalVisibleRows / rowsPerPage);
+        const prevButton = document.getElementById('prev-page');
+        const nextButton = document.getElementById('next-page');
+        
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage >= totalPages;
+        
+        // إظهار أو إخفاء أزرار التنقل بناءً على عدد الصفوف
+        const paginationDiv = document.querySelector('.pagination');
+        paginationDiv.style.display = totalVisibleRows > rowsPerPage ? '' : 'none';
+    }
+
+    // دالة تغيير الصفحة
+    function changePage(direction) {
+        const table = document.getElementById('appointments-table');
+        const visibleRows = Array.from(table.getElementsByTagName('tr'))
+            .slice(1)
+            .filter(row => row.dataset.visible !== 'false');
+            
+        const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+        const newPage = currentPage + direction;
+        
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            displayRows();
+        }
+    }
+
+    // إضافة مستمعي الأحداث
     document.addEventListener('DOMContentLoaded', function() {
-        var myModalEl = document.querySelectorAll('.modal')
-        myModalEl.forEach(function(modal) {
-            new bootstrap.Modal(modal);
+        // تطبيق الفلترة الأولية وعرض الصفوف
+        filterAppointments();
+        
+        // إضافة مستمعي الأحداث للفلترة
+        document.getElementById('status-filter').addEventListener('change', filterAppointments);
+        document.getElementById('search-input').addEventListener('input', filterAppointments);
+        
+        // تفعيل tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
 
-    // دالة لمعالجة قبول الحجز
+
+
+
+
+        // دالة لمعالجة قبول الحجز
     document.querySelectorAll(".accept-booking").forEach(function(button) {
         button.addEventListener("click", function() {
             const bookingId = this.getAttribute("data-booking-id");
@@ -233,13 +336,12 @@
             });
         });
     });
-
+{% comment %} 
     // تعديل زر العرض لمعالجة الأخطاء
     $(document).ready(function() {
         $('.modal').on('shown.bs.modal', function () {
-            $(this).find('[data-bs-toggle="tooltip"]').tooltip();
-        });
-    });
+            $(this).find('[data-bs-toggle="tooltip"]').tooltip(); {% endcomment %}
+
 </script>
 <style>
 .custom-modal .modal-content {
