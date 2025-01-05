@@ -1,31 +1,38 @@
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
-
-from hospitals.forms import DoctorForm
-from payments.models import HospitalPaymentMethod, PaymentOption
-from .models import Hospital, HospitalAccountRequest,HospitalDetail
 from django.contrib import messages
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from bookings.models import Booking
+from hospitals.forms import DoctorForm
+from payments.models import HospitalPaymentMethod, PaymentOption, PaymentStatus
+from .models import Hospital, HospitalAccountRequest,HospitalDetail
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
-from doctors.models import Doctor
+from doctors.models import Doctor,DoctorShifts,DoctorSchedules
 from hospitals.models import Hospital
 from doctors.models import Specialty   
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
+from payments.models import Payment
 
 
 def index(request):
-    hospital=get_object_or_404(Hospital,id=1)
+    user=request.user
+    hospital=get_object_or_404(Hospital,hospital_manager=user)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
-   
+    bookings = Booking.objects.filter(hospital=hospital)
     ctx  = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
-        'hospital':hospital
+        'hospital':hospital,
+        'bookings': bookings,
+        'hospital': hospital
     }
     return render(request, 'frontend/dashboard/hospitals/index.html',ctx)
 
@@ -229,3 +236,100 @@ def toggle_payment_status(request):
             return HttpResponseBadRequest(str(e))
 
     return HttpResponseBadRequest("Invalid request method")
+
+
+    
+
+def accept_appointment(request, booking_id):
+    """قبول الحجز وتحديث حالته"""
+    # التحقق من أن المستخدم هو مسؤول في المستشفى
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        payment = get_object_or_404(Payment, booking=booking)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # تحديث حالة الحجز إلى مؤكد
+        booking.status = 'confirmed'
+        
+        # تحديث عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots += 1
+            doctor_shifts.save()
+        
+        # تحديث حالة التحقق من الدفع
+        booking.payment_verified = True
+        booking.payment_verified_at = timezone.now()
+        booking.payment_verified_by = request.user
+        booking.save()
+        
+        # تحديث حالة الدفع إلى مكتمل
+        payment.payment_status = get_object_or_404(PaymentStatus, status_code=2)
+        payment.save()
+
+        messages.success(request, 'تم قبول الحجز والدفع بنجاح')
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم قبول الحجز وتأكيد الدفع بنجاح',
+            'booking_id': booking_id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+def completed_appointment(request, booking_id):
+    """تأكيد اكتمال الحجز بعد الكشف"""
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # تحديث حالة الحجز إلى مكتمل
+        booking.status = 'completed'
+        booking.save()
+        
+        # تنقيص عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots -= 1
+            doctor_shifts.save()
+        messages.success(request, 'تم تأكيد اكتمال الحجز بنجاح')
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم تأكيد اكتمال الحجز بنجاح',
+            'booking_id': booking_id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+    
+
+
