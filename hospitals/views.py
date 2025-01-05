@@ -13,7 +13,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
-from doctors.models import Doctor
+from doctors.models import Doctor,DoctorShifts,DoctorSchedules
 from hospitals.models import Hospital
 from doctors.models import Specialty   
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -23,7 +23,8 @@ from payments.models import Payment
 
 
 def index(request):
-    hospital=get_object_or_404(Hospital,id=1)
+    user=request.user
+    hospital=get_object_or_404(Hospital,hospital_manager=user)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     ctx  = {
@@ -238,7 +239,7 @@ def toggle_payment_status(request):
 
 
     
-@login_required
+
 def accept_appointment(request, booking_id):
     """قبول الحجز وتحديث حالته"""
     # التحقق من أن المستخدم هو مسؤول في المستشفى
@@ -250,7 +251,7 @@ def accept_appointment(request, booking_id):
 
     try:
         booking = get_object_or_404(Booking, id=booking_id)
-        payment = get_object_or_404(Payment,booking=booking)
+        payment = get_object_or_404(Payment, booking=booking)
         
         # التحقق من أن الحجز يتبع نفس المستشفى
         if booking.hospital != request.user.hospital:
@@ -258,20 +259,27 @@ def accept_appointment(request, booking_id):
                 'status': 'error',
                 'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
             }, status=403)
-        
-        # تحديث حالة الحجز
+
+        # تحديث حالة الحجز إلى مؤكد
         booking.status = 'confirmed'
+        
+        # تحديث عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots += 1
+            doctor_shifts.save()
+        
         # تحديث حالة التحقق من الدفع
         booking.payment_verified = True
         booking.payment_verified_at = timezone.now()
         booking.payment_verified_by = request.user
         booking.save()
-
-        payment.payment_status=get_object_or_404(PaymentStatus, status_code=2)
+        
+        # تحديث حالة الدفع إلى مكتمل
+        payment.payment_status = get_object_or_404(PaymentStatus, status_code=2)
         payment.save()
 
-        
-        messages.success(request, 'تم قبول الحجز وتأكيد الدفع بنجاح')
+        messages.success(request, 'تم قبول الحجز والدفع بنجاح')
         return JsonResponse({
             'status': 'success',
             'message': 'تم قبول الحجز وتأكيد الدفع بنجاح',
@@ -282,3 +290,46 @@ def accept_appointment(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=400)
+
+def completed_appointment(request, booking_id):
+    """تأكيد اكتمال الحجز بعد الكشف"""
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # تحديث حالة الحجز إلى مكتمل
+        booking.status = 'completed'
+        booking.save()
+        
+        # تنقيص عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots -= 1
+            doctor_shifts.save()
+        messages.success(request, 'تم تأكيد اكتمال الحجز بنجاح')
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم تأكيد اكتمال الحجز بنجاح',
+            'booking_id': booking_id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+    
+
+

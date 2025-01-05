@@ -19,7 +19,9 @@
                                                 <th>الطبيب</th>
                                                 <th>تاريخ الحجز</th>
                                                 <th>حالة الحجز</th>
+                                                <th>رقم الحوالة"</th>
                                                 <th>الإجراءات</th>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -53,6 +55,8 @@
                                                         <span class="badge rounded-pill bg-info">مكتمل</span>
                                                     {% endif %}
                                                 </td>
+                                                <td>{{booking.transfer_number}}
+                                                </td>
                                                 <td>
                                                     <div class="table-action">
 
@@ -63,8 +67,12 @@
                                                             <i class="far fa-eye"></i> 
                                                         </a> {% endcomment %}
                                                         {% if booking.status == 'pending' %}
-                                                        <button type="button" class="btn btn-success accept-booking" data-booking-id="{{ booking.id }}">قبول الحجز</button>
+                                                        <button type="button" class="btn badge bg-success accept-booking" data-booking-id="{{ booking.id }}"> قبول الحجز </button>
                                                         {% endif %}
+                                                        {% if booking.status == 'confirmed' %}
+                                                         <button type="button" class="btn badge bg-info confirmed-booking" data-booking-id-confirmed="{{ booking.id }}">تاكيد الحجز</button>
+                                                        {% endif %}
+                                                            
                                                         <a href="#" class="btn btn-sm bg-danger-light">
                                                             <i class="fas fa-times"></i> رفض
                                                         </a>
@@ -72,66 +80,6 @@
                                                 </td>
                                             </tr>
                                             
-                                            <!-- Modal تفاصيل الحجز -->
-                                            {% comment %} <div class="modal fade" id="appointment_details_{{booking.id}}" tabindex="-1" aria-labelledby="appointmentDetailsLabel_{{booking.id}}" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered modal-lg">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="appointmentDetailsLabel_{{booking.id}}">تفاصيل الحجز</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="row">
-                                                                <!-- معلومات المريض -->
-                                                                <div class="col-md-6">
-                                                                    <div class="card">
-                                                                        <div class="card-body">
-                                                                            <h5 class="card-title">معلومات المريض</h5>
-                                                                            <p><strong>الاسم:</strong> {{ booking.patient.full_name }}</p>
-                                                                            <p><strong>رقم الهاتف:</strong> {{ booking.patient.phone_number }}</p>
-                                                                            <p><strong>البريد الإلكتروني:</strong> {{ booking.patient.email }}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <!-- معلومات الحجز -->
-                                                                <div class="col-md-6">
-                                                                    <div class="card">
-                                                                        <div class="card-body">
-                                                                            <h5 class="card-title">معلومات الحجز</h5>
-                                                                            <p><strong>الطبيب:</strong> د. {{ booking.doctor.full_name }}</p>
-                                                                            <p><strong>التاريخ:</strong> {{ booking.booking_date }}</p>
-                                                                            <p><strong>الحالة:</strong> 
-                                                                                {% if booking.status == 'pending' %}
-                                                                                    <span class="badge bg-warning">قيد الانتظار</span>
-                                                                                {% elif booking.status == 'confirmed' %}
-                                                                                    <span class="badge bg-success">مؤكد</span>
-                                                                                {% elif booking.status == 'cancelled' %}
-                                                                                    <span class="badge bg-danger">ملغي</span>
-                                                                                {% elif booking.status == 'completed' %}
-                                                                                    <span class="badge bg-info">مكتمل</span>
-                                                                                {% endif %}
-                                                                            </p>
-                                                                            <p><strong>حالة الدفع:</strong>
-                                                                                {% if booking.payment_verified %}
-                                                                                    <span class="badge bg-success">تم التحقق</span>
-                                                                                {% else %}
-                                                                                    <span class="badge bg-warning">في انتظار التحقق</span>
-                                                                                {% endif %}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                                                            {% if booking.status == 'pending' %}
-                                                            <button type="button" class="btn btn-success accept-booking" data-booking-id="{{ booking.id }}">قبول الحجز</button>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> {% endcomment %}
                                             {% empty %}
                                             <tr>
                                                 <td colspan="5" class="text-center">لا توجد حجوزات حالياً</td>
@@ -218,6 +166,44 @@
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
             fetch("{% url 'hospitals:accept_appointment' booking_id=0 %}".replace('0', bookingId), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'حدث خطأ أثناء قبول الحجز');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('تم قبول الحجز وتأكيد الدفع بنجاح');
+                    location.reload();
+                } else {
+                    throw new Error(data.message || 'حدث خطأ غير معروف');
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert(error.message || 'حدث خطأ أثناء قبول الحجز');
+            });
+        });
+    });
+
+
+    // دالة لمعالجة تاكيد الحجز
+    document.querySelectorAll(".confirmed-booking").forEach(function(button) {
+        button.addEventListener("click", function() {
+            const bookingId = this.getAttribute("data-booking-id-confirmed");
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'hospitals:completed_appointment' booking_id=0 %}".replace('0', bookingId), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

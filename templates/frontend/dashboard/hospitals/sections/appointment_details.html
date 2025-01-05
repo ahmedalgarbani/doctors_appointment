@@ -119,10 +119,16 @@
                                                     <label class="text-muted d-block mb-1">تاريخ الحجز</label>
                                                     <h5 class="mb-0">{{ booking.booking_date }}</h5>
                                                 </div>
+                                                                                                <div class="info-group mb-3">
+                                                    <label class="text-muted d-block mb-1"> التحويل البنكي</label>
+                                                    <h5 class="mb-0">{{ booking.payment_method }}</h5>
+                                                </div>
                                                 <div class="info-group mb-3">
                                                     <label class="text-muted d-block mb-1">نوع الحجز</label>
                                                     <h5 class="mb-0">{% if booking.is_online %}عن بعد{% else %}حضوري{% endif %}</h5>
                                                 </div>
+                                                
+                                                
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="info-group mb-3">
@@ -221,7 +227,7 @@
   </div>
 </div>
 <!-- /Page Content -->
-{% endblock %}
+{% endblock content %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
