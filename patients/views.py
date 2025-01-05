@@ -5,12 +5,13 @@ from doctors.models import Doctor
 from reviews.models import Review
 from django.db.models import Avg, Prefetch
 from datetime import datetime
+from django.db.models import Avg, Count
 
 
 def appointments_dashboard(request):
     patients = Patients.objects.all()
     favourites = Favourites.objects.filter(user=request.user) if request.user.is_authenticated else None
-
+    
     context = {
         'patients': patients,
         'favourites': favourites,
@@ -27,14 +28,18 @@ def patients_list(request):
     return render(request, 'frontend/dashboard/patient/sections/patient_lite.html', context)
 
 
+from django.db.models import Avg
+
 def patient_dashboard(request, patient_id):
     patient = get_object_or_404(Patients, id=patient_id)
 
-    # جلب المفضلات والتقييمات
     favourite_doctors, ratings_context = get_favourites_and_ratings(patient)
 
+    for doctor in favourite_doctors:
+        average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
+        doctor.average_rating = average_rating if average_rating is not None else 0  
+
     if request.method == 'POST':
-        # استدعاء دالة تحديث بيانات المريض
         update_patient_data(patient, request)
 
     context = {
@@ -42,8 +47,7 @@ def patient_dashboard(request, patient_id):
         'favourites': Favourites.objects.filter(patient=patient),
         'bookings': Booking.objects.filter(patient=patient),
         'favourite_doctors': favourite_doctors,
-        'ratings_context': ratings_context,
-        
+        'ratings_context': ratings_context,  
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
