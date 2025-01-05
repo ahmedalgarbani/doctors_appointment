@@ -401,3 +401,122 @@ def booking_history(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+def delete_booking(request, booking_id):
+    """حذف الحجز"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'يجب تسجيل الدخول أولاً'
+        }, status=401)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من الصلاحيات
+        if not hasattr(request.user, 'hospital') or booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # إنشاء سجل جديد لحالة الحجز قبل الحذف
+        BookingStatusHistory.objects.create(
+            booking=booking,
+            status='cancelled',
+            created_by=request.user,
+            notes='تم حذف الحجز'
+        )
+        
+        # تحديث حالة الحجز إلى ملغي بدلاً من حذفه فعلياً
+        booking.status = 'cancelled'
+        booking.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم إلغاء الحجز بنجاح'
+        })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def edit_booking(request, booking_id):
+    """تعديل الحجز"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'يجب تسجيل الدخول أولاً'
+        }, status=401)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من الصلاحيات
+        if not hasattr(request.user, 'hospital') or booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            
+            # تحديث البيانات القابلة للتعديل
+            if 'amount' in data:
+                booking.amount = data['amount']
+            if 'is_online' in data:
+                booking.is_online = data['is_online']
+            if 'payment_notes' in data:
+                booking.payment_notes = data['payment_notes']
+            
+            booking.save()
+
+            # إنشاء سجل جديد لحالة الحجز
+            BookingStatusHistory.objects.create(
+                booking=booking,
+                status=booking.status,
+                created_by=request.user,
+                notes='تم تعديل بيانات الحجز'
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم تعديل الحجز بنجاح'
+            })
+        else:
+            # إرجاع بيانات الحجز للعرض في نموذج التعديل
+            schedule = booking.appointment_date
+            shift = booking.appointment_time
+            
+            return JsonResponse({
+                'status': 'success',
+                'booking': {
+                    'id': booking.id,
+                    'amount': str(booking.amount),
+                    'is_online': booking.is_online,
+                    'payment_notes': booking.payment_notes or '',
+                    'patient_name': booking.patient.full_name,
+                    'doctor_name': booking.doctor.full_name,
+                    'appointment_date': schedule.get_day_display(),
+                    'appointment_time': f"{shift.start_time} - {shift.end_time}"
+                }
+            })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

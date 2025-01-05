@@ -127,6 +127,12 @@
                                             <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-history"></i> عرض الحالات
                                             </button>
+                                            <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </button>
+                                            <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -183,6 +189,63 @@
         </div>
     </div>
 </div>
+          
+
+                <!-- قسم تعديل الحجز -->
+                <div id="edit-section" class="mt-4 d-none">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">تعديل الحجز</h5>
+                            <button type="button" class="btn-close text-white" id="close-edit"></button>
+                        </div>
+                        <div class="card-body">
+                            <form id="editBookingForm" class="row">
+                                <input type="hidden" id="edit-booking-id">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">المريض</label>
+                                    <input type="text" class="form-control" id="edit-patient-name" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الطبيب</label>
+                                    <input type="text" class="form-control" id="edit-doctor-name" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">اليوم</label>
+                                    <input type="text" class="form-control" id="edit-appointment-date" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الوقت</label>
+                                    <input type="text" class="form-control" id="edit-appointment-time" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">المبلغ</label>
+                                    <input type="number" class="form-control" id="edit-amount" step="0.01" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" class="form-check-input" id="edit-is-online">
+                                        <label class="form-check-label">استشارة عن بعد</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">ملاحظات الدفع</label>
+                                    <textarea class="form-control" id="edit-payment-notes" rows="3"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-primary" id="saveBookingEdit">
+                                        <i class="fas fa-save"></i> حفظ التغييرات
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="cancel-edit">
+                                        <i class="fas fa-times"></i> إلغاء
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+              
+
 
 {% block extra_js %}
 <script>
@@ -526,7 +589,134 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
-</script>
+
+    // دالة حذف الحجز
+    document.querySelectorAll('.delete-booking').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('هل أنت متأكد من حذف هذا الحجز؟')) {
+                return;
+            }
+
+            const bookingId = this.getAttribute('data-booking-id');
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(`{% url 'hospitals:delete_booking' booking_id=0 %}`.replace('0', bookingId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('تم إلغاء الحجز بنجاح');
+                    location.reload();
+                } else {
+                    throw new Error(data.message || 'حدث خطأ أثناء حذف الحجز');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+            });
+        });
+    });
+
+
+    // دالة تعديل الحجز
+    document.querySelectorAll('.edit-booking').forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingId = this.getAttribute('data-booking-id');
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const editSection = document.getElementById('edit-section');
+
+            // إخفاء قسم التاريخ إذا كان ظاهراً
+            document.getElementById('history-section').classList.add('d-none');
+            
+            // إظهار قسم التعديل
+            editSection.classList.remove('d-none');
+            
+            // تمرير إلى قسم التعديل
+            editSection.scrollIntoView({ behavior: 'smooth' });
+
+            // جلب بيانات الحجز
+            fetch(`{% url 'hospitals:edit_booking' booking_id=0 %}`.replace('0', bookingId), {
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const booking = data.booking;
+                    
+                    // ملء النموذج بالبيانات
+                    document.getElementById('edit-booking-id').value = booking.id;
+                    document.getElementById('edit-patient-name').value = booking.patient_name;
+                    document.getElementById('edit-doctor-name').value = booking.doctor_name;
+                    document.getElementById('edit-appointment-date').value = booking.appointment_date;
+                    document.getElementById('edit-appointment-time').value = booking.appointment_time;
+                    document.getElementById('edit-amount').value = booking.amount;
+                    document.getElementById('edit-is-online').checked = booking.is_online;
+                    document.getElementById('edit-payment-notes').value = booking.payment_notes;
+                } else {
+                    throw new Error(data.message || 'حدث خطأ أثناء جلب بيانات الحجز');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+            });
+        });
+    });
+
+    // إغلاق قسم التعديل
+    document.getElementById('close-edit').addEventListener('click', function() {
+        document.getElementById('edit-section').classList.add('d-none');
+    });
+
+    document.getElementById('cancel-edit').addEventListener('click', function() {
+        document.getElementById('edit-section').classList.add('d-none');
+    });
+
+    // حفظ تعديلات الحجز
+    document.getElementById('saveBookingEdit').addEventListener('click', function() {
+        const bookingId = document.getElementById('edit-booking-id').value;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const data = {
+            amount: document.getElementById('edit-amount').value,
+            is_online: document.getElementById('edit-is-online').checked,
+            payment_notes: document.getElementById('edit-payment-notes').value
+        };
+
+        fetch(`{% url 'hospitals:edit_booking' booking_id=0 %}`.replace('0', bookingId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم تعديل الحجز بنجاح');
+                location.reload();
+            } else {
+                throw new Error(data.message || 'حدث خطأ أثناء تعديل الحجز');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    });
+ </script>
 <style>
 /* تنسيقات الطباعة */
 @media print {
