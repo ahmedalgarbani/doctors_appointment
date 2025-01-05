@@ -23,10 +23,16 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <div class="mb-3">
-                            <input type="text" id="search-input" class="form-control" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
+                            
+                            <button onclick="printTable()" class="btn btn-primary" data-bs-toggle="tooltip" title="طباعة الحجوزات">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
                         </div>
+                    </div>
+                    <div class="table-responsive">
                         <table class="table table-hover table-center mb-0" id="appointments-table">
                             <thead>
                                 <tr>
@@ -242,27 +248,87 @@
         }
     }
 
-    // إضافة مستمعي الأحداث
-    document.addEventListener('DOMContentLoaded', function() {
-        // تطبيق الفلترة الأولية وعرض الصفوف
-        filterAppointments();
-        
-        // إضافة مستمعي الأحداث للفلترة
-        document.getElementById('status-filter').addEventListener('change', filterAppointments);
-        document.getElementById('search-input').addEventListener('input', filterAppointments);
-        
-        // تفعيل tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+    // دالة الطباعة
+    function printTable() {
+        // حفظ حالة العرض الحالية لجميع الصفوف
+        const table = document.getElementById('appointments-table');
+        const rows = Array.from(table.getElementsByTagName('tr')).slice(1); // تجاهل صف العناوين
+        const displayStates = rows.map(row => row.style.display);
+
+        // إظهار جميع الصفوف التي تتطابق مع الفلتر الحالي
+        const searchInput = document.getElementById('search-input').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+
+        rows.forEach(row => {
+            const cells = Array.from(row.getElementsByTagName('td'));
+            if (cells.length > 0) {
+                // البحث النصي
+                const searchableText = [
+                    cells[1].textContent, // اسم المريض
+                    cells[2].textContent, // اسم الطبيب
+                    cells[5].textContent  // رقم الحوالة
+                ].join(' ').toLowerCase();
+
+                const textMatch = searchInput === '' || searchableText.includes(searchInput);
+
+                // فلتر الحالة
+                const statusCell = cells[6]; // خلية الحالة
+                let statusMatch = statusFilter === 'all';
+                
+                if (statusCell) {
+                    const statusText = statusCell.textContent.trim().toLowerCase();
+                    if (statusFilter === 'pending' && statusText.includes('قيد الانتظار')) {
+                        statusMatch = true;
+                    } else if (statusFilter === 'confirmed' && statusText.includes('مؤكد')) {
+                        statusMatch = true;
+                    } else if (statusFilter === 'completed' && statusText.includes('مكتمل')) {
+                        statusMatch = true;
+                    } else if (statusFilter === 'cancelled' && statusText.includes('ملغي')) {
+                        statusMatch = true;
+                    }
+                }
+
+                // تحديث حالة العرض للطباعة
+                if (textMatch && statusMatch) {
+                    row.style.display = '';
+                    row.classList.add('table-print');
+                } else {
+                    row.style.display = 'none';
+                    row.classList.remove('table-print');
+                }
+            }
         });
-    });
 
+        // إنشاء وإضافة ترويسة الطباعة
+        const printHeader = document.createElement('div');
+        printHeader.className = 'print-header';
+        const visibleRowsCount = rows.filter(row => row.style.display !== 'none').length;
+        
+        printHeader.innerHTML = `
+            <h2>قائمة الحجوزات</h2>
+            <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}</p>
+            <p>عدد الحجوزات: ${visibleRowsCount}</p>
+            ${statusFilter !== 'all' ? `<p>الفلتر: ${document.getElementById('status-filter').options[document.getElementById('status-filter').selectedIndex].text}</p>` : ''}
+            ${searchInput ? `<p>البحث: ${searchInput}</p>` : ''}
+        `;
 
+        // إضافة الترويسة قبل الجدول
+        table.parentNode.insertBefore(printHeader, table);
 
+        // طباعة الصفحة
+        window.print();
 
+        // استعادة حالة العرض الأصلية وإزالة الترويسة
+        setTimeout(() => {
+            rows.forEach((row, index) => {
+                row.style.display = displayStates[index];
+                row.classList.remove('table-print');
+            });
+            printHeader.remove();
+        }, 100);
+    }
 
-        // دالة لمعالجة قبول الحجز
+    // دالة لمعالجة قبول الحجز
     document.querySelectorAll(".accept-booking").forEach(function(button) {
         button.addEventListener("click", function() {
             const bookingId = this.getAttribute("data-booking-id");
@@ -336,87 +402,150 @@
             });
         });
     });
-{% comment %} 
-    // تعديل زر العرض لمعالجة الأخطاء
-    $(document).ready(function() {
-        $('.modal').on('shown.bs.modal', function () {
-            $(this).find('[data-bs-toggle="tooltip"]').tooltip(); {% endcomment %}
 
+    // إضافة مستمعي الأحداث
+    document.addEventListener('DOMContentLoaded', function() {
+        // تطبيق الفلترة الأولية وعرض الصفوف
+        filterAppointments();
+        
+        // إضافة مستمعي الأحداث للفلترة
+        document.getElementById('status-filter').addEventListener('change', filterAppointments);
+        document.getElementById('search-input').addEventListener('input', filterAppointments);
+        
+        // تفعيل tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
 </script>
 <style>
+/* تنسيقات الطباعة */
+@media print {
+    /* إخفاء العناصر غير المطلوبة عند الطباعة */
+    .no-print, 
+    .no-print *,
+    #sidebar,
+    .navbar,
+    .footer,
+    .breadcrumb,
+    .page-header,
+    .card-header,
+    .modal,
+    .btn,
+    select,
+    input,
+    #search-input,
+    #status-filter,
+    .nav,
+    .nav-tabs,
+    .tab-content > .tab-pane {
+        display: none !important;
+    }
+
+    /* إظهار محتوى التاب بغض النظر عن حالته */
+    .tab-content > .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* تنسيق الصفحة للطباعة */
+    body {
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+    }
+
+    .main-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .page-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* تنسيق الجدول للطباعة */
+    .table-print {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    
+    .table-print th,
+    .table-print td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: right;
+    }
+    
+    .table-print th {
+        background-color: #f8f9fa !important;
+        color: #000;
+    }
+    
+    /* تنسيق الشعار والعنوان */
+    .print-header {
+        text-align: center;
+        margin-bottom: 20px;
+        display: block !important;
+        padding: 20px;
+    }
+    
+    .print-header h2 {
+        margin: 0;
+        color: #000;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    .print-header p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    /* إظهار جميع الصفوف المفلترة */
+    #appointments-table tr[style*="display: none"] {
+        display: none !important;
+    }
+
+    #appointments-table tr:not([style*="display: none"]) {
+        display: table-row !important;
+    }
+    
+    /* تنسيق الحالة */
+    .badge {
+        border: 1px solid #000;
+        padding: 2px 5px;
+        color: #000 !important;
+        background: none !important;
+    }
+
+    /* تنسيق الروابط */
+    a {
+        text-decoration: none !important;
+        color: #000 !important;
+    }
+
+    /* إخفاء أيقونات الأزرار */
+    .fas, .far, .fa {
+        display: none !important;
+    }
+}
+
+/* تنسيقات إضافية للشاشة */
 .custom-modal .modal-content {
-    border: none;
     border-radius: 15px;
-}
-
-.custom-modal .modal-header {
-    border-radius: 15px 15px 0 0;
-    padding: 1rem 1.5rem;
-}
-
-.custom-modal .modal-body {
-    padding: 2rem;
-}
-
-.custom-modal .card {
-    border: none;
-    border-radius: 10px;
-    transition: transform 0.3s ease;
-}
-
-.custom-modal .card:hover {
-    transform: translateY(-5px);
-}
-
-.custom-modal .info-item label {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.custom-modal .info-item p {
-    margin-bottom: 0;
-}
-
-.custom-modal .badge {
-    font-size: 1rem;
-    padding: 0.5rem 1rem;
-}
-
-.custom-modal .btn {
-    padding: 0.5rem 1.5rem;
-    border-radius: 8px;
-}
-
-.custom-modal .modal-footer {
-    border-top: 1px solid #eee;
-    padding: 1.5rem;
-}
-
-.rtl-alert {
-    direction: rtl;
-    text-align: center;
-}
-
-/* تعديل طبقة العرض للنافذة المنبثقة */
-.swal2-popup {
-    z-index: 9999 !important;
-}
-
-.swal2-container {
-    z-index: 99999 !important;
-}
-
-/* تأكيد أن النافذة المنبثقة فوق كل العناصر */
-.modal-backdrop {
-    z-index: 1050 !important;
-}
-
-.modal {
-    z-index: 1051 !important;
-}
-
-#appointment_details {
-    z-index: 1052 !important;
 }
 </style>
 {% endblock extra_js %}
