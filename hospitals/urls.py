@@ -22,6 +22,7 @@ urlpatterns = [
     path('hospital/<slug:slug>', views.hospital_detail, name='hospital_detail'),
     path('accept-appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
     path('completed_appointment/<int:booking_id>/', views.completed_appointment, name='completed_appointment'),
+    path('booking-history/<int:booking_id>/', views.booking_history, name='booking_history'),
     
 
 ]

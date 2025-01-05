@@ -124,6 +124,9 @@
                                                     <i class="fas fa-check-double"></i>
                                                 </button>
                                             {% endif %}
+                                            <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-history"></i> عرض الحالات
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -134,6 +137,42 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- جدول تاريخ الحالات -->
+                    <div id="history-section" class="mt-4 d-none">
+                        <div class="card">
+                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">تاريخ حالات الحجز</h5>
+                                <button type="button" class="btn-close text-white" id="close-history"></button>
+                            </div>
+                            <div class="card-body">
+                                <div class="patient-info mb-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>اسم المريض:</strong> <span id="patientName"></span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>اسم الطبيب:</strong> <span id="doctorName"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>الحالة</th>
+                                                <th>التاريخ</th>
+                                                <th>بواسطة</th>
+                                                <th>ملاحظات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="history-table-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -403,6 +442,75 @@
         });
     });
 
+    document.querySelectorAll('.history-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingId = this.getAttribute("data-booking-id");
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const historySection = document.getElementById('history-section');
+
+            // إخفاء أي عرض سابق لتاريخ الحالات
+            historySection.classList.remove('d-none');
+            
+            // تمرير إلى قسم التاريخ
+            historySection.scrollIntoView({ behavior: 'smooth' });
+
+            fetch(`{% url 'hospitals:booking_history' booking_id=0 %}`.replace('0', bookingId), {
+                headers: {
+                    "X-CSRFToken": csrftoken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // ملء بيانات المريض والطبيب
+                    document.getElementById('patientName').textContent = data.patient_name;
+                    document.getElementById('doctorName').textContent = data.doctor_name;
+
+                    // ملء جدول تاريخ الحالات
+                    const tableBody = document.getElementById('history-table-body');
+                    tableBody.innerHTML = '';
+
+                    data.history.forEach(item => {
+                        const statusClass = {
+                            'pending': 'text-warning',
+                            'confirmed': 'text-primary',
+                            'completed': 'text-success',
+                            'cancelled': 'text-danger'
+                        }[item.status] || 'text-secondary';
+
+                        const statusText = {
+                            'pending': 'معلق',
+                            'confirmed': 'مؤكد',
+                            'completed': 'مكتمل',
+                            'cancelled': 'ملغي'
+                        }[item.status] || item.status;
+
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td><span class="${statusClass}"><strong>${statusText}</strong></span></td>
+                                <td>${item.created_at}</td>
+                                <td>${item.created_by}</td>
+                                <td>${item.notes || '-'}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    alert(data.message || 'حدث خطأ أثناء جلب تاريخ الحالات');
+                }
+            })
+            .catch(error => {
+                alert('حدث خطأ أثناء جلب تاريخ الحالات');
+                console.error(error);
+            });
+        });
+    });
+
+    // إضافة مستمع حدث لزر الإغلاق
+    document.getElementById('close-history').addEventListener('click', function() {
+        document.getElementById('history-section').classList.add('d-none');
+    });
+
     // إضافة مستمعي الأحداث
     document.addEventListener('DOMContentLoaded', function() {
         // تطبيق الفلترة الأولية وعرض الصفوف
@@ -546,6 +654,15 @@
 /* تنسيقات إضافية للشاشة */
 .custom-modal .modal-content {
     border-radius: 15px;
+}
+
+.history-timeline {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.history-item {
+    background-color: #f8f9fa;
+    border-radius: 4px;
 }
 </style>
 {% endblock extra_js %}
