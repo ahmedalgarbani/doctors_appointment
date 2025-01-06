@@ -1,167 +1,72 @@
-<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section d-none">
+<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section">
 						 
 	<div class="row">
 		<div class="col-sm-12">
 			<div class="card">
 				<div class="card-body">
-					<h4 class="card-title">Schedule Timings</h4>
+					<h4 class="card-title">جدولة المواعيد</h4>
 					<div class="profile-box">
 						<div class="row">
-
-							<div class="col-lg-4">
-								<div class="mb-3">               
-									<label class="durations">Timing Slot Duration</label>
-									<select class="form-select form-control">
-										<option>-</option>
-										<option>15 mins</option>
-										<option selected="selected">30 mins</option>  
-										<option>45 mins</option>
-										<option>1 Hour</option>
-									</select>
+							<div class="row mb-4">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>اختر الطبيب</label>
+										<select class="form-select" id="doctor_select">
+											<option value="">-- اختر الطبيب --</option>
+											{% for doctor in doctors %}
+											<option value="{{ doctor.id }}">{{ doctor.full_name }} - {{ doctor.specialty.name }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>حالة الجدول</label>
+										<div class="status-toggle">
+											<input type="checkbox" id="status_toggle" class="check">
+											<label for="status_toggle" class="checktoggle">متاح/غير متاح</label>
+										</div>
+									</div>
 								</div>
 							</div>
-
-						</div>     
+						</div>
 						<div class="row">
 							<div class="col-md-12">
 								<div class="card schedule-widget mb-0">
-								
+									
 									<!-- Schedule Header -->
 									<div class="schedule-header">
-									
-										<!-- Schedule Nav -->
 										<div class="schedule-nav">
 											<ul class="nav nav-tabs nav-justified">
+												{% for value, name in days %}
 												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_sunday">Sunday</a>
+													<a class="nav-link {% if forloop.counter == 2 %}active{% endif %}" data-bs-toggle="tab" href="#slot_{{ value|lower }}">{{ name }}</a>
 												</li>
-												<li class="nav-item">
-													<a class="nav-link active" data-bs-toggle="tab" href="#slot_monday">Monday</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_tuesday">Tuesday</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_wednesday">Wednesday</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_thursday">Thursday</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_friday">Friday</a>
-												</li>
-												<li class="nav-item">
-													<a class="nav-link" data-bs-toggle="tab" href="#slot_saturday">Saturday</a>
-												</li>
+												{% endfor %}
 											</ul>
 										</div>
-										<!-- /Schedule Nav -->
-										
 									</div>
 									<!-- /Schedule Header -->
 									
 									<!-- Schedule Content -->
 									<div class="tab-content schedule-cont">
-									
-										<!-- Sunday Slot -->
-										<div id="slot_sunday" class="tab-pane fade">
+										
+										{% for value, name in days %}
+										<div id="slot_{{ value|lower }}" class="tab-pane fade {% if forloop.counter == 2 %}show active{% endif %}">
 											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Sunday Slot -->
-
-										<!-- Monday Slot -->
-										<div id="slot_monday" class="tab-pane fade show active">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#edit_time_slot"><i class="fa fa-edit me-1"></i>Edit</a>
+												<span>{{ name }}</span>
+												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot" data-day="{{ value }}">
+													<i class="fa fa-plus-circle"></i> إضافة موعد
+												</a>
 											</h4>
 											
-											<!-- Slot List -->
+											<!-- Time Slots -->
 											<div class="doc-times">
-												<div class="doc-slot-list">
-													8:00 pm - 11:30 pm
-													<a href="javascript:void(0)" class="delete_schedule">
-														<i class="fa fa-times"></i>
-													</a>
-												</div>
-												<div class="doc-slot-list">
-													11:30 pm - 1:30 pm
-													<a href="javascript:void(0)" class="delete_schedule">
-														<i class="fa fa-times"></i>
-													</a>
-												</div>
-												<div class="doc-slot-list">
-													3:00 pm - 5:00 pm
-													<a href="javascript:void(0)" class="delete_schedule">
-														<i class="fa fa-times"></i>
-													</a>
-												</div>
-												<div class="doc-slot-list">
-													6:00 pm - 11:00 pm
-													<a href="javascript:void(0)" class="delete_schedule">
-														<i class="fa fa-times"></i>
-													</a>
-												</div>
+												<p class="text-muted mb-0">لا توجد مواعيد</p>
 											</div>
-											<!-- /Slot List -->
-											
 										</div>
-										<!-- /Monday Slot -->
-
-										<!-- Tuesday Slot -->
-										<div id="slot_tuesday" class="tab-pane fade">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Tuesday Slot -->
-
-										<!-- Wednesday Slot -->
-										<div id="slot_wednesday" class="tab-pane fade">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Wednesday Slot -->
-
-										<!-- Thursday Slot -->
-										<div id="slot_thursday" class="tab-pane fade">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Thursday Slot -->
-
-										<!-- Friday Slot -->
-										<div id="slot_friday" class="tab-pane fade">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Friday Slot -->
-
-										<!-- Saturday Slot -->
-										<div id="slot_saturday" class="tab-pane fade">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>Time Slots</span> 
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot"><i class="fa fa-plus-circle"></i> Add Slot</a>
-											</h4>
-											<p class="text-muted mb-0">Not Available</p>
-										</div>
-										<!-- /Saturday Slot -->
-
+										{% endfor %}
+										
 									</div>
 									<!-- /Schedule Content -->
 									
@@ -175,3 +80,246 @@
 	</div>
 		
 </div>
+
+<!-- Add Time Slot Modal -->
+<div class="modal fade" id="add_time_slot">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">إضافة موعد جديد</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<form id="add_time_slot_form">
+					{% csrf_token %}
+					<input type="hidden" name="doctor_id" id="modal_doctor_id">
+					<div class="form-group">
+						<label>اليوم</label>
+						<select name="day" class="form-select" required>
+							{% for day_value, day_name in days %}
+							<option value="{{ day_value }}">{{ day_name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group">
+						<label>وقت البداية</label>
+						<input type="time" name="start_time" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>وقت النهاية</label>
+						<input type="time" name="end_time" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>مدة الموعد (بالدقائق)</label>
+						<input type="number" name="slot_duration" class="form-control" min="15" step="15" value="30">
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+				<button type="submit" form="add_time_slot_form" class="btn btn-primary">حفظ</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Copy Timings Modal -->
+<div class="modal fade" id="copy_timings">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">نسخ المواعيد</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<form>
+					<div class="form-group">
+						<label>نسخ من</label>
+						<select class="form-select">
+							<option>الإثنين</option>
+							<option>الثلاثاء</option>
+							<option>الأربعاء</option>
+							<option>الخميس</option>
+							<option>الجمعة</option>
+							<option>السبت</option>
+							<option>الأحد</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>نسخ إلى</label>
+						<div class="checkbox-group">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" id="copy_sunday">
+								<label class="form-check-label" for="copy_sunday">الأحد</label>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" id="copy_monday">
+								<label class="form-check-label" for="copy_monday">الإثنين</label>
+							</div>
+							<!-- Add other days... -->
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+				<button type="button" class="btn btn-primary">نسخ المواعيد</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تحويل البيانات من Django إلى JavaScript
+    var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
+    console.log("Doctor Schedules:", doctorSchedules); // طباعة للتصحيح
+    
+    // تحميل جدول الطبيب عند اختياره
+    $('#doctor_select').change(function() {
+        var doctorId = $(this).val();
+        console.log("Selected Doctor ID:", doctorId); // طباعة للتصحيح
+        
+        if (doctorId) {
+            var schedules = doctorSchedules[doctorId] || {};
+            console.log("Doctor's Schedules:", schedules); // طباعة للتصحيح
+            updateScheduleDisplay(schedules);
+        } else {
+            // مسح جميع المواعيد إذا لم يتم اختيار طبيب
+            $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
+        }
+    });
+
+    // تحديث عرض الجدول
+    function updateScheduleDisplay(schedules) {
+        console.log("Updating display with schedules:", schedules); // طباعة للتصحيح
+        
+        // مسح كل المواعيد الحالية
+        $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
+        
+        // إضافة المواعيد الجديدة
+        Object.keys(schedules).forEach(function(day) {
+            var shifts = schedules[day];
+            var dayId = day.toString().padStart(1, '0').toLowerCase();
+            var dayElement = $(`#slot_${dayId}`);
+            
+            if (!dayElement.length) {
+                console.log("Day element not found for:", day, dayId); // طباعة للتصحيح
+                return;
+            }
+            
+            var docTimes = dayElement.find('.doc-times');
+            console.log("Found doc-times element:", docTimes.length); // طباعة للتصحيح
+            
+            if (shifts && shifts.length > 0) {
+                docTimes.empty(); // مسح رسالة "لا توجد مواعيد"
+                shifts.forEach(function(shift) {
+                    var slotHtml = `
+                        <div class="doc-slot-list">
+                            <div class="slot-info">
+                                <span class="slot-time">${shift.start_time} - ${shift.end_time}</span>
+                                <span class="slot-stats">
+                                    <span class="badge bg-success">${shift.available_slots} متاح</span>
+                                    <span class="badge bg-warning">${shift.booked_slots} محجوز</span>
+                                </span>
+                            </div>
+                            <div class="slot-actions">
+                                <a href="#" class="btn btn-sm btn-warning me-2 edit-shift" data-shift-id="${shift.id}">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-sm btn-danger delete-shift" data-shift-id="${shift.id}">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    docTimes.append(slotHtml);
+                });
+            }
+        });
+    }
+
+    // إضافة موعد جديد
+    $('#add_time_slot_form').submit(function(e) {
+        e.preventDefault();
+        
+        // إضافة معرف الطبيب للنموذج
+        var doctorId = $('#doctor_select').val();
+        $('#modal_doctor_id').val(doctorId);
+        
+        if (!doctorId) {
+            toastr.error('الرجاء اختيار طبيب أولاً');
+            return;
+        }
+        
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "hospitals:schedule_timings" %}',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#add_time_slot').modal('hide');
+                    // تحديث المواعيد في الذاكرة
+                    if (!doctorSchedules[doctorId]) {
+                        doctorSchedules[doctorId] = {};
+                    }
+                    var day = formData.get('day');
+                    if (!doctorSchedules[doctorId][day]) {
+                        doctorSchedules[doctorId][day] = [];
+                    }
+                    doctorSchedules[doctorId][day].push(response.shift);
+                    updateScheduleDisplay(doctorSchedules[doctorId]);
+                    toastr.success(response.message);
+                    $(this)[0].reset();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", error);
+                toastr.error('حدث خطأ أثناء إضافة الموعد');
+            }
+        });
+    });
+
+    // حذف موعد
+    $(document).on('click', '.delete-shift', function(e) {
+        e.preventDefault();
+        var shiftId = $(this).data('shift-id');
+        var doctorId = $('#doctor_select').val();
+        
+        if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+            $.ajax({
+                url: "{% url 'hospitals:delete_shift' 0 %}".replace('0', shiftId),
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // تحديث المواعيد في الذاكرة
+                        Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
+                            doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
+                                shift => shift.id !== shiftId
+                            );
+                        });
+                        updateScheduleDisplay(doctorSchedules[doctorId]);
+                        toastr.success(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);
+                    toastr.error('حدث خطأ أثناء حذف الموعد');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

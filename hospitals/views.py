@@ -21,21 +21,53 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from payments.models import Payment
 from bookings.models import BookingStatusHistory
+from datetime import datetime, date, timedelta
 
 
 def index(request):
-    user=request.user
-    hospital=get_object_or_404(Hospital,hospital_manager=user)
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
-    ctx  = {
+    doctors = Doctor.objects.filter(hospitals=hospital, status=True)
+    
+    # جلب جميع المواعيد للمستشفى
+    schedules = DoctorSchedules.objects.filter(hospital=hospital).select_related('doctor')
+    doctor_schedules = {}
+    
+    # طباعة للتصحيح
+    print("Doctors:", [f"{d.id}: {d.full_name}" for d in doctors])
+    print("Schedules:", [(s.doctor.id, s.day) for s in schedules])
+    
+    # تنظيم المواعيد حسب الطبيب واليوم
+    for schedule in schedules:
+        if schedule.doctor_id not in doctor_schedules:
+            doctor_schedules[schedule.doctor_id] = {}
+        
+        shifts = []
+        for shift in schedule.shifts.all():
+            shifts.append({
+                'id': shift.id,
+                'start_time': shift.start_time.strftime('%I:%M %p'),
+                'end_time': shift.end_time.strftime('%I:%M %p'),
+                'available_slots': shift.available_slots,
+                'booked_slots': shift.booked_slots if hasattr(shift, 'booked_slots') else 0
+            })
+        doctor_schedules[schedule.doctor_id][schedule.day] = shifts
+    
+    # طباعة للتصحيح
+    print("Doctor Schedules:", doctor_schedules)
+    
+    ctx = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
-        'hospital':hospital,
+        'hospital': hospital,
         'bookings': bookings,
-        'hospital': hospital
+        'doctors': doctors,
+        'doctor_schedules': doctor_schedules,
+        'days': DoctorSchedules.DAY_CHOICES,
     }
-    return render(request, 'frontend/dashboard/hospitals/index.html',ctx)
+    return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
 
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
@@ -520,3 +552,74 @@ def edit_booking(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
+@login_required
+def schedule_timings(request):
+    try:
+        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+        context = {
+            'doctors': Doctor.objects.filter(hospitals=hospital, status=True),
+            'days': DoctorSchedules.DAY_CHOICES
+        }
+        
+        if request.method == 'POST':
+            doctor_id = request.POST.get('doctor_id')
+            day = request.POST.get('day')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            slot_duration = request.POST.get('slot_duration', 30)
+            
+            doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+            
+            # إنشاء أو الحصول على جدول الطبيب
+            schedule, created = DoctorSchedules.objects.get_or_create(
+                doctor=doctor,
+                hospital=hospital,
+                day=day
+            )
+            
+            # حساب عدد المواعيد المتاحة
+            start = datetime.strptime(start_time, '%H:%M').time()
+            end = datetime.strptime(end_time, '%H:%M').time()
+            duration = timedelta(minutes=int(slot_duration))
+            total_time = datetime.combine(date.today(), end) - datetime.combine(date.today(), start)
+            available_slots = total_time.seconds // duration.seconds
+            
+            # إنشاء الفترة الزمنية
+            shift = DoctorShifts.objects.create(
+                doctor_schedule=schedule,
+                start_time=start,
+                end_time=end,
+                available_slots=available_slots
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم إضافة الموعد بنجاح',
+                'shift': {
+                    'id': shift.id,
+                    'start_time': shift.start_time.strftime('%I:%M %p'),
+                    'end_time': shift.end_time.strftime('%I:%M %p'),
+                    'available_slots': shift.available_slots
+                }
+            })
+        
+        return render(request, 'frontend/dashboard/hospitals/sections/schedule-timings.html', context)
+    
+    except Exception as e:
+        messages.error(request, f'حدث خطأ: {str(e)}')
+        return HttpResponseBadRequest(str(e))
+
+@login_required
+def delete_shift(request, shift_id):
+    try:
+        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+        shift = get_object_or_404(DoctorShifts, id=shift_id, doctor_schedule__hospital=hospital)
+        shift.delete()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم حذف الموعد بنجاح'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
