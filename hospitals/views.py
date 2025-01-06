@@ -596,7 +596,40 @@ def schedule_timings(request):
                 }
             })
 
-        # GET request - عرض صفحة المواعيد
+        # GET request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            doctor_id = request.GET.get('doctor_id')
+            if doctor_id:
+                doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+                schedules = DoctorShifts.objects.filter(
+                    doctor_schedule__doctor=doctor,
+                    doctor_schedule__hospital=hospital
+                ).select_related('doctor_schedule')
+                
+                # تنظيم المواعيد حسب اليوم
+                doctor_schedules = {}
+                for shift in schedules:
+                    day = shift.doctor_schedule.day
+                    if day not in doctor_schedules:
+                        doctor_schedules[day] = []
+                    
+                    doctor_schedules[day].append({
+                        'id': shift.id,
+                        'start_time': shift.start_time.strftime('%H:%M'),
+                        'end_time': shift.end_time.strftime('%H:%M'),
+                        'available_slots': shift.available_slots,
+                        'booked_slots': shift.booked_slots
+                    })
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'schedules': {
+                        str(doctor_id): doctor_schedules
+                    }
+                })
+            return JsonResponse({'status': 'error', 'message': 'معرف الطبيب مطلوب'})
+
+        # عرض الصفحة
         doctors = Doctor.objects.filter(hospitals=hospital)
         schedules = DoctorShifts.objects.filter(
             doctor_schedule__hospital=hospital
