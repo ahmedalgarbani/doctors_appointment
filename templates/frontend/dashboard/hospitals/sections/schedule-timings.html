@@ -53,16 +53,79 @@
 										
 										{% for value, name in days %}
 										<div id="slot_{{ value|lower }}" class="tab-pane fade {% if forloop.counter == 2 %}show active{% endif %}">
-											<h4 class="card-title d-flex justify-content-between">
-												<span>{{ name }}</span>
-												<a class="edit-link" data-bs-toggle="modal" href="#add_time_slot" data-day="{{ value }}">
-													<i class="fa fa-plus-circle"></i> إضافة موعد
-												</a>
-											</h4>
-											
-											<!-- Time Slots -->
-											<div class="doc-times">
-												<p class="text-muted mb-0">لا توجد مواعيد</p>
+											<div class="row">
+												<div class="col-md-8">
+													<h4 class="card-title">{{ name }}</h4>
+													<!-- Time Slots -->
+													<div class="doc-times">
+														<p class="text-muted mb-0">لا توجد مواعيد</p>
+													</div>
+												</div>
+												<div class="col-md-4">
+													<div class="card">
+														<div class="card-body">
+															<h4 class="card-title">إضافة موعد</h4>
+															<form class="add-time-slot-form" data-day="{{ value }}">
+																{% csrf_token %}
+																<input type="hidden" name="day" value="{{ value }}">
+																
+																<div class="mb-3">
+																	<label class="form-label">وقت البداية</label>
+																	<div class="row g-2">
+																		<div class="col">
+																			<select name="start_hour" class="form-select" required>
+																				{% for h in ""|rjust:"24" %}
+																				<option value="{{ forloop.counter0|stringformat:'02d' }}">{{ forloop.counter0|stringformat:'02d' }}</option>
+																				{% endfor %}
+																			</select>
+																		</div>
+																		<div class="col">
+																			<select name="start_minute" class="form-select" required>
+																				<option value="00">00</option>
+																				<option value="15">15</option>
+																				<option value="30">30</option>
+																				<option value="45">45</option>
+																			</select>
+																		</div>
+																	</div>
+																</div>
+
+																<div class="mb-3">
+																	<label class="form-label">وقت النهاية</label>
+																	<div class="row g-2">
+																		<div class="col">
+																			<select name="end_hour" class="form-select" required>
+																				{% for h in ""|rjust:"24" %}
+																				<option value="{{ forloop.counter0|stringformat:'02d' }}">{{ forloop.counter0|stringformat:'02d' }}</option>
+																				{% endfor %}
+																			</select>
+																		</div>
+																		<div class="col">
+																			<select name="end_minute" class="form-select" required>
+																				<option value="00">00</option>
+																				<option value="15">15</option>
+																				<option value="30">30</option>
+																				<option value="45">45</option>
+																			</select>
+																		</div>
+																	</div>
+																</div>
+
+																<div class="mb-3">
+																	<label class="form-label">عدد المواعيد المتاحة</label>
+																	<input type="number" name="max_appointments" class="form-control" value="1" min="1" required>
+																</div>
+
+																<div class="text-end">
+																	<button type="submit" class="btn btn-primary">
+																		<i class="fas fa-plus-circle me-1"></i>
+																		إضافة
+																	</button>
+																</div>
+															</form>
+														</div>
+													</div>
+												</div>
 											</div>
 										</div>
 										{% endfor %}
@@ -172,65 +235,128 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    // تحويل البيانات من Django إلى JavaScript
     var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
-    console.log("Doctor Schedules:", doctorSchedules); // طباعة للتصحيح
+    console.log("Initial doctor schedules:", doctorSchedules);
     
     // تحميل جدول الطبيب عند اختياره
     $('#doctor_select').change(function() {
         var doctorId = $(this).val();
-        console.log("Selected Doctor ID:", doctorId); // طباعة للتصحيح
+        console.log("Selected doctor:", doctorId);
         
         if (doctorId) {
             var schedules = doctorSchedules[doctorId] || {};
-            console.log("Doctor's Schedules:", schedules); // طباعة للتصحيح
             updateScheduleDisplay(schedules);
+            $('.add-time-slot-form button[type="submit"]').prop('disabled', false);
         } else {
-            // مسح جميع المواعيد إذا لم يتم اختيار طبيب
             $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
+            $('.add-time-slot-form button[type="submit"]').prop('disabled', true);
         }
+    });
+
+    // إضافة موعد جديد
+    $('.add-time-slot-form').on('submit', function(e) {
+        e.preventDefault();
+        console.log("Form submitted");
+        
+        var form = $(this);
+        var doctorId = $('#doctor_select').val();
+        
+        if (!doctorId) {
+            toastr.error('الرجاء اختيار طبيب أولاً');
+            return;
+        }
+
+        // تجميع البيانات
+        var formData = {
+            'doctor_id': doctorId,
+            'day': form.data('day'),
+            'start_time': form.find('[name="start_hour"]').val() + ':' + form.find('[name="start_minute"]').val(),
+            'end_time': form.find('[name="end_hour"]').val() + ':' + form.find('[name="end_minute"]').val(),
+            'max_appointments': form.find('[name="max_appointments"]').val(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+
+        console.log("Sending data:", formData);
+
+        // تعطيل الزر أثناء الإرسال
+        var submitButton = form.find('button[type="submit"]');
+        submitButton.prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "hospitals:schedule_timings" %}',
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                console.log("Success response:", response);
+                if (response.status === 'success') {
+                    if (!doctorSchedules[doctorId]) {
+                        doctorSchedules[doctorId] = {};
+                    }
+                    var day = form.data('day');
+                    if (!doctorSchedules[doctorId][day]) {
+                        doctorSchedules[doctorId][day] = [];
+                    }
+                    doctorSchedules[doctorId][day].push(response.shift);
+                    updateScheduleDisplay(doctorSchedules[doctorId]);
+                    toastr.success(response.message);
+                    form[0].reset();
+                } else {
+                    toastr.error(response.message || 'حدث خطأ أثناء إضافة الموعد');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", {xhr: xhr, status: status, error: error});
+                var errorMessage = 'حدث خطأ أثناء إضافة الموعد';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                // إعادة تفعيل الزر بعد انتهاء الطلب
+                submitButton.prop('disabled', false);
+            }
+        });
     });
 
     // تحديث عرض الجدول
     function updateScheduleDisplay(schedules) {
-        console.log("Updating display with schedules:", schedules); // طباعة للتصحيح
-        
-        // مسح كل المواعيد الحالية
+        console.log("Updating display with schedules:", schedules);
         $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
         
-        // إضافة المواعيد الجديدة
         Object.keys(schedules).forEach(function(day) {
             var shifts = schedules[day];
-            var dayId = day.toString().padStart(1, '0').toLowerCase();
-            var dayElement = $(`#slot_${dayId}`);
-            
-            if (!dayElement.length) {
-                console.log("Day element not found for:", day, dayId); // طباعة للتصحيح
-                return;
-            }
-            
-            var docTimes = dayElement.find('.doc-times');
-            console.log("Found doc-times element:", docTimes.length); // طباعة للتصحيح
+            var dayId = day.toString().padStart(1, '0');
+            var docTimes = $(`#slot_${dayId}`).find('.doc-times');
             
             if (shifts && shifts.length > 0) {
-                docTimes.empty(); // مسح رسالة "لا توجد مواعيد"
+                docTimes.empty();
                 shifts.forEach(function(shift) {
                     var slotHtml = `
-                        <div class="doc-slot-list">
-                            <div class="slot-info">
-                                <span class="slot-time">${shift.start_time} - ${shift.end_time}</span>
-                                <span class="slot-stats">
-                                    <span class="badge bg-success">${shift.available_slots} متاح</span>
-                                    <span class="badge bg-warning">${shift.booked_slots} محجوز</span>
-                                </span>
-                            </div>
-                            <div class="slot-actions">
-                                <a href="#" class="btn btn-sm btn-warning me-2 edit-shift" data-shift-id="${shift.id}">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-danger delete-shift" data-shift-id="${shift.id}">
-                                    <i class="fa fa-times"></i>
-                                </a>
+                        <div class="card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">${shift.start_time} - ${shift.end_time}</h5>
+                                        <div class="text-muted small">
+                                            عدد المواعيد: ${shift.available_slots}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            <span class="badge bg-success">${shift.available_slots} متاح</span>
+                                            <span class="badge bg-warning">${shift.booked_slots} محجوز</span>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-danger delete-shift" data-shift-id="${shift.id}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -240,61 +366,18 @@ $(document).ready(function() {
         });
     }
 
-    // إضافة موعد جديد
-    $('#add_time_slot_form').submit(function(e) {
-        e.preventDefault();
-        
-        // إضافة معرف الطبيب للنموذج
-        var doctorId = $('#doctor_select').val();
-        $('#modal_doctor_id').val(doctorId);
-        
-        if (!doctorId) {
-            toastr.error('الرجاء اختيار طبيب أولاً');
-            return;
-        }
-        
-        var formData = new FormData(this);
-        
-        $.ajax({
-            url: '{% url "hospitals:schedule_timings" %}',
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            success: function(response) {
-                if (response.status === 'success') {
-                    $('#add_time_slot').modal('hide');
-                    // تحديث المواعيد في الذاكرة
-                    if (!doctorSchedules[doctorId]) {
-                        doctorSchedules[doctorId] = {};
-                    }
-                    var day = formData.get('day');
-                    if (!doctorSchedules[doctorId][day]) {
-                        doctorSchedules[doctorId][day] = [];
-                    }
-                    doctorSchedules[doctorId][day].push(response.shift);
-                    updateScheduleDisplay(doctorSchedules[doctorId]);
-                    toastr.success(response.message);
-                    $(this)[0].reset();
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error:", error);
-                toastr.error('حدث خطأ أثناء إضافة الموعد');
-            }
-        });
-    });
-
     // حذف موعد
     $(document).on('click', '.delete-shift', function(e) {
         e.preventDefault();
-        var shiftId = $(this).data('shift-id');
+        console.log("Delete button clicked");
+        
+        var button = $(this);
+        var shiftId = button.data('shift-id');
         var doctorId = $('#doctor_select').val();
         
         if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+            button.prop('disabled', true);
+            
             $.ajax({
                 url: "{% url 'hospitals:delete_shift' 0 %}".replace('0', shiftId),
                 method: 'POST',
@@ -302,8 +385,8 @@ $(document).ready(function() {
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
                 success: function(response) {
+                    console.log("Delete success:", response);
                     if (response.status === 'success') {
-                        // تحديث المواعيد في الذاكرة
                         Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
                             doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
                                 shift => shift.id !== shiftId
@@ -314,12 +397,25 @@ $(document).ready(function() {
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error("Error:", error);
-                    toastr.error('حدث خطأ أثناء حذف الموعد');
+                    console.error("Delete error:", {xhr: xhr, status: status, error: error});
+                    button.prop('disabled', false);
+                    var errorMessage = 'حدث خطأ أثناء حذف الموعد';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMessage);
                 }
             });
         }
     });
+
+    // تفعيل toastr
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
 });
 </script>
 {% endblock %}

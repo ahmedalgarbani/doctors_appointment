@@ -557,19 +557,15 @@ def edit_booking(request, booking_id):
 @login_required
 def schedule_timings(request):
     try:
-        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-        context = {
-            'doctors': Doctor.objects.filter(hospitals=hospital, status=True),
-            'days': DoctorSchedules.DAY_CHOICES
-        }
+        hospital = Hospital.objects.get(hospital_manager=request.user)
         
         if request.method == 'POST':
             doctor_id = request.POST.get('doctor_id')
             day = request.POST.get('day')
             start_time = request.POST.get('start_time')
             end_time = request.POST.get('end_time')
-            slot_duration = request.POST.get('slot_duration', 30)
-            
+            max_appointments = int(request.POST.get('max_appointments', 1))
+
             doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
             
             # إنشاء أو الحصول على جدول الطبيب
@@ -579,47 +575,97 @@ def schedule_timings(request):
                 day=day
             )
             
-            # حساب عدد المواعيد المتاحة
-            start = datetime.strptime(start_time, '%H:%M').time()
-            end = datetime.strptime(end_time, '%H:%M').time()
-            duration = timedelta(minutes=int(slot_duration))
-            total_time = datetime.combine(date.today(), end) - datetime.combine(date.today(), start)
-            available_slots = total_time.seconds // duration.seconds
-            
             # إنشاء الفترة الزمنية
             shift = DoctorShifts.objects.create(
                 doctor_schedule=schedule,
-                start_time=start,
-                end_time=end,
-                available_slots=available_slots
+                start_time=start_time,
+                end_time=end_time,
+                available_slots=max_appointments,
+                booked_slots=0
             )
-            
+
             return JsonResponse({
                 'status': 'success',
                 'message': 'تم إضافة الموعد بنجاح',
                 'shift': {
                     'id': shift.id,
-                    'start_time': shift.start_time.strftime('%I:%M %p'),
-                    'end_time': shift.end_time.strftime('%I:%M %p'),
-                    'available_slots': shift.available_slots
+                    'start_time': shift.start_time.strftime('%H:%M'),
+                    'end_time': shift.end_time.strftime('%H:%M'),
+                    'available_slots': shift.available_slots,
+                    'booked_slots': shift.booked_slots
                 }
             })
+
+        # GET request - عرض صفحة المواعيد
+        doctors = Doctor.objects.filter(hospitals=hospital)
+        schedules = DoctorShifts.objects.filter(
+            doctor_schedule__hospital=hospital
+        ).select_related('doctor_schedule__doctor')
         
-        return render(request, 'frontend/dashboard/hospitals/sections/schedule-timings.html', context)
-    
+        # تنظيم المواعيد حسب الطبيب واليوم
+        doctor_schedules = {}
+        for shift in schedules:
+            doctor_id = shift.doctor_schedule.doctor.id
+            day = shift.doctor_schedule.day
+            
+            if doctor_id not in doctor_schedules:
+                doctor_schedules[doctor_id] = {}
+            
+            if day not in doctor_schedules[doctor_id]:
+                doctor_schedules[doctor_id][day] = []
+            
+            doctor_schedules[doctor_id][day].append({
+                'id': shift.id,
+                'start_time': shift.start_time.strftime('%H:%M'),
+                'end_time': shift.end_time.strftime('%H:%M'),
+                'available_slots': shift.available_slots,
+                'booked_slots': shift.booked_slots
+            })
+
+        context = {
+            'doctors': doctors,
+            'doctor_schedules': doctor_schedules,
+            'days': DoctorSchedules.DAY_CHOICES,
+            'section': 'schedule_timings'
+        }
+        
+        return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+    except Hospital.DoesNotExist:
+        messages.error(request, 'لا يمكنك الوصول إلى هذه الصفحة')
+        return redirect('home')
     except Exception as e:
-        messages.error(request, f'حدث خطأ: {str(e)}')
-        return HttpResponseBadRequest(str(e))
+        print(f"Error: {str(e)}")  # للتصحيح
+        messages.error(request, 'حدث خطأ أثناء معالجة الطلب')
+        return redirect('home')
 
 @login_required
 def delete_shift(request, shift_id):
-    try:
-        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-        shift = get_object_or_404(DoctorShifts, id=shift_id, doctor_schedule__hospital=hospital)
-        shift.delete()
-        return JsonResponse({
-            'status': 'success',
-            'message': 'تم حذف الموعد بنجاح'
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    if request.method == 'POST':
+        try:
+            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+            shift = get_object_or_404(DoctorShifts, 
+                id=shift_id, 
+                doctor_schedule__hospital=hospital
+            )
+            shift.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم حذف الموعد بنجاح'
+            })
+        except (Hospital.DoesNotExist, DoctorShifts.DoesNotExist):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لا يمكنك حذف هذا الموعد'
+            }, status=403)
+        except Exception as e:
+            print(f"Error: {str(e)}")  # للتصحيح
+            return JsonResponse({
+                'status': 'error',
+                'message': 'حدث خطأ أثناء حذف الموعد'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'طريقة الطلب غير صحيحة'
+    }, status=405)
