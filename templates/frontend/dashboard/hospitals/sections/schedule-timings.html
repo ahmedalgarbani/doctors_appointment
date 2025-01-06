@@ -238,39 +238,14 @@ $(document).ready(function() {
     var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
     console.log("Initial doctor schedules:", doctorSchedules);
     
-    // دالة لتحديث البيانات من السيرفر
-    function refreshSchedules(doctorId) {
-        console.log("Refreshing schedules for doctor:", doctorId);
-        return $.ajax({
-            url: '{% url "hospitals:schedule_timings" %}',
-            method: 'GET',
-            data: { doctor_id: doctorId },
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                console.log("Refresh response:", response);
-                if (response.status === 'success' && response.schedules) {
-                    doctorSchedules = response.schedules;
-                    updateScheduleDisplay(doctorSchedules[doctorId]);
-                } else {
-                    console.error("Invalid response format:", response);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error refreshing schedules:", error);
-                toastr.error('حدث خطأ أثناء تحديث المواعيد');
-            }
-        });
-    }
-    
     // تحميل جدول الطبيب عند اختياره
     $('#doctor_select').change(function() {
         var doctorId = $(this).val();
         console.log("Selected doctor:", doctorId);
         
         if (doctorId) {
-            refreshSchedules(doctorId);
+            var schedules = doctorSchedules[doctorId] || {};
+            updateScheduleDisplay(schedules);
             $('.add-time-slot-form button[type="submit"]').prop('disabled', false);
         } else {
             $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
@@ -317,15 +292,17 @@ $(document).ready(function() {
             success: function(response) {
                 console.log("Success response:", response);
                 if (response.status === 'success') {
+                    if (!doctorSchedules[doctorId]) {
+                        doctorSchedules[doctorId] = {};
+                    }
+                    var day = form.data('day');
+                    if (!doctorSchedules[doctorId][day]) {
+                        doctorSchedules[doctorId][day] = [];
+                    }
+                    doctorSchedules[doctorId][day].push(response.shift);
+                    updateScheduleDisplay(doctorSchedules[doctorId]);
                     toastr.success(response.message);
                     form[0].reset();
-                    
-                    // تحديث البيانات مباشرة بعد الإضافة
-                    setTimeout(function() {
-                        refreshSchedules(doctorId).done(function() {
-                            console.log("Schedule refreshed after adding");
-                        });
-                    }, 500);
                 } else {
                     toastr.error(response.message || 'حدث خطأ أثناء إضافة الموعد');
                 }
@@ -348,10 +325,7 @@ $(document).ready(function() {
     // تحديث عرض الجدول
     function updateScheduleDisplay(schedules) {
         console.log("Updating display with schedules:", schedules);
-        // إعادة تعيين جميع الأيام إلى الحالة الافتراضية
         $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
-        
-        if (!schedules) return;
         
         Object.keys(schedules).forEach(function(day) {
             var shifts = schedules[day];
@@ -413,13 +387,13 @@ $(document).ready(function() {
                 success: function(response) {
                     console.log("Delete success:", response);
                     if (response.status === 'success') {
+                        Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
+                            doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
+                                shift => shift.id !== shiftId
+                            );
+                        });
+                        updateScheduleDisplay(doctorSchedules[doctorId]);
                         toastr.success(response.message);
-                        // تحديث البيانات بعد الحذف
-                        setTimeout(function() {
-                            refreshSchedules(doctorId).done(function() {
-                                console.log("Schedule refreshed after deletion");
-                            });
-                        }, 500);
                     }
                 },
                 error: function(xhr, status, error) {
