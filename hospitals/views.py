@@ -1,36 +1,44 @@
-# Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from bookings.models import Booking
-from hospitals.forms import DoctorForm
-from payments.models import HospitalPaymentMethod, PaymentOption, PaymentStatus
-from .models import Hospital, HospitalAccountRequest,HospitalDetail
-from django.core.mail import send_mail
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseBadRequest
-from doctors.models import Doctor,DoctorShifts,DoctorSchedules
-from hospitals.models import Hospital
-from doctors.models import Specialty   
-from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Subquery, Max
 import json
-from payments.models import Payment
+from bookings.models import Booking
+from payments.models import (
+    HospitalPaymentMethod,
+    PaymentOption,
+    PaymentStatus,
+    Payment,
+)
+from hospitals.models import Hospital, HospitalAccountRequest
+from doctors.models import (
+    Doctor,
+    DoctorPricing,
+    Specialty,
+)
 
 
+@login_required
 def index(request):
-    user=request.user
+    user = request.user
     hospital=get_object_or_404(Hospital,hospital_manager=user)
+    speciality=Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
+
+    book = user.groups.all()[0] 
+    print("--------------------")
+    print(user.groups.all()[0])
+    print(book.permissions.all())
+    print("--------------------")
     ctx  = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital':hospital,
+        'speciality':speciality,
         'bookings': bookings,
         'hospital': hospital
     }
@@ -121,14 +129,13 @@ def hospital_request_status(request, request_id):
 
 def add_doctor(request):
     if request.method == "POST":
-        # Extract form data
         full_name = request.POST.get("full_name")
         birthday = request.POST.get("birthday")
         phone_number = request.POST.get("phone_number")
         email = request.POST.get("email")
         gender = request.POST.get("gender")
-        specialty_id = 1
-        hospital_id = 1
+        specialty_id = request.POST.get("specialty")
+        hospital_id = request.user.id
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -136,6 +143,7 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
+        price = request.POST.get("price")
 
         if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
             return HttpResponseBadRequest("Missing required fields")
@@ -161,10 +169,14 @@ def add_doctor(request):
             status=status,
             show_at_home=show_at_home,
         )
-
+        priceCreate = DoctorPricing.objects.create(
+            doctor = get_object_or_404(Doctor,id=doctor.id),
+            hospital = get_object_or_404(Hospital,id=hospital_id),
+            amount = price,
+        )
         doctor.hospitals.set([hospital])  
         doctor.save()
-
+        
         return render(request, "frontend/dashboard/hospitals/index.html")
 
     context = {
@@ -172,6 +184,9 @@ def add_doctor(request):
         "specialties": Specialty.objects.all(),  
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+
 
 
 def add_payment_method(request):
