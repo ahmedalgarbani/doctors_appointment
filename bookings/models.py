@@ -110,3 +110,37 @@ class Booking(models.Model):
         if self.payment_verified and self.status == 'pending':
             self.status = 'confirmed'
         super().save(*args, **kwargs)
+
+class BookingStatusHistory(models.Model):
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='status_history',
+        verbose_name="الحجز"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Booking.STATUS_CHOICES,
+        verbose_name="الحالة"
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="ملاحظات"
+    )
+    created_by = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='booking_status_updates',
+        verbose_name="تم التحديث بواسطة"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "سجل حالة الحجز"
+        verbose_name_plural = "سجلات حالات الحجوزات"
+
+    def __str__(self):
+        return f"{self.booking} - {self.status} - {self.created_at}"

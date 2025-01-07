@@ -37,143 +37,231 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <!-- معلومات المريض -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card shadow-sm h-100">
-                                    <div class="card-body">
-                                        <h4 class="text-primary mb-4">
-                                            <i class="fas fa-user-injured me-2"></i>معلومات المريض
-                                        </h4>
-                                        <div class="patient-info">
-                                            {% if booking.patient.profile_picture %}
-                                            <div class="text-center mb-4">
-                                                <img src="{{ booking.patient.profile_picture.url }}" 
-                                                     alt="صورة المريض" 
-                                                     class="img-fluid rounded-circle shadow"
-                                                     style="width: 150px; height: 150px; object-fit: cover;">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!-- معلومات الحجز -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="card-title mb-0">معلومات الحجز</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.id }}</div>
                                             </div>
-                                            {% endif %}
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">الاسم</label>
-                                                <h5 class="mb-0">{{ booking.patient.full_name }}</h5>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>حالة الحجز:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'confirmed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'completed' %}bg-info{% endif %}">
+                                                        {{ booking.get_status_display }}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">رقم الهاتف</label>
-                                                <h5 class="mb-0">{{ booking.patient.phone_number }}</h5>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>نوع الحجز:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge {% if booking.is_online %}bg-info{% else %}bg-secondary{% endif %}">
+                                                        {{ booking.is_online|yesno:"عن بعد,حضوري" }}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">البريد الإلكتروني</label>
-                                                <h5 class="mb-0">{{ booking.patient.email }}</h5>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.appointment_date|date:"Y-m-d" }}</div>
                                             </div>
-                                            {% if booking.patient.age %}
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">العمر</label>
-                                                <h5 class="mb-0">{{ booking.patient.age }} سنة</h5>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>وقت الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.appointment_time|time:"H:i" }}</div>
                                             </div>
-                                            {% endif %}
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الإنشاء:</strong></div>
+                                                <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- معلومات المريض -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-info text-white">
+                                            <h5 class="card-title mb-0">معلومات المريض</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>اسم المريض:</strong></div>
+                                                <div class="col-sm-8">{{ booking.patient.full_name }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="tel:{{ booking.patient.phone_number }}" class="text-decoration-none">
+                                                        {{ booking.patient.phone_number }}
+                                                        <i class="fas fa-phone-alt ms-2"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>العمر:</strong></div>
+                                                <div class="col-sm-8">{{ booking.patient.birth_date|timesince }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>الجنس:</strong></div>
+                                                <div class="col-sm-8">{{ booking.patient.get_gender_display }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>العنوان:</strong></div>
+                                                <div class="col-sm-8">{{ booking.patient.address }}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- معلومات الطبيب -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card shadow-sm h-100">
-                                    <div class="card-body">
-                                        <h4 class="text-primary mb-4">
-                                            <i class="fas fa-user-md me-2"></i>معلومات الطبيب
-                                        </h4>
-                                        <div class="doctor-info">
-                                            {% if booking.doctor.profile_image %}
-                                            <div class="text-center mb-4">
-                                                <img src="{{ booking.doctor.profile_image.url }}" 
-                                                     alt="صورة الطبيب" 
-                                                     class="img-fluid rounded-circle shadow"
-                                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            <div class="row mt-4">
+                                <!-- معلومات الطبيب -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="card-title mb-0">معلومات الطبيب</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>اسم الطبيب:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.full_name }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>التخصص:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.specialty.name }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>سنوات الخبرة:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.experience_years }} سنة</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="tel:{{ booking.doctor.phone_number }}" class="text-decoration-none">
+                                                        {{ booking.doctor.phone_number }}
+                                                        <i class="fas fa-phone-alt ms-2"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>البريد الإلكتروني:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="mailto:{{ booking.doctor.email }}" class="text-decoration-none">
+                                                        {{ booking.doctor.email }}
+                                                        <i class="fas fa-envelope ms-2"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- معلومات الدفع -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="card-title mb-0">معلومات الدفع</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>المبلغ:</strong></div>
+                                                <div class="col-sm-8">{{ booking.amount }} ريال</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>حالة الدفع:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge {% if booking.is_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                                        {{ booking.is_paid|yesno:"تم الدفع,لم يتم الدفع" }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {% if booking.transfer_number %}
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الحوالة:</strong></div>
+                                                <div class="col-sm-8">{{ booking.transfer_number }}</div>
                                             </div>
                                             {% endif %}
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">الاسم</label>
-                                                <h5 class="mb-0">د. {{ booking.doctor.full_name }}</h5>
-                                            </div>
-                                            <div class="info-group mb-3">
-                                                <label class="text-muted d-block mb-1">التخصص</label>
-                                                <h5 class="mb-0">{{ booking.doctor.specialization }}</h5>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الدفع:</strong></div>
+                                                <div class="col-sm-8">{{ booking.payment_date|default:"لم يتم الدفع بعد"|date:"Y-m-d H:i" }}</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- تفاصيل الموعد -->
-                            <div class="col-12">
-                                <div class="card shadow-sm">
-                                    <div class="card-body">
-                                        <h4 class="text-primary mb-4">
-                                            <i class="fas fa-info-circle me-2"></i>تفاصيل الموعد
-                                        </h4>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="info-group mb-3">
-                                                    <label class="text-muted d-block mb-1">تاريخ الحجز</label>
-                                                    <h5 class="mb-0">{{ booking.booking_date }}</h5>
-                                                </div>
-                                                                                                <div class="info-group mb-3">
-                                                    <label class="text-muted d-block mb-1"> التحويل البنكي</label>
-                                                    <h5 class="mb-0">{{ booking.payment_method }}</h5>
-                                                </div>
-                                                <div class="info-group mb-3">
-                                                    <label class="text-muted d-block mb-1">نوع الحجز</label>
-                                                    <h5 class="mb-0">{% if booking.is_online %}عن بعد{% else %}حضوري{% endif %}</h5>
-                                                </div>
-                                                
-                                                
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="info-group mb-3">
-                                                    <label class="text-muted d-block mb-1">حالة الحجز</label>
-                                                    <h5 class="mb-0">
-                                                        {% if booking.status == 'pending' %}
-                                                            <span class="badge bg-warning">قيد الانتظار</span>
-                                                        {% elif booking.status == 'confirmed' %}
-                                                            <span class="badge bg-success">مؤكد</span>
-                                                        {% elif booking.status == 'cancelled' %}
-                                                            <span class="badge bg-danger">ملغي</span>
-                                                        {% elif booking.status == 'completed' %}
-                                                            <span class="badge bg-info">مكتمل</span>
-                                                        {% endif %}
-                                                    </h5>
-                                                </div>
-                                                {% if booking.notes %}
-                                                <div class="info-group mb-3">
-                                                    <label class="text-muted d-block mb-1">ملاحظات</label>
-                                                    <h5 class="mb-0">{{ booking.notes }}</h5>
-                                                </div>
-                                                {% endif %}
-                                            </div>
+                            <!-- أزرار الإجراءات -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            {% if booking.status == 'pending' %}
+                                            <button class="btn btn-success me-2" onclick="acceptAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="قبول الحجز">
+                                                <i class="fas fa-check me-1"></i> قبول
+                                            </button>
+                                            <button class="btn btn-danger me-2" onclick="cancelAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="رفض الحجز">
+                                                <i class="fas fa-times me-1"></i> رفض
+                                            </button>
+                                            {% elif booking.status == 'confirmed' %}
+                                            <button class="btn btn-info me-2" onclick="completeAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="تأكيد اكتمال الكشف">
+                                                <i class="fas fa-check-double me-1"></i> اكتمال الكشف
+                                            </button>
+                                            {% endif %}
+                                            
+                                            {% if not booking.is_online %}
+                                            <button class="btn btn-primary me-2" onclick="printAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="طباعة تفاصيل الحجز">
+                                                <i class="fas fa-print me-1"></i> طباعة
+                                            </button>
+                                            {% endif %}
+{% comment %}                                             
+                                            <a href="{% url 'appointments_list' %}" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة لقائمة الحجوزات">
+                                                <i class="fas fa-arrow-left me-1"></i> رجوع
+                                            </a> {% endcomment %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- أزرار التحكم -->
-                        <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <a href="javascript:;" data-method="appointments" data-section="appointments" class="btn btn-secondary me-2">
-                                    <i class="fas fa-arrow-right me-1"></i>رجوع
-                                </a>
-                                {% if booking.status == 'pending' %}
-                                <button type="button" class="btn btn-success me-2">
-                                    <i class="fas fa-check me-1"></i>قبول الحجز
-                                </button>
-                                <button type="button" class="btn btn-danger">
-                                    <i class="fas fa-times me-1"></i>رفض الحجز
-                                </button>
-                                {% endif %}
-                            </div>
-                        </div>
+                        <!-- إضافة سكربت للتعامل مع الإجراءات -->
+                        <script>
+                            // تفعيل tooltips
+                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                return new bootstrap.Tooltip(tooltipTriggerEl)
+                            })
+
+                            // دالة قبول الحجز
+                            function acceptAppointment(bookingId) {
+                                if (confirm('هل أنت متأكد من قبول هذا الحجز؟')) {
+                                    window.location.href = `/hospitals/accept_appointment/${bookingId}/`;
+                                }
+                            }
+
+                            // دالة رفض الحجز
+                            function cancelAppointment(bookingId) {
+                                if (confirm('هل أنت متأكد من رفض هذا الحجز؟')) {
+                                    window.location.href = `/hospitals/cancel_appointment/${bookingId}/`;
+                                }
+                            }
+
+                            // دالة اكتمال الكشف
+                            function completeAppointment(bookingId) {
+                                if (confirm('هل تريد تأكيد اكتمال الكشف؟')) {
+                                    window.location.href = `/hospitals/complete_appointment/${bookingId}/`;
+                                }
+                            }
+
+                            // دالة طباعة تفاصيل الحجز
+                            function printAppointment(bookingId) {
+                                window.print();
+                            }
+                        </script>
                     </div>
                 </div>
             </div>
