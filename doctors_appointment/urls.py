@@ -14,8 +14,4 @@ urlpatterns = [
     path('hospital/', include('hospitals.urls', namespace='hospitals')),
     path('patients/', include(('patients.urls', 'patients'), namespace='patients')),  # رابط المرضى
 
-]
-
-# إذا كانت البيئة في وضع التطوير (DEBUG = True)، يتم إضافة إعدادات خدمة الملفات الإعلامية (Media Files)
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,7 +6,7 @@ class BookingAdmin(admin.ModelAdmin):
     
     list_filter = ('status', 'is_online', 'appointment_date', 'doctor', 'hospital')
     
-    search_fields = ('patient__name', 'doctor__name', 'hospital__name', 'notes')
+    search_fields = ('patient', 'doctor__name', 'hospital__name', 'notes')
     
     ordering = ['-appointment_date', '-appointment_time']
 

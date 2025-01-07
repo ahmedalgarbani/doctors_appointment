@@ -110,9 +110,9 @@ def payment_process(request, doctor_id):
             payment_type='e_pay' if is_online else 'cash'
         )
         
-        # Update shift's booked slots
-        selected_shift.booked_slots += 1
-        selected_shift.save()
+        # # Update shift's booked slots
+        # selected_shift.booked_slots += 1
+        # selected_shift.save()
         
         # Redirect to booking success page
         return redirect('bookings:booking_success', booking_id=booking.id,)
