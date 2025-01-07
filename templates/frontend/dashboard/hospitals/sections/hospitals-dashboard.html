@@ -1,0 +1,247 @@
+<div class="col-md-7 col-lg-8 col-xl-9 hospital_dashboard section">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-table mb-0">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-3">
+                            <div class="dash-widget dct-border-rht">
+                                <div class="circle-bar circle-bar1">
+                                    <div class="circle-graph1" data-percent="75">
+                                        <img src="assets/img/icon-01.png" class="img-fluid" alt="Doctors">
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6>الأطباء</h6>
+                                    <h3>25</h3>
+                                    <p class="text-muted">إجمالي الأطباء</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12 col-lg-3">
+                            <div class="dash-widget dct-border-rht">
+                                <div class="circle-bar circle-bar2">
+                                    <div class="circle-graph2" data-percent="65">
+                                        <img src="assets/img/icon-02.png" class="img-fluid" alt="Departments">
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6>الأقسام</h6>
+                                    <h3>8</h3>
+                                    <p class="text-muted">الأقسام النشطة</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12 col-lg-3">
+                            <div class="dash-widget">
+                                <div class="circle-bar circle-bar3">
+                                    <div class="circle-graph3" data-percent="50">
+                                        <img src="assets/img/icon-03.png" class="img-fluid" alt="Revenue">
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6>الإيرادات</h6>
+                                    <h3>$12,500</h3>
+                                    <p class="text-muted">هذا الشهر</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 col-lg-3">
+                            <div class="dash-widget">
+                                <div class="circle-bar circle-bar4">
+                                    <div class="circle-graph4" data-percent="80">
+                                        <img src="assets/img/icon-04.png" class="img-fluid" alt="Patients">
+                                    </div>
+                                </div>
+                                <div class="dash-widget-info">
+                                    <h6>المرضى</h6>
+                                    <h3>850</h3>
+                                    <p class="text-muted">هذا الشهر</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">الإجراءات السريعة</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="javascript:;" data-method="add_doctor_page" data-section="add_doctor_page" class="btn btn-primary btn-block">
+                                <i class="fas fa-user-md"></i> إضافة طبيب جديد
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a  class="btn btn-success btn-block">
+                                <i class="fas fa-hospital"></i> إضافة قسم جديد
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="javascript:;" data-method="add_payment_page" data-section="add_payment_page" class="btn btn-info btn-block">
+                                <i class="fas fa-credit-card"></i> إدارة طرق الدفع
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Activities -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">آخر النشاطات</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs nav-tabs-solid nav-justified">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#doctors-tab" data-bs-toggle="tab">الأطباء</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#appointments-tab" data-bs-toggle="tab">المواعيد</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#payments-tab" data-bs-toggle="tab">المدفوعات</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Doctors Tab -->
+                        <div class="tab-pane show active" id="doctors-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>الطبيب</th>
+                                            <th>القسم</th>
+                                            <th>التخصص</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <h2 class="table-avatar">
+                                                    <a href="doctor-profile.html" class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" src="assets/img/doctors/doctor-01.jpg" alt="Doctor Image">
+                                                    </a>
+                                                    <a href="doctor-profile.html">د. محمد أحمد</a>
+                                                </h2>
+                                            </td>
+                                            <td>القلب</td>
+                                            <td>أمراض القلب</td>
+                                            <td><span class="badge badge-success">نشط</span></td>
+                                            <td>
+                                                <div class="actions">
+                                                    <a href="edit-doctor.html" class="btn btn-sm bg-success-light me-2">
+                                                        <i class="fe fe-pencil"></i> تعديل
+                                                    </a>
+                                                    <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
+                                                        <i class="fe fe-trash"></i> حذف
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /Doctors Tab -->
+
+                        <!-- Payments Tab -->
+                        <div class="tab-pane" id="payments-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>رقم الفاتورة</th>
+                                            <th>اسم المريض</th>
+                                            <th>المبلغ</th>
+                                            <th>طريقة الدفع</th>
+                                            <th>التاريخ</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><a href="#">INV-001</a></td>
+                                            <td>أحمد محمد</td>
+                                            <td>$200</td>
+                                            <td>بطاقة ائتمان</td>
+                                            <td>11 نوف 2023</td>
+                                            <td><span class="badge badge-success">مكتمل</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /Payments Tab -->
+
+                        <!-- Appointments Tab -->
+                        <div class="tab-pane" id="appointments-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>المريض</th>
+                                            <th>الطبيب</th>
+                                            <th>القسم</th>
+                                            <th>التاريخ</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <h2 class="table-avatar">
+                                                    <a href="patient-profile.html" class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" src="assets/img/patients/patient1.jpg" alt="User Image">
+                                                    </a>
+                                                    <a href="patient-profile.html">خالد محمد</a>
+                                                </h2>
+                                            </td>
+                                            <td>د. محمد أحمد</td>
+                                            <td>القلب</td>
+                                            <td>11 نوف 2023 <span class="d-block text-info">10.00 AM</span></td>
+                                            <td><span class="badge badge-warning">قيد الانتظار</span></td>
+                                            <td>
+                                                <div class="table-action">
+                                                    <a href="javascript:void(0);" class="btn btn-sm bg-info-light">
+                                                        <i class="far fa-eye"></i> عرض
+                                                    </a>
+                                                    <a href="javascript:void(0);" class="btn btn-sm bg-success-light">
+                                                        <i class="fas fa-check"></i> قبول
+                                                    </a>
+                                                    <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
+                                                        <i class="fas fa-times"></i> رفض
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /Appointments Tab -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

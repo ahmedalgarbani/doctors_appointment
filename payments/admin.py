@@ -1,39 +1,43 @@
 from django.contrib import admin
-from .models import PaymentStatus, PaymentMethod, ChoosePayment, Payment
+from .models import PaymentStatus, Payment, PaymentOption, HospitalPaymentMethod
 from django.utils.translation import gettext_lazy as _
 
 # ------------PaymentStatus Admin-------------
 @admin.register(PaymentStatus)
 class PaymentStatusAdmin(admin.ModelAdmin):
-    list_display = ('payment_status_name', 'status_code')
-    search_fields = ('payment_status_name', 'status_code')
-    list_filter = ('status_code',)
-    ordering = ('status_code',)
+    list_display = ['payment_status_name', 'status_code']
+    search_fields = ['payment_status_name']
+    ordering = ['status_code']
 
-# ------------PaymentMethod Admin-------------
-@admin.register(PaymentMethod)
-class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ('method_name', 'activate_state', 'country', 'currency', 'logo')
-    search_fields = ('method_name', 'country', 'currency')
-    list_filter = ('activate_state', 'country')
-    ordering = ('-activate_state', 'method_name')
+# ------------PaymentOption Admin-------------
+@admin.register(PaymentOption)
+class PaymentOptionAdmin(admin.ModelAdmin):
+    list_display = ['method_name', 'currency', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['method_name']
 
-# ------------ChoosePayment Admin-------------
-@admin.register(ChoosePayment)
-class ChoosePaymentAdmin(admin.ModelAdmin):
-    list_display = ('payment_option', 'status', 'account_number')
-    search_fields = ('payment_option__method_name', 'account_number')
-    list_filter = ('status',)
-    ordering = ('-status',)
+# ------------HospitalPaymentMethod Admin-------------
+@admin.register(HospitalPaymentMethod)
+class HospitalPaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ['hospital', 'payment_option', 'account_name', 'is_active']
+    list_filter = ['hospital', 'payment_option', 'is_active']
+    search_fields = ['hospital__name', 'payment_option__method_name', 'account_name']
 
 # ------------Payment Admin-------------
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('payment_choose', 'payment_status', 'payment_date', 'payment_totalamount', 'payment_currency', 'payment_type')
-    search_fields = ('payment_choose__payment_option__method_name', 'payment_status__payment_status_name', 'payment_currency', 'payment_type')
-    list_filter = ('payment_choose', 'payment_status', 'payment_type', 'payment_currency')
-    ordering = ('-payment_date',)
-
-    def has_add_permission(self, request):
-        # Optionally restrict adding new payments directly from the admin
-        return False
+    list_display = ['id', 'booking', 'payment_method', 'payment_status', 'payment_date', 'payment_totalamount', 'payment_type']
+    list_filter = ['payment_status', 'payment_type', 'payment_date']
+    search_fields = ['booking__patient__full_name', 'payment_method__payment_option__method_name']
+    readonly_fields = ['payment_date']
+    fieldsets = (
+        ('معلومات الحجز', {
+            'fields': ('booking', 'payment_method', 'payment_status')
+        }),
+        ('معلومات الدفع', {
+            'fields': ('payment_type', 'payment_subtotal', 'payment_discount', 'payment_totalamount', 'payment_currency')
+        }),
+        ('معلومات إضافية', {
+            'fields': ('payment_date', 'payment_note')
+        }),
+    )

@@ -1,11 +1,10 @@
 import datetime
 from django.db import models
-from hospitals.models import BaseModel,Hospital
+from hospitals.models import BaseModel, Hospital
 from django.utils.translation import gettext_lazy as _
 
 # ------------PaymentStatus-------------
-
-class PaymentStatus(BaseModel):
+class PaymentStatus(models.Model):
     payment_status_name = models.CharField(
         max_length=50,
         verbose_name=_("اسم حالة الدفع")
@@ -22,91 +21,54 @@ class PaymentStatus(BaseModel):
     def __str__(self):
         return f"{self.payment_status_name} ({self.status_code})"
 
-
-# ------------PaymentMethod-------------
-
-class PaymentMethod(models.Model):
-    method_name = models.CharField(
-        max_length=50,
-        verbose_name=_("اسم طريقة الدفع")
-    )
-    logo = models.ImageField(
-        upload_to='payment_methods/',
-        verbose_name=_("الشعار"),
-        null=True,
-        blank=True
-    )
-    activate_state = models.BooleanField(
-        default=True,
-        verbose_name=_("مفعّل")
-    )
-    country = models.CharField(
-        max_length=50,
-        verbose_name=_("الدولة")
-    )
-    currency = models.CharField(
-      default='RYL',
-      max_length=25,
-        verbose_name=_("العملة"),
-    )
+# ------------PaymentOption-------------
+class PaymentOption(models.Model):
+    method_name = models.CharField(max_length=100, verbose_name=_("اسم طريقة الدفع"))
+    logo = models.ImageField(upload_to='payment_logos/', null=True, blank=True, verbose_name=_("شعار"))
+    currency = models.CharField(max_length=25, default='RYL', verbose_name=_("العملة"))
+    is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
     
-    
-
-    class Meta:
-        verbose_name = _("طريقة الدفع")
-        verbose_name_plural = _("طرق الدفع")
-        ordering = ['-activate_state', 'method_name']
-
     def __str__(self):
-        status = _("مفعّل") if self.activate_state else _("معطّل")
+        status = _("مفعّل") if self.is_active else _("معطّل")
         return f"{self.method_name} - {self.currency} ({status})"
+    
+    class Meta:
+        verbose_name = _("طريقة دفع")
+        verbose_name_plural = _("طرق الدفع")
 
-
-
-
-# ------------Choose Payment-------------
-
-class ChoosePayment(models.Model):
-    payment_option = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE,related_name='payment_option')
-    hospitals = models.ForeignKey(
-        Hospital,
-        on_delete=models.CASCADE,
-        related_name='payment_methods',
-        verbose_name=_("المستشفيات"),
-        blank=True
-    )
-    status = models.BooleanField(default=True)
-    account_number = models.CharField(
-        max_length=66,
-        verbose_name=_("رقم التحويل"),
-        blank=True,
-        null=True
-    )
-    description = models.TextField(
-        max_length=300,
-        verbose_name=_("الوصف"),
-        blank=True,
-        null=True
-    )
-
-
+# ------------HospitalPaymentMethod-------------
+class HospitalPaymentMethod(models.Model):
+    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='hospital_payment_methods', verbose_name=_("المستشفى"))
+    payment_option = models.ForeignKey(PaymentOption, on_delete=models.CASCADE, verbose_name=_("طريقة الدفع"))
+    account_name = models.CharField(max_length=100, verbose_name=_("اسم الحساب"))
+    account_number = models.CharField(max_length=50, verbose_name=_("رقم الحساب"))
+    iban = models.CharField(max_length=50, verbose_name=_("رقم الآيبان"))
+    description = models.TextField(verbose_name=_("تعليمات الدفع"))
+    is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
+    
+    def __str__(self):
+        return f"{self.hospital.name} - {self.payment_option.method_name}"
+    
+    class Meta:
+        verbose_name = _("طريقة دفع المستشفى")
+        verbose_name_plural = _("طرق دفع المستشفى")
+        unique_together = ['hospital', 'payment_option']
 
 # ------------Payment-------------
-
 class Payment(models.Model):
     Type_choices = [
         ('cash', _('نقدي')),
         ('e_pay', _('دفع إلكتروني')),
     ]
-    payment_choose = models.ForeignKey(
-    ChoosePayment,
-    on_delete=models.CASCADE,
-    verbose_name=_("طريقة الدفع"),
-    related_name='payments'
-)
-
+    
+    payment_method = models.ForeignKey(
+        HospitalPaymentMethod,
+        on_delete=models.CASCADE,
+        verbose_name=_("طريقة الدفع"),
+        related_name='payments'
+    )
     payment_status = models.ForeignKey(
-        'payments.PaymentStatus',
+        PaymentStatus,
         on_delete=models.CASCADE,
         verbose_name=_("حالة الدفع"),
         related_name='payments'
@@ -132,9 +94,9 @@ class Payment(models.Model):
         verbose_name=_("المبلغ الإجمالي")
     )
     payment_currency = models.CharField(
-      default='RYL',
-      max_length=25,
-        verbose_name=_("العملة"),
+        max_length=25,
+        default='RYL',
+        verbose_name=_("العملة")
     )
     payment_note = models.TextField(
         max_length=300,
@@ -161,11 +123,9 @@ class Payment(models.Model):
         ordering = ['-payment_date']
 
     def __str__(self):
-        return f"فاتورة رقم {self.id} - {self.booking.guest.name if self.booking.guest else 'غير محدد'} - {self.payment_totalamount} {self.payment_currency}"
+        return f"فاتورة رقم {self.id} - {self.booking.patient.full_name} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
         super().save(*args, **kwargs)
-
-# Create your models here.

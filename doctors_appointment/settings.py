@@ -15,20 +15,9 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,7 +27,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
-    
     'hospitals',
     'doctors',
     'bookings',
@@ -53,6 +41,7 @@ INSTALLED_APPS = [
     'blog',
     'menu_generator',
     'ckeditor',
+        'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -92,11 +81,11 @@ WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'doctor_appointment',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'doctor_appointment'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '54322'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'",
             'charset': 'utf8mb4',
@@ -120,11 +109,7 @@ DATABASE_OPTIONS = {
     # }
 
 
-
-
 AUTH_USER_MODEL='users.CustomUser'
-
-    
 
 
 # Password validation
@@ -167,26 +152,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, '/static')
 
 
 
-
-
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
-
-
-
 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
 
 
 ####################################################################################
@@ -237,7 +213,6 @@ NAV_MENU_TOP = [
         "url": "/blog",
     },
 ]
-
 
 
 FOOTER_MENU_ONE = [

@@ -56,9 +56,25 @@
 		
 		<!-- Main CSS -->
 		<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+     <!-- CSS Libraries -->
+  <link rel="stylesheet" href="{% static 'modules/summernote/summernote-bs4.css' %}">
+  <link rel="stylesheet" href="{% static 'modules/codemirror/lib/codemirror.css' %}">
+  <link rel="stylesheet" href="{% static 'modules/codemirror/theme/duotone-dark.css' %}">
+  <link rel="stylesheet" href="{% static 'modules/jquery-selectric/selectric.css' %}">
+
     <style>
       :root{
           --colorPrimary: {{setting.color}} !important;
+      }
+      .btn-red{
+        background-color: red;
+  border: 1px solid red;
+  color: white;
+
       }
   </style>
 
@@ -89,6 +105,12 @@
     {% block extra_js %}
     {% endblock extra_js %}
 	<!-- jQuery -->
+    <!-- JS Libraies -->
+    <script src="{% static 'modules/summernote/summernote-bs4.js' %}"></script>
+    <script src="{% static 'modules/codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'modules/codemirror/mode/javascript/javascript.js' %}"></script>
+    <script src="{% static 'modules/jquery-selectric/jquery.selectric.min.js' %}"></script>
+  
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
 		
   <!-- Bootstrap Bundle JS -->
@@ -118,6 +140,9 @@
 
   <!-- Custom JS -->
   <script src="{% static 'js/script.js' %}"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
 
+  
   </body>
 </html>

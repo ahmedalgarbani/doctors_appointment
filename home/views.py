@@ -1,8 +1,10 @@
-from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import redirect, render, get_object_or_404
 from datetime import datetime
+from bookings.models import Booking
 from home.helpers import group_shifts_by_period
-from  patients.models import Patients
-from payments.models import ChoosePayment, Payment, PaymentMethod, PaymentStatus
+from patients.models import Favourites, Patients
+from payments.models import Payment, PaymentStatus, PaymentOption, HospitalPaymentMethod
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
 from hospitals.models import City, Hospital
@@ -14,9 +16,6 @@ from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
 
-from django.template.loader import render_to_string
-from django.http import JsonResponse
-from bookings.models import Booking
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -130,34 +129,65 @@ def terms_condition(request):
     }
     return render(request, 'frontend/home/pages/term-condition.html', ctx)
 
-def profile(request):
-    doctors = Doctor.objects.filter(status=True)
-    
-    ctx = {
-        'doctors': doctors,
-    }
 
-    return render(request, 'frontend/home/pages/profile.html', ctx)
-
+from math import floor
 def doctor_profile(request, doctor_id):
     doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
-
     reviews = Review.objects.filter(doctor=doctor, status=True)
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-
-    pricing = DoctorPricing.objects.filter(doctor=doctor).first()
-
+    average_rating =  int(floor(average_rating))
+    pricing = doctor.pricing.first() 
+    if request.method == 'POST':
+         Review.objects.create(
+            doctor_id = doctor_id,
+            user = get_object_or_404(Patients,id=1),
+            rating = request.POST.get('rating'),
+            review = request.POST.get('review'),
+            )
+    day_date = datetime.now()  
+    day_name = day_date.strftime("%A")
+    day_date = day_date.strftime("%Y-%m-%d")
+    patient = get_object_or_404(Patients,id=1)
+    isFavorite = patient.favourites.filter(doctor=doctor)
+   
     ctx = {
         'doctor': doctor,
         'reviews': reviews,
-        'average_rating': average_rating,
+        'average_rating': round(average_rating, 1),
         'pricing': pricing,
+        'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
+        'day_date':day_date,
+        'isFavorite':isFavorite
     }
 
     return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
 
+import json
 
+def add_to_favorites(request):
+    try:
+        data = json.loads(request.body)  
+        doctor_id = data.get('doctor_id')  
+
+        if not doctor_id:
+            return JsonResponse({'status': 'error', 'message': 'No doctor ID provided'})
+
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+
+        favorite_entry = Favourites.objects.filter(patient=get_object_or_404(Patients,id=1), doctor=doctor).first()
+
+        if favorite_entry:
+            favorite_entry.delete()
+            return JsonResponse({'status': 'success', 'message': 'Doctor removed from favorites'})
+        else:
+            Favourites.objects.create(patient=get_object_or_404(Patients,id=1), doctor=doctor)
+            return JsonResponse({'status': 'success', 'message': 'Doctor added to favorites'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 
 def search_view(request):
@@ -287,6 +317,9 @@ def search_view(request):
     ).values('doctor').annotate(
         avg_rating=Avg('rating')
     )
+    doctors_with_ratings = Doctor.objects.annotate(
+        avg_rating=Avg('reviews__rating')
+    )
     ctx = {
         'doctors': doctors_page,
         'page_obj': doctors_page,
@@ -302,6 +335,7 @@ def search_view(request):
             'rating': rating
         },
         'price_range': price_range,
+        'doctors_with_ratings':doctors_with_ratings,
         'doctor_ratings': {r['doctor']: r['avg_rating'] for r in doctor_ratings}
     }
 
@@ -317,11 +351,12 @@ def booking_view(request, doctor_id):
     request.session['selected_doctor'] = selected_doctor.id    
     dayes = selected_doctor.schedules.all()  
     sched = dayes[0]  
-
+    
+    
     schedulesShift = sched.shifts.all()
 
     grouped_slots = group_shifts_by_period(schedulesShift)
-
+  
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
@@ -336,106 +371,32 @@ def booking_view(request, doctor_id):
 
 
 
+from django.template.loader import render_to_string
 def get_time_slots(request,schedule_id,doctor_id,):
-    request.session['selected_day'] = schedule_id    
-
     if not schedule_id:
         return JsonResponse({'error': 'No schedule ID provided'}, status=400)
 
-    doctor = get_object_or_404(Doctor, id=request.session['selected_doctor'])
-    
-    schedule = get_object_or_404(DoctorSchedules, id=schedule_id, doctor=doctor)
-    
-    schedulesShift = schedule.shifts.all()
-    dayes = doctor.schedules.all()  
-
-    grouped_slots = group_shifts_by_period(schedulesShift)
-    ctx = {
-        'schedules': grouped_slots, 
-        'dayes': dayes,
-        'doctor': doctor,
-        'selected_day':schedule_id
-    }
-    # html = render_to_string('frontend/home/pages/time_slots.html', {})
-    
-    return render(request,'frontend/home/pages/booking.html',ctx)
-
-
-
-def payment_process(request):
-    doctor_id = request.session.get('selected_doctor')
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    selected_date = request.session.get('selected_date', 0)
-    selected_time = request.session.get('selected_time', 0)
-
-    if request.method == 'GET':
-        selected_date = get_object_or_404(DoctorSchedules, id=request.GET.get('day'))
-        selected_time = get_object_or_404(DoctorShifts, id=request.GET.get('date'))
-        request.session['selected_date'] = selected_date.id
-        request.session['selected_time'] = selected_time.id
-    elif request.method == 'POST':
-        selected_date = get_object_or_404(DoctorSchedules, id=request.POST.get('selected_date', 0))
-        selected_time = get_object_or_404(DoctorShifts, id=request.POST.get('selected_time', 0))
-        request.session['selected_date'] = selected_date.id
-        request.session['selected_time'] = selected_time.id
-
-    hospital = doctor.hospitals.first()
-    payment_methods = ChoosePayment.objects.filter(status=True)
-
-    pricing = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
-    amount = pricing.amount if pricing else 0
-
-    if request.method == 'POST':
-        notes = request.POST.get('notes', '')
-        subtotal = float(request.POST.get('subtotal', 0)) if float(request.POST.get('subtotal', 0)) > 0 else float(amount)
-        discount = float(request.POST.get('discount', 0))
-        total = subtotal - discount
-        transfer_number = request.POST.get('transfer_number', None)
-        payment_method = request.POST.get('payment', 'cash')
-     
-        booking = Booking.objects.create(
-            doctor=doctor,
-            patient=get_object_or_404(Patients, id=1),
-            hospital=get_object_or_404(Hospital, id=hospital.id),
-            appointment_date=get_object_or_404(DoctorSchedules, id=selected_date.id),
-            appointment_time=get_object_or_404(DoctorShifts, id=selected_time.id),
-            notes=notes,
-            status='pending'
-        )
-       
-
-
-        Payment.objects.create(
-            booking=booking,
-            payment_choose=get_object_or_404(ChoosePayment,id=payment_method),
-            payment_status=get_object_or_404(PaymentStatus, id=1),
-            payment_subtotal=subtotal,
-            payment_discount=discount,
-            payment_totalamount=total,
-            payment_currency='RYL',
-            payment_note=f"Transfer number: {transfer_number}",
-            payment_type=get_object_or_404(PaymentMethod, id=payment_method).method_name
-        )
-
-        context = {
+    try:
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        schedule = get_object_or_404(DoctorSchedules, id=schedule_id, doctor=doctor)
+        
+        schedulesShift = schedule.shifts.all()
+        grouped_slots = group_shifts_by_period(schedulesShift)
+        
+        html = render_to_string('frontend/home/pages/time_slots.html', {
+            'schedules': grouped_slots, 
             'doctor': doctor,
-            'hospital': hospital,
-            'selected_date': selected_date.day,
-            'selected_time': selected_time,
-            'subtotal': subtotal,
-            'discount': discount,
-            'total': total,
-            'transfer_number': transfer_number,
-            'payment_method': payment_method,
-        }
-        return render(request, 'frontend/home/pages/booking-success.html', context)
+            'selected_day':schedule_id
+        })
+        
+        return JsonResponse({
+            'html': html,
+            'schedule_id': schedule_id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
 
-    context = {
-        'doctor': doctor,
-        'hospital': hospital,
-        'selected_date': selected_date,
-        'selected_time': selected_time,
-        'amount': amount,
-        'payment_methods': payment_methods,
-    }
-    return render(request, 'frontend/home/pages/payment.html', context)
+

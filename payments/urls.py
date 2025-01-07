@@ -4,5 +4,5 @@ from . import views
 app_name = 'payments'
 
 urlpatterns = [
-    path('process', views.payment_process, name='process'),
+    path('process/<int:doctor_id>/', views.payment_process, name='process'),
 ]

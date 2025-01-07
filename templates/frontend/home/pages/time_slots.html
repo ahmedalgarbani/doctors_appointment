@@ -1,15 +1,16 @@
-
+{% if schedules %}
 <div class="row">
+    {% if schedules.morning %}
     <div class="col-lg-4 col-md-4">
         <div class="time-slot time-slot-blk">
             <h4>Morning</h4>
             <div class="time-slot-list">
                 <ul>
                     {% for schedule in schedules.morning %}
-                    <li >
-                        <a
-                        data-schedule="{{ schedule.id }}" 
-                        class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);" >
+                    <li>
+                        <a data-schedule="{{ schedule.id }}" 
+                           class="timing {% if schedule.is_available %}available{% endif %} {% if schedule.id == selected_time %}selected{% endif %}" 
+                           href="javascript:void(0);">
                             <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
                         </a>
                     </li>
@@ -18,6 +19,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
+    
+    {% if schedules.afternoon %}
     <div class="col-lg-4 col-md-4">
         <div class="time-slot time-slot-blk">
             <h4>Afternoon</h4>
@@ -25,9 +29,9 @@
                 <ul>
                     {% for schedule in schedules.afternoon %}
                     <li>
-                        <a class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);"
-                        data-schedule="{{ schedule.id }}" 
-                        >
+                        <a data-schedule="{{ schedule.id }}" 
+                           class="timing {% if schedule.is_available %}available{% endif %} {% if schedule.id == selected_time %}selected{% endif %}" 
+                           href="javascript:void(0);">
                             <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
                         </a>
                     </li>
@@ -36,6 +40,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
+    
+    {% if schedules.evening %}
     <div class="col-lg-4 col-md-4">
         <div class="time-slot time-slot-blk">
             <h4>Evening</h4>
@@ -43,9 +50,9 @@
                 <ul>
                     {% for schedule in schedules.evening %}
                     <li>
-                        <a 
-                        data-schedule="{{ schedule.id }}" 
-                        class="timing {% if schedule.is_available %}available{% endif %}" href="javascript:void(0);">
+                        <a data-schedule="{{ schedule.id }}" 
+                           class="timing {% if schedule.is_available %}available{% endif %} {% if schedule.id == selected_time %}selected{% endif %}" 
+                           href="javascript:void(0);">
                             <span><i class="feather-clock"></i> {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
                         </a>
                     </li>
@@ -54,4 +61,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
+{% else %}
+<div class="alert alert-info">
+    لا توجد مواعيد متاحة في هذا اليوم
+</div>
+{% endif %}
