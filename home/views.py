@@ -1,10 +1,8 @@
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from datetime import datetime
-from bookings.models import Booking
 from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
-from payments.models import Payment, PaymentStatus, PaymentOption, HospitalPaymentMethod
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
 from hospitals.models import City, Hospital

@@ -73,17 +73,11 @@
                     <span>الفواتير</span>
                   </a>
                 </li>
+               
                 <li>
-                  <a href="javascript:;" data-method="reviews" data-section="reviews">
-                    <i class="fas fa-star"></i>
-                    <span>التقييمات</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:;" data-method="doctor_pending_blog" data-section="doctor_pending_blog">
+                  <a href="{% url 'hospitals:blog_list' %}">
                     <i class="fas fa-comments"></i>
                     <span>المدونة</span>
-                    <small class="unread-msg">23</small>
                   </a>
                 </li>
                 <li>
@@ -126,25 +120,22 @@
       <!-- Include Sections -->      
 
       
-       {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
+      {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
       {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/available-timings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-add-blog.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-blog.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
-      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoice-view.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
       {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-      {% include "frontend/dashboard/hospitals/sections/reviews.html" %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/social-media.html" %}
-     
+    
     </div>
   </div>
 </div>

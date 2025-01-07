@@ -1,0 +1,117 @@
+{% extends "frontend/layouts/master.html" %}
+{% block content %}
+
+<div class="content" style="min-height: 159.1px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+
+                <div class="col-md-7 col-lg-8 col-xl-9 ">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
+                            <i class="fas fa-md"></i> الرجوع  
+                        </a>
+                    </div>
+                    <div class="doc-review review-listing">
+                
+                        <div class="row mb-5">
+                            <div class="col">
+                                <ul class="nav nav-tabs nav-tabs-solid">
+                                    <li class="nav-item">
+                                        <a class="nav-link " href="{% url 'hospitals:blog_list' %}" >Acitive Blog</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="{% url 'hospitals:blog_pending_list' %}" >Pending Blog</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-auto">
+                                <a class="btn btn-primary btn-sm"  href="{% url 'hospitals:add_blog' %}"><i class="fas fa-plus me-1"></i> Add Blog</a>
+                            </div>
+                        </div>
+                    
+                      
+                        <!-- Blog -->
+                        <div class="row blog-grid-row">
+                            {% if allBlogs %}
+                            {% for blog in allBlogs %}
+                            {% if blog.status == False %}
+                            <div class="col-md-6 col-xl-4 col-sm-12">
+                                        
+                                <!-- Blog Post -->
+                                <div class="blog grid-blog">
+                                    <div class="blog-image">
+                                        <a href="blog-details.html"><img class="img-fluid" src="{{blog.image.url}}" alt="Post Image"></a>
+                                    </div>
+                                    <div class="blog-content">
+                                        <ul class="entry-meta meta-item">
+                                            <li>
+                            
+                                                <div class="post-author">
+                                                    <a href="doctor-profile.html">
+                                                        {% if blog.author.details.photo %}
+                                                        <img src="{{blog.author.details.photo.url}}" alt="{{blog.author.name}}">
+                                                        {% endif %}
+                                                        
+                                                        <span>{{blog.author.name}}</span></a>
+                                                </div>
+                                            </li>
+                                            <li><i class="far fa-clock"></i> {{blog.created_at}}</li>
+                                        </ul>
+                                        <h3 class="blog-title"><a href="blog-details.html">{{blog.title}}</a></h3>
+                                        <p class="mb-0">{{blog.content}}</p>
+                                    </div>
+                                    <div class="row pt-3">
+                                        <div class="col"><a href="edit-blog.html" class="text-success"><i class="far fa-edit"></i> Edit</a></div>
+                                                                                                    
+                                    </div>
+                                </div>
+                                <!-- /Blog Post -->
+                                
+                            </div>
+                            {% endif %}
+                            
+                            {% endfor %}
+                            {% endif %}
+                                        
+                                    
+                                    </div>
+                                
+                        <!-- Blog Pagination -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="blog-pagination">
+                                    <nav>
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">1</a>
+                                            </li>
+                                            <li class="page-item active">
+                                                <a class="page-link" href="#">2 <span class="visually-hidden">(current)</span></a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">3</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#"><i class="fas fa-angle-double-right"></i></a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Blog Pagination -->
+                        <!-- /Blog -->
+                
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}
