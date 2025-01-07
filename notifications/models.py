@@ -40,6 +40,7 @@ class Notifications(BaseModel):
         ],
         verbose_name=_("نوع الإشعار")
     )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("نشط")
@@ -53,4 +54,12 @@ class Notifications(BaseModel):
     def __str__(self):
         return f"Notification from {self.sender} to {self.user} - {self.notification_type}"
 
-# Create your models here.
+    def mark_as_read(self):
+        if self.status != '1':
+            self.status = '1'
+            self.save()
+
+    def mark_as_unread(self):
+        if self.status != '0':
+            self.status = '0'
+            self.save()
