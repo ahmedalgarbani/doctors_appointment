@@ -31,6 +31,33 @@ def index(request):
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
     
+    # Get payment statuses for the filter dropdown
+    payment_statuses = PaymentStatus.objects.all()
+    
+    # Get invoices with filters
+    invoices = Payment.objects.filter(booking__hospital=hospital).select_related('booking', 'booking__patient')
+    
+    # Apply filters if provided
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    payment_status = request.GET.get('payment_status')
+    amount_min = request.GET.get('amount_min')
+    amount_max = request.GET.get('amount_max')
+    
+    if date_from:
+        invoices = invoices.filter(payment_date__gte=date_from)
+    if date_to:
+        invoices = invoices.filter(payment_date__lte=date_to)
+    if payment_status:
+        invoices = invoices.filter(payment_status_id=payment_status)
+    if amount_min:
+        invoices = invoices.filter(payment_totalamount__gte=amount_min)
+    if amount_max:
+        invoices = invoices.filter(payment_totalamount__lte=amount_max)
+        
+    # Order by latest first
+    invoices = invoices.order_by('-payment_date')
+
     # جلب جميع المواعيد للمستشفى
     schedules = DoctorSchedules.objects.filter(hospital=hospital).select_related('doctor')
     doctor_schedules = {}
@@ -66,6 +93,8 @@ def index(request):
         'doctors': doctors,
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,
+        'invoices': invoices,
+        'payment_statuses': payment_statuses,  # Add payment statuses to the context
     }
     return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
 
@@ -702,3 +731,34 @@ def delete_shift(request, shift_id):
         'status': 'error',
         'message': 'طريقة الطلب غير صحيحة'
     }, status=405)
+
+@login_required
+def filter_invoices(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    
+    # Get invoices with filters
+    invoices = Payment.objects.filter(booking__hospital=hospital).select_related('booking', 'booking__patient')
+    
+    # Apply filters if provided
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    payment_status = request.GET.get('payment_status')
+    amount_min = request.GET.get('amount_min')
+    amount_max = request.GET.get('amount_max')
+    
+    if date_from:
+        invoices = invoices.filter(payment_date__gte=date_from)
+    if date_to:
+        invoices = invoices.filter(payment_date__lte=date_to)
+    if payment_status:
+        invoices = invoices.filter(payment_status_id=payment_status)
+    if amount_min:
+        invoices = invoices.filter(payment_totalamount__gte=amount_min)
+    if amount_max:
+        invoices = invoices.filter(payment_totalamount__lte=amount_max)
+        
+    # Order by latest first
+    invoices = invoices.order_by('-payment_date')
+    
+    return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', {'invoices': invoices})

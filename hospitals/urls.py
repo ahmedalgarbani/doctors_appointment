@@ -27,6 +27,7 @@ urlpatterns = [
     path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
     path('schedule-timings/', views.schedule_timings, name='schedule_timings'),
     path('delete-shift/<int:shift_id>/', views.delete_shift, name='delete_shift'),
+    path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
     
 
 ]

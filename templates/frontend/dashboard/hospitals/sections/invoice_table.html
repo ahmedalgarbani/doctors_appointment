@@ -1,0 +1,52 @@
+<table class="table table-hover table-center mb-0">
+    <thead>
+        <tr>
+            <th>Invoice No</th>
+            <th>Patient</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Paid On</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td>
+                <a href="#">#INV-{{ invoice.id }}</a>
+            </td>
+            <td>
+                <h2 class="table-avatar">
+                    {% if invoice.booking.patient.profile_image %}
+                    <a href="#" class="avatar avatar-sm me-2">
+                        <img class="avatar-img rounded-circle" src="{{ invoice.booking.patient.profile_image.url }}" alt="Patient Image">
+                    </a>
+                    {% endif %}
+                    <a href="#">{{ invoice.booking.patient.get_full_name }} <span>#PT{{ invoice.booking.patient.id }}</span></a>
+                </h2>
+            </td>
+            <td>${{ invoice.payment_totalamount }}</td>
+            <td>
+                <span class="badge {% if invoice.payment_status.payment_status_name == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                    {{ invoice.payment_status.payment_status_name }}
+                </span>
+            </td>
+            <td>{{ invoice.payment_date|date:"d M Y" }}</td>
+            <td>
+                <div class="table-action">
+                    <a href="#" class="btn btn-sm bg-info-light view-invoice" data-invoice-id="{{ invoice.id }}">
+                        <i class="far fa-eye"></i> View
+                    </a>
+                    <a href="#" class="btn btn-sm bg-primary-light print-invoice" data-invoice-id="{{ invoice.id }}">
+                        <i class="fas fa-print"></i> Print
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center">No invoices found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
