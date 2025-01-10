@@ -74,6 +74,7 @@ def delete_notification(notification_id, user):
     دالة لحذف الإشعار بناءً على معرف الإشعار والمستخدم.
     """
     try:
+        # الحصول على الإشعار والتأكد من أنه مرتبط بالمستخدم
         notification = Notifications.objects.get(id=notification_id, user=user, is_active=True)
         notification.delete()
         return {"success": True}
