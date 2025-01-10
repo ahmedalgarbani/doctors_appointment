@@ -5,8 +5,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.db import models
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
+from patients.models import Patients
 from payments.models import Payment, PaymentStatus
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
@@ -20,11 +22,16 @@ from doctors.models import (
     Doctor,
     DoctorPricing,
     DoctorSchedules,
+    DoctorShifts,
     Specialty,
 )
 from django.core.paginator import Paginator
-from datetime import datetime, date, timedelta
 from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.shortcuts import render
+
 
 def index(request):
     user = request.user
@@ -32,8 +39,13 @@ def index(request):
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
-    
-    # Get current date and first day of month
+    patients = Patients.objects.filter(bookings__hospital_id=1).distinct()
+    print(patients)
+    print(patients)
+    print(patients)
+    print(patients)
+    print(patients)
+
     today = timezone.now().date()
     first_day_of_month = today.replace(day=1)
     
@@ -173,6 +185,8 @@ def index(request):
         'hospital': hospital,
         'bookings': bookings,
         'doctors': doctors,
+        'patients':patients,
+        'speciality':Specialty.objects.filter(status=True),
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,
         'invoices': invoices,
@@ -187,6 +201,12 @@ def index(request):
         'latest_doctors': latest_doctors,
         'latest_payments': latest_payments,
         'current_month_name': current_month_name,
+        'total_doctors': doctors.count(),
+        'active_doctors': doctors.filter(status=True).count(),
+        'specialties_count': Specialty.objects.filter(
+            doctor__hospitals=hospital
+        ).distinct().count(),
+        'hospitals_count': hospital.count() if isinstance(hospital, models.QuerySet) else 1,
         **payment_stats,
         **bookings_stats,
     }
@@ -365,6 +385,72 @@ def hospital_request_status(request, request_id):
     })
 
 
+
+
+@login_required
+def filter_doctors(request):
+    hospital = request.user.hospital
+    doctors = Doctor.objects.filter(hospitals=hospital)
+    
+    context = {
+        'total_doctors': doctors.count(),
+        'active_doctors': doctors.filter(status=True).count(),
+        'specialties_count': Specialty.objects.filter(
+            doctor__hospitals=hospital
+        ).distinct().count(),
+        'hospitals_count': hospital.count() if isinstance(hospital, models.QuerySet) else 1
+    }
+    
+    specialty = request.GET.get('specialty')
+    if specialty:
+        doctors = doctors.filter(specialty_id=specialty)
+        
+    gender = request.GET.get('gender')
+    if gender:
+        doctors = doctors.filter(gender=gender)
+        
+    status = request.GET.get('status')
+    if status:
+        doctors = doctors.filter(status=status == '1')
+        
+    search = request.GET.get('search')
+    if search:
+        doctors = doctors.filter(
+            Q(full_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(phone_number__icontains=search)
+        )
+
+    experience_min = request.GET.get('experience_min')
+    if experience_min:
+        doctors = doctors.filter(experience_years__gte=experience_min)
+        
+    experience_max = request.GET.get('experience_max')
+    if experience_max:
+        doctors = doctors.filter(experience_years__lte=experience_max)
+
+    page = request.GET.get('page', 1)
+    paginator = Paginator(doctors.order_by('-created_at'), 10) 
+    
+    try:
+        doctors = paginator.page(page)
+    except PageNotAnInteger:
+        doctors = paginator.page(1)
+    except EmptyPage:
+        doctors = paginator.page(paginator.num_pages)
+
+    context.update({
+        'doctors': doctors,
+        'specialties': Specialty.objects.all(),
+        'request': request, 
+    })
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'frontend/dashboard/hospitals/sections/doctor_table.html', context)
+    
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+
 def add_doctor(request):
     if request.method == "POST":
         full_name = request.POST.get("full_name")
@@ -464,6 +550,56 @@ def add_payment_method(request):
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
 
+
+
+def update_payment_method(request):
+    if request.method == "POST":
+        method_id = request.POST.get("method_id")
+        account_name = request.POST.get("account_name")
+        account_number = request.POST.get("account_number")
+        iban = request.POST.get("iban")
+        description = request.POST.get("description")
+        is_active = request.POST.get("is_active") == "1"
+
+        if not all([method_id, account_name, account_number, iban, description]):
+            return HttpResponseBadRequest("Missing required fields")
+
+        try:
+            payment_method = HospitalPaymentMethod.objects.get(id=method_id)
+        except HospitalPaymentMethod.DoesNotExist:
+            return HttpResponseBadRequest("Payment method not found")
+
+        payment_method.account_name = account_name
+        payment_method.account_number = account_number
+        payment_method.iban = iban
+        payment_method.description = description
+        payment_method.is_active = is_active
+        payment_method.save()
+
+        return redirect("hospitals:index")
+
+    return HttpResponseBadRequest("Invalid request method")
+
+
+
+@csrf_exempt
+def delete_payment_method(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            hospital_id = data.get("hospital_id")
+            payment_method_id = data.get("payment_method_id")
+            
+            payment_method = HospitalPaymentMethod.objects.filter(hospital_id=hospital_id, id=payment_method_id).first()
+            
+            if payment_method:
+                payment_method.delete()  
+                return JsonResponse({"status": "success"})
+            else:
+                return JsonResponse({"status": "error", "message": "Payment method not found."}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
 
 
 @csrf_exempt

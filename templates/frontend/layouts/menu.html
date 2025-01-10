@@ -127,7 +127,7 @@
                         <li class="nav-item dropdown noti-nav me-3 pe-0">
                             <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
                                 <i class="fa-solid fa-bell"></i>
-                                {% if unread_notifications_count != 0 %}
+                                {% if unread_notifications_count > 0 %}
                                 <span class="badge bg-danger" id="notification-count">{{ unread_notifications_count }}</span>
                                 {% endif %}
                             </a>
