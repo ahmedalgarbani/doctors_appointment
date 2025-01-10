@@ -22,6 +22,7 @@ import json
 from payments.models import Payment
 from bookings.models import BookingStatusHistory
 from datetime import datetime, date, timedelta
+from django.db.models import Sum
 
 
 def index(request):
@@ -62,10 +63,6 @@ def index(request):
     schedules = DoctorSchedules.objects.filter(hospital=hospital).select_related('doctor')
     doctor_schedules = {}
     
-    # طباعة للتصحيح
-    print("Doctors:", [f"{d.id}: {d.full_name}" for d in doctors])
-    print("Schedules:", [(s.doctor.id, s.day) for s in schedules])
-    
     # تنظيم المواعيد حسب الطبيب واليوم
     for schedule in schedules:
         if schedule.doctor_id not in doctor_schedules:
@@ -82,9 +79,25 @@ def index(request):
             })
         doctor_schedules[schedule.doctor_id][schedule.day] = shifts
     
-    # طباعة للتصحيح
-    print("Doctor Schedules:", doctor_schedules)
     
+    # إحصائيات الحجوزات
+    bookings_stats = {
+        'total_bookings': bookings.count(),
+        # 'today_bookings': bookings.filter(booking_date=today).count(),
+        'confirmed_bookings': bookings.filter(status='confirmed').count(),
+        'pending_bookings': bookings.filter(status='pending').count(),
+        'completed_bookings': bookings.filter(status='completed').count(),
+    }
+
+    # إحصائيات المدفوعات
+    payment_stats = {
+         'total_invoices_count': invoices.count(),
+        'total_paid_amount': invoices.filter(payment_status__status_code=2).aggregate(
+            total=Sum('payment_totalamount'))['total'] or 0,
+        'pending_payments_count': invoices.filter(payment_status__status_code=1).count(),
+        'total_pending_amount': invoices.filter(payment_status__status_code=1).aggregate(
+            total=Sum('payment_totalamount'))['total'] or 0,
+    }
     ctx = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
@@ -95,8 +108,12 @@ def index(request):
         'days': DoctorSchedules.DAY_CHOICES,
         'invoices': invoices,
         'payment_statuses': payment_statuses,  # Add payment statuses to the context
+         **payment_stats,
+         **bookings_stats,
+
     }
     return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
+
 
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
@@ -344,7 +361,7 @@ def accept_appointment(request, booking_id):
         )
         
         # تحديث حالة الدفع
-        payment.payment_status.payment_status_name=PaymentStatus.objects.get(status_code=2)
+        payment.payment_status = PaymentStatus.objects.get(status_code=2)
         payment.save()
         
         return JsonResponse({
@@ -734,34 +751,43 @@ def delete_shift(request, shift_id):
 
 @login_required
 def filter_invoices(request):
-    user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    """تصفية الفواتير"""
+    hospital = request.user.hospital
+    invoices = Payment.objects.filter(payment_method__hospital=hospital)
     
-    # Get invoices with filters
-    invoices = Payment.objects.filter(booking__hospital=hospital).select_related('booking', 'booking__patient')
+    # إحصائيات سريعة
+    context = {
+       
+    }
     
-    # Apply filters if provided
+    # تطبيق الفلترة
     date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    payment_status = request.GET.get('payment_status')
-    amount_min = request.GET.get('amount_min')
-    amount_max = request.GET.get('amount_max')
-    
     if date_from:
-        invoices = invoices.filter(payment_date__gte=date_from)
+        invoices = invoices.filter(payment_date__date__gte=date_from)
+        
+    date_to = request.GET.get('date_to')
     if date_to:
-        invoices = invoices.filter(payment_date__lte=date_to)
+        invoices = invoices.filter(payment_date__date__lte=date_to)
+        
+    payment_status = request.GET.get('payment_status')
     if payment_status:
-        invoices = invoices.filter(payment_status_id=payment_status)
+        invoices = invoices.filter(payment_status__id=payment_status)
+        
+    amount_min = request.GET.get('amount_min')
     if amount_min:
         invoices = invoices.filter(payment_totalamount__gte=amount_min)
+        
+    amount_max = request.GET.get('amount_max')
     if amount_max:
         invoices = invoices.filter(payment_totalamount__lte=amount_max)
-        
-    # Order by latest first
-    invoices = invoices.order_by('-payment_date')
+
+    # تحديث الإحصائيات بعد التصفية
+    context.update({
+        'invoices': invoices.order_by('-payment_date'),
+        'payment_statuses': PaymentStatus.objects.all()
+    })
     
-    return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', {'invoices': invoices})
+    return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', context)
 
 @login_required
 def invoice_detail(request, invoice_id):
