@@ -32,6 +32,75 @@ def index(request):
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
     
+    # Get current date and first day of month
+    today = timezone.now().date()
+    first_day_of_month = today.replace(day=1)
+    
+    # Get all specialties in the hospital
+    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+    total_specialties = specialties.count()
+    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target
+    
+    # Get monthly revenue
+    monthly_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_date__year=today.year,
+        payment_date__month=today.month,
+        payment_status__status_code=2
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    # Calculate revenue percentage (compared to target)
+    monthly_target = 50000  # مثال للهدف الشهري
+    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
+    
+    # Get appointments statistics
+    total_appointments = bookings.filter(
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    
+    appointments_target = 100  # مثال للهدف
+    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
+    
+    # Get latest appointments
+    latest_appointments = bookings.select_related(
+        'doctor', 'doctor__specialty', 'patient'
+    ).order_by('-created_at')[:10]
+    
+    # Get latest doctors with ratings
+    latest_doctors = doctors.select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    
+    # Calculate today's appointments for each doctor
+    for doctor in latest_doctors:
+        doctor.today_appointments_count = bookings.filter(
+            doctor=doctor,
+            booking_date=today
+        ).count()
+        
+        # Calculate average rating
+        reviews = doctor.reviews.all()
+        if reviews:
+            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
+        else:
+            doctor.average_rating = 0
+    
+    # Get latest payments
+    latest_payments = Payment.objects.filter(
+        booking__hospital=hospital
+    ).select_related(
+        'booking__doctor', 
+        'booking__patient',
+        'payment_method'
+    ).order_by('-payment_date')[:10]
+    
+    # Get Arabic month name
+    ARABIC_MONTHS = {
+        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
+        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
+        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
+    }
+    current_month_name = ARABIC_MONTHS[today.month]
+    
     # Get payment statuses for the filter dropdown
     payment_statuses = PaymentStatus.objects.all()
     
@@ -79,11 +148,9 @@ def index(request):
             })
         doctor_schedules[schedule.doctor_id][schedule.day] = shifts
     
-    
     # إحصائيات الحجوزات
     bookings_stats = {
         'total_bookings': bookings.count(),
-        # 'today_bookings': bookings.filter(booking_date=today).count(),
         'confirmed_bookings': bookings.filter(status='confirmed').count(),
         'pending_bookings': bookings.filter(status='pending').count(),
         'completed_bookings': bookings.filter(status='completed').count(),
@@ -91,13 +158,14 @@ def index(request):
 
     # إحصائيات المدفوعات
     payment_stats = {
-         'total_invoices_count': invoices.count(),
+        'total_invoices_count': invoices.count(),
         'total_paid_amount': invoices.filter(payment_status__status_code=2).aggregate(
             total=Sum('payment_totalamount'))['total'] or 0,
         'pending_payments_count': invoices.filter(payment_status__status_code=1).count(),
         'total_pending_amount': invoices.filter(payment_status__status_code=1).aggregate(
             total=Sum('payment_totalamount'))['total'] or 0,
     }
+    
     ctx = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
@@ -107,11 +175,21 @@ def index(request):
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,
         'invoices': invoices,
-        'payment_statuses': payment_statuses,  # Add payment statuses to the context
-         **payment_stats,
-         **bookings_stats,
-
+        'payment_statuses': payment_statuses,
+        'specialties': specialties,
+        'specialties_count_percentage': specialties_count_percentage,
+        'total_revenue': monthly_revenue,
+        'revenue_percentage': revenue_percentage,
+        'total_appointments': total_appointments,
+        'appointments_percentage': appointments_percentage,
+        'latest_appointments': latest_appointments,
+        'latest_doctors': latest_doctors,
+        'latest_payments': latest_payments,
+        'current_month_name': current_month_name,
+        **payment_stats,
+        **bookings_stats,
     }
+    
     return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
 
 
@@ -819,3 +897,100 @@ def invoice_detail(request, invoice_id):
     
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
+
+@login_required
+def hospital_dashboard(request):
+    """عرض لوحة تحكم المستشفى"""
+    
+    # Get the current hospital
+    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+    
+    # Get current date and first day of month
+    today = timezone.now().date()
+    first_day_of_month = today.replace(day=1)
+    
+    # Get all specialties in the hospital
+    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+    total_specialties = specialties.count()
+    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target number of specialties
+    
+    # Get monthly revenue
+    monthly_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_date__year=today.year,
+        payment_date__month=today.month,
+        payment_status__status_code=2
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    # Calculate revenue percentage (compared to target)
+    monthly_target = 50000  # Example target
+    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
+    
+    # Get appointments statistics
+    total_appointments = Booking.objects.filter(
+        hospital=hospital,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    
+    appointments_target = 100  # Example target
+    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
+    
+    # Get latest appointments
+    latest_appointments = Booking.objects.filter(
+        hospital=hospital
+    ).select_related(
+        'doctor', 'doctor__specialty', 'patient'
+    ).order_by('-created_at')[:10]
+    
+    # Get latest doctors
+    latest_doctors = Doctor.objects.filter(
+        hospitals=hospital
+    ).select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    
+    # Calculate today's appointments for each doctor
+    for doctor in latest_doctors:
+        doctor.today_appointments_count = Booking.objects.filter(
+            doctor=doctor,
+            booking_date=today
+        ).count()
+        
+        # Calculate average rating
+        reviews = doctor.reviews.all()
+        if reviews:
+            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
+        else:
+            doctor.average_rating = 0
+    
+    # Get latest payments
+    latest_payments = Payment.objects.filter(
+        booking__hospital=hospital
+    ).select_related(
+        'booking__doctor', 
+        'booking__patient',
+        'payment_method'
+    ).order_by('-payment_date')[:10]
+    
+    # Get Arabic month name
+    ARABIC_MONTHS = {
+        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
+        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
+        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
+    }
+    current_month_name = ARABIC_MONTHS[today.month]
+    
+    context = {
+        'hospital': hospital,
+        'specialties': specialties,
+        'specialties_count_percentage': specialties_count_percentage,
+        'total_revenue': monthly_revenue,
+        'revenue_percentage': revenue_percentage,
+        'total_appointments': total_appointments,
+        'appointments_percentage': appointments_percentage,
+        'latest_appointments': latest_appointments,
+        'latest_doctors': latest_doctors,
+        'latest_payments': latest_payments,
+        'current_month_name': current_month_name,
+    }
+    
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)

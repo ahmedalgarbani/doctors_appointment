@@ -6,6 +6,7 @@ app_name = 'hospitals'
 urlpatterns = [
     
     path('', views.index, name='index'),
+    path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
     path('add-payment/', views.add_payment_method, name='add_payment_method'),
     path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
