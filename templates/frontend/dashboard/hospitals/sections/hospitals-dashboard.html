@@ -13,8 +13,8 @@
                                 </div>
                                 <div class="dash-widget-info">
                                     <h6>الأطباء</h6>
-                                    <h3>25</h3>
-                                    <p class="text-muted">إجمالي الأطباء</p>
+                                    <h3>{{ hospital.doctors.count }}</h3>
+                                    <p class="text-muted">إجمالي الأطباء في المستشفى</p>
                                 </div>
                             </div>
                         </div>
@@ -22,14 +22,14 @@
                         <div class="col-md-12 col-lg-3">
                             <div class="dash-widget dct-border-rht">
                                 <div class="circle-bar circle-bar2">
-                                    <div class="circle-graph2" data-percent="65">
-                                        <img src="assets/img/icon-02.png" class="img-fluid" alt="Departments">
+                                    <div class="circle-graph2" data-percent="{{ specialties_count_percentage }}">
+                                        <img src="assets/img/icon-02.png" class="img-fluid" alt="التخصصات">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
-                                    <h6>الأقسام</h6>
-                                    <h3>8</h3>
-                                    <p class="text-muted">الأقسام النشطة</p>
+                                    <h6>التخصصات</h6>
+                                    <h3>{{ specialties.count }}</h3>
+                                    <p class="text-muted">التخصصات المتوفرة</p>
                                 </div>
                             </div>
                         </div>
@@ -37,14 +37,14 @@
                         <div class="col-md-12 col-lg-3">
                             <div class="dash-widget">
                                 <div class="circle-bar circle-bar3">
-                                    <div class="circle-graph3" data-percent="50">
-                                        <img src="assets/img/icon-03.png" class="img-fluid" alt="Revenue">
+                                    <div class="circle-graph3" data-percent="{{ revenue_percentage }}">
+                                        <img src="assets/img/icon-03.png" class="img-fluid" alt="الإيرادات">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
                                     <h6>الإيرادات</h6>
-                                    <h3>$12,500</h3>
-                                    <p class="text-muted">هذا الشهر</p>
+                                    <h3>{{ total_revenue|floatformat:2 }} ر.س</h3>
+                                    <p class="text-muted">{{ current_month_name }}</p>
                                 </div>
                             </div>
                         </div>
@@ -52,14 +52,14 @@
                         <div class="col-md-12 col-lg-3">
                             <div class="dash-widget">
                                 <div class="circle-bar circle-bar4">
-                                    <div class="circle-graph4" data-percent="80">
-                                        <img src="assets/img/icon-04.png" class="img-fluid" alt="Patients">
+                                    <div class="circle-graph4" data-percent="{{ appointments_percentage }}">
+                                        <img src="assets/img/icon-04.png" class="img-fluid" alt="المواعيد">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
-                                    <h6>المرضى</h6>
-                                    <h3>850</h3>
-                                    <p class="text-muted">هذا الشهر</p>
+                                    <h6>المواعيد</h6>
+                                    <h3>{{ total_appointments }}</h3>
+                                    <p class="text-muted">{{ current_month_name }}</p>
                                 </div>
                             </div>
                         </div>
@@ -72,30 +72,35 @@
     <!-- Quick Actions -->
     <div class="row mt-4">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">الإجراءات السريعة</h4>
+            {% comment %} <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">الإجراءات السريعة</h4>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="javascript:;" data-method="add_doctor_page" data-section="add_doctor_page" class="btn btn-primary btn-block">
-                                <i class="fas fa-user-md"></i> إضافة طبيب جديد
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'hospitals:add_doctor' %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-user-md me-2"></i> إضافة طبيب
                             </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <a  class="btn btn-success btn-block">
-                                <i class="fas fa-hospital"></i> إضافة قسم جديد
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'hospitals:add_specialty' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-stethoscope me-2"></i> إضافة تخصص
                             </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="javascript:;" data-method="add_payment_page" data-section="add_payment_page" class="btn btn-info btn-block">
-                                <i class="fas fa-credit-card"></i> إدارة طرق الدفع
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'hospitals:manage_schedules' %}" class="btn btn-info btn-block">
+                                <i class="fas fa-calendar-alt me-2"></i> إدارة المواعيد
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'hospitals:hospital_settings' %}" class="btn btn-secondary btn-block">
+                                <i class="fas fa-cog me-2"></i> إعدادات المستشفى
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> {% endcomment %}
         </div>
     </div>
 
@@ -107,62 +112,177 @@
                     <h4 class="card-title">آخر النشاطات</h4>
                 </div>
                 <div class="card-body">
-                    <ul class="nav nav-tabs nav-tabs-solid nav-justified">
+                    <ul class="nav nav-tabs nav-tabs-solid nav-justified mb-4">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#doctors-tab" data-bs-toggle="tab">الأطباء</a>
+                            <a class="nav-link active" href="#appointments-tab" data-bs-toggle="tab">
+                                <i class="fas fa-calendar-check me-2"></i>المواعيد
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#appointments-tab" data-bs-toggle="tab">المواعيد</a>
+                            <a class="nav-link" href="#doctors-tab" data-bs-toggle="tab">
+                                <i class="fas fa-user-md me-2"></i>الأطباء
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#payments-tab" data-bs-toggle="tab">المدفوعات</a>
+                            <a class="nav-link" href="#payments-tab" data-bs-toggle="tab">
+                                <i class="fas fa-credit-card me-2"></i>المدفوعات
+                            </a>
                         </li>
                     </ul>
 
                     <div class="tab-content">
-                        <!-- Doctors Tab -->
-                        <div class="tab-pane show active" id="doctors-tab">
+                        <!-- Appointments Tab -->
+                        <div class="tab-pane show active" id="appointments-tab">
                             <div class="table-responsive">
                                 <table class="table table-hover table-center mb-0">
                                     <thead>
                                         <tr>
+                                            <th>رقم الموعد</th>
+                                            <th>المريض</th>
                                             <th>الطبيب</th>
-                                            <th>القسم</th>
                                             <th>التخصص</th>
+                                            <th>التاريخ</th>
+                                            <th>الوقت</th>
                                             <th>الحالة</th>
                                             <th>الإجراءات</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {% for appointment in latest_appointments %}
                                         <tr>
+                                            <td>#{{ appointment.id }}</td>
                                             <td>
                                                 <h2 class="table-avatar">
-                                                    <a href="doctor-profile.html" class="avatar avatar-sm me-2">
-                                                        <img class="avatar-img rounded-circle" src="assets/img/doctors/doctor-01.jpg" alt="Doctor Image">
+                                                    {% if appointment.patient.photo %}
+                                                    <a class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" 
+                                                             src="{{ appointment.patient.photo.url }}" 
+                                                             alt="{{ appointment.patient.full_name }}">
                                                     </a>
-                                                    <a href="doctor-profile.html">د. محمد أحمد</a>
+                                                    {% endif %}
+                                                    <a>{{ appointment.patient.full_name }}</a>
                                                 </h2>
                                             </td>
-                                            <td>القلب</td>
-                                            <td>أمراض القلب</td>
-                                            <td><span class="badge badge-success">نشط</span></td>
+                                            <td>
+                                                <h2 class="table-avatar">
+                                                    {% if appointment.doctor.photo %}
+                                                    <a class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" 
+                                                             src="{{ appointment.doctor.photo.url }}" 
+                                                             alt="{{ appointment.doctor.full_name }}">
+                                                    </a>
+                                                    {% endif %}
+                                                    <a>{{ appointment.doctor.full_name }}</a>
+                                                </h2>
+                                            </td>
+                                            <td>{{ appointment.doctor.specialty.name }}</td>
+                                            <td>{{ appointment.appointment_date|date:"Y/m/d" }}</td>
+                                            <td>{{ appointment.appointment_time|time:"H:i" }}</td>
+                                            <td>
+                                                <span class="badge {% if appointment.status == 'confirmed' %}badge-success
+                                                                  {% elif appointment.status == 'pending' %}badge-warning
+                                                                  {% elif appointment.status == 'cancelled' %}badge-danger
+                                                                  {% endif %}">
+                                                    {{ appointment.get_status_display }}
+                                                </span>
+                                            </td>
                                             <td>
                                                 <div class="actions">
-                                                    <a href="edit-doctor.html" class="btn btn-sm bg-success-light me-2">
-                                                        <i class="fe fe-pencil"></i> تعديل
+                                                    {% comment %} <a href="{% url 'view_appointment' appointment.id %}" 
+                                                       class="btn btn-sm bg-info-light me-2">
+                                                        <i class="far fa-eye"></i>
+                                                    </a> {% endcomment %}
+                                                    {% if appointment.status == 'pending' %}
+                                                    {% comment %} <a href="{% url 'confirm_appointment' appointment.id %}" 
+                                                       class="btn btn-sm bg-success-light me-2">
+                                                        <i class="fas fa-check"></i>
+                                                    </a> {% endcomment %}
+                                                    {% comment %} <a href="{% url 'cancel_appointment' appointment.id %}" 
+                                                       class="btn btn-sm bg-danger-light">
+                                                        <i class="fas fa-times"></i> {% endcomment %}
                                                     </a>
-                                                    <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
-                                                        <i class="fe fe-trash"></i> حذف
-                                                    </a>
+                                                    {% endif %}
                                                 </div>
                                             </td>
                                         </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="8" class="text-center">لا توجد مواعيد حالياً</td>
+                                        </tr>
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <!-- /Doctors Tab -->
-
+                        
+                        <!-- Doctors Tab -->
+                        <div class="tab-pane" id="doctors-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>الطبيب</th>
+                                            <th>التخصص</th>
+                                            <th>المواعيد اليوم</th>
+                                            <th>التقييم</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doctor in latest_doctors %}
+                                        <tr>
+                                            <td>
+                                                <h2 class="table-avatar">
+                                                    {% if doctor.photo %}
+                                                    <a href="{% url 'doctor_profile' doctor.slug %}" class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" 
+                                                             src="{{ doctor.photo.url }}" 
+                                                             alt="{{ doctor.full_name }}">
+                                                    </a>
+                                                    {% endif %}
+                                                    {% comment %} <a href="{% url 'doctor_profile' doctor.slug %}">{{ doctor.full_name }}</a> {% endcomment %}
+                                                </h2>
+                                            </td>
+                                            <td>{{ doctor.specialty.name }}</td>
+                                            <td>{{ doctor.today_appointments_count }}</td>
+                                            <td>
+                                                <i class="fas fa-star text-warning"></i> 
+                                                {{ doctor.average_rating|default:"0" }}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if doctor.status %}badge-success{% else %}badge-danger{% endif %}">
+                                                    {{ doctor.status|yesno:"نشط,غير نشط" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="actions">
+                                                    {% comment %} <a href="{% url 'edit_doctor' doctor.id %}"  {% endcomment %}
+                                                       class="btn btn-sm bg-success-light me-2">
+                                                        <i class="fe fe-pencil"></i>
+                                                    </a>
+                                                    {% comment %} <a href="{% url 'doctor_schedule' doctor.id %}" 
+                                                       class="btn btn-sm bg-info-light me-2">
+                                                        <i class="far fa-calendar-alt"></i>
+                                                    </a> {% endcomment %}
+                                                    <a href="#" class="btn btn-sm bg-danger-light" 
+                                                       data-bs-toggle="modal" 
+                                                       data-bs-target="#delete_doctor_{{ doctor.id }}">
+                                                        <i class="fe fe-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">لا يوجد أطباء حالياً</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
                         <!-- Payments Tab -->
                         <div class="tab-pane" id="payments-tab">
                             <div class="table-responsive">
@@ -170,7 +290,8 @@
                                     <thead>
                                         <tr>
                                             <th>رقم الفاتورة</th>
-                                            <th>اسم المريض</th>
+                                            <th>المريض</th>
+                                            <th>الطبيب</th>
                                             <th>المبلغ</th>
                                             <th>طريقة الدفع</th>
                                             <th>التاريخ</th>
@@ -178,67 +299,32 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {% for payment in latest_payments %}
                                         <tr>
-                                            <td><a href="#">INV-001</a></td>
-                                            <td>أحمد محمد</td>
-                                            <td>$200</td>
-                                            <td>بطاقة ائتمان</td>
-                                            <td>11 نوف 2023</td>
-                                            <td><span class="badge badge-success">مكتمل</span></td>
+                                            <td><a href="">#INV-{{ payment.id }}</a></td>
+                                            <td>{{ payment.booking.patient.full_name }}</td>
+                                            <td>{{ payment.booking.doctor.full_name }}</td>
+                                            <td>{{ payment.payment_totalamount }} ر.س</td>
+                                            <td>{{ payment.payment_method }}</td>
+                                            <td>{{ payment.created_at|date:"Y/m/d" }}</td>
+                                            <td>
+                                                <span class="badge {% if payment.status == 'completed' %}badge-success
+                                                                  {% elif payment.status == 'pending' %}badge-warning
+                                                                  {% elif payment.status == 'failed' %}badge-danger
+                                                                  {% endif %}">
+                                                    {{ payment.get_status_display }}
+                                                </span>
+                                            </td>
                                         </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7" class="text-center">لا توجد مدفوعات حالياً</td>
+                                        </tr>
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <!-- /Payments Tab -->
-
-                        <!-- Appointments Tab -->
-                        <div class="tab-pane" id="appointments-tab">
-                            <div class="table-responsive">
-                                <table class="table table-hover table-center mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>المريض</th>
-                                            <th>الطبيب</th>
-                                            <th>القسم</th>
-                                            <th>التاريخ</th>
-                                            <th>الحالة</th>
-                                            <th>الإجراءات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <h2 class="table-avatar">
-                                                    <a href="patient-profile.html" class="avatar avatar-sm me-2">
-                                                        <img class="avatar-img rounded-circle" src="assets/img/patients/patient1.jpg" alt="User Image">
-                                                    </a>
-                                                    <a href="patient-profile.html">خالد محمد</a>
-                                                </h2>
-                                            </td>
-                                            <td>د. محمد أحمد</td>
-                                            <td>القلب</td>
-                                            <td>11 نوف 2023 <span class="d-block text-info">10.00 AM</span></td>
-                                            <td><span class="badge badge-warning">قيد الانتظار</span></td>
-                                            <td>
-                                                <div class="table-action">
-                                                    <a href="javascript:void(0);" class="btn btn-sm bg-info-light">
-                                                        <i class="far fa-eye"></i> عرض
-                                                    </a>
-                                                    <a href="javascript:void(0);" class="btn btn-sm bg-success-light">
-                                                        <i class="fas fa-check"></i> قبول
-                                                    </a>
-                                                    <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
-                                                        <i class="fas fa-times"></i> رفض
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <!-- /Appointments Tab -->
                     </div>
                 </div>
             </div>

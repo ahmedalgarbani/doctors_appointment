@@ -6,6 +6,7 @@ app_name = 'hospitals'
 urlpatterns = [
     
     path('', views.index, name='index'),
+    path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
     path('hospitals/blogs', views.blog_list, name='blog_list'),
     path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
@@ -29,6 +30,10 @@ urlpatterns = [
     path('booking-history/<int:booking_id>/', views.booking_history, name='booking_history'),
     path('delete-booking/<int:booking_id>/', views.delete_booking, name='delete_booking'),
     path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
+    path('schedule-timings/', views.schedule_timings, name='schedule_timings'),
+    path('delete-shift/<int:shift_id>/', views.delete_shift, name='delete_shift'),
+    path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
+    path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
     
 
 ]

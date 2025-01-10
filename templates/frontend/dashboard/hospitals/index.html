@@ -44,9 +44,15 @@
             <nav class="dashboard-menu">
               <ul>
                 <li>
-                  <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard" >
+                  <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard">
                     <i class="fas fa-columns"></i>
                     <span>لوحة التحكم</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
+                    <i class="fas fa-clock"></i>
+                    <span>جدولة المواعيد</span>
                   </a>
                 </li>
                 <li>
@@ -59,12 +65,6 @@
                   <a href="javascript:;" data-method="my_patients" data-section="my_patients">
                     <i class="fas fa-user-injured"></i>
                     <span>المرضى</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
-                    <i class="fas fa-hourglass-start"></i>
-                    <span>جداول المواعيد</span>
                   </a>
                 </li>
                 <li>
@@ -122,8 +122,11 @@
       
       {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
       {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+      
       {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/available-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
@@ -131,10 +134,9 @@
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoice-view.html" %}
-      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
+      
       {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/social-media.html" %}
     
     </div>
   </div>
@@ -145,22 +147,27 @@
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  $(document).ready(function () {
-    function showSection(targetSection) {
-      $(".section").addClass("d-none");
-      
-      $(`.${targetSection}`).removeClass("d-none");
-    }
+  function showSection(targetSection) {
+    // إخفاء جميع الأقسام
+    $('.section').addClass('d-none');
+    
+    // إظهار القسم المطلوب
+    $('.' + targetSection).removeClass('d-none');
+    
+    // تحديث الرابط النشط في القائمة
+    $('.dashboard-menu li').removeClass('active');
+    $('a[data-section="' + targetSection + '"]').parent().addClass('active');
+  }
   
+  $(document).ready(function() {
+    // عرض لوحة التحكم عند تحميل الصفحة
+    showSection('hospital_dashboard');
+    
+    // تحديث القسم المعروض عند النقر على الروابط
     $("a[data-method]").on("click", function () {
       const methodName = $(this).data("method");
-      showSection(methodName)
-     
+      showSection(methodName);
     });
   });
-  
-
-
-  
 </script>
 {% endblock extra_js %}

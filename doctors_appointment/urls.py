@@ -11,7 +11,7 @@ urlpatterns = [
     path('payments/', include(('payments.urls', 'payments'), namespace='payments')),
     path('doctors/', include(('doctors.urls', 'doctor'), namespace='doctor')),
     path('users/', include('users.urls', namespace='users')),
-    path('hospital/', include('hospitals.urls', namespace='hospitals')),
+    path('hospital/', include(('hospitals.urls', 'hospitals'), namespace='hospitals')),
     path('patients/', include(('patients.urls', 'patients'), namespace='patients')),  # رابط المرضى
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

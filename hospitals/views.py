@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
-from payments.models import Payment
+from payments.models import Payment, PaymentStatus
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
 from payments.models import (
@@ -19,28 +19,180 @@ from hospitals.models import Hospital, HospitalAccountRequest
 from doctors.models import (
     Doctor,
     DoctorPricing,
+    DoctorSchedules,
     Specialty,
 )
 from django.core.paginator import Paginator
+from datetime import datetime, date, timedelta
+from django.db.models import Sum
 
-@login_required
 def index(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
-    speciality = Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
+    doctors = Doctor.objects.filter(hospitals=hospital, status=True)
     
+    # Get current date and first day of month
+    today = timezone.now().date()
+    first_day_of_month = today.replace(day=1)
+    
+    # Get all specialties in the hospital
+    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+    total_specialties = specialties.count()
+    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target
+    
+    # Get monthly revenue
+    monthly_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_date__year=today.year,
+        payment_date__month=today.month,
+        payment_status__status_code=2
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    # Calculate revenue percentage (compared to target)
+    monthly_target = 50000  # مثال للهدف الشهري
+    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
+    
+    # Get appointments statistics
+    total_appointments = bookings.filter(
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    
+    appointments_target = 100  # مثال للهدف
+    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
+    
+    # Get latest appointments
+    latest_appointments = bookings.select_related(
+        'doctor', 'doctor__specialty', 'patient'
+    ).order_by('-created_at')[:10]
+    
+    # Get latest doctors with ratings
+    latest_doctors = doctors.select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    
+    # Calculate today's appointments for each doctor
+    for doctor in latest_doctors:
+        doctor.today_appointments_count = bookings.filter(
+            doctor=doctor,
+            booking_date=today
+        ).count()
+        
+        # Calculate average rating
+        reviews = doctor.reviews.all()
+        if reviews:
+            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
+        else:
+            doctor.average_rating = 0
+    
+    # Get latest payments
+    latest_payments = Payment.objects.filter(
+        booking__hospital=hospital
+    ).select_related(
+        'booking__doctor', 
+        'booking__patient',
+        'payment_method'
+    ).order_by('-payment_date')[:10]
+    
+    # Get Arabic month name
+    ARABIC_MONTHS = {
+        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
+        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
+        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
+    }
+    current_month_name = ARABIC_MONTHS[today.month]
+    
+    # Get payment statuses for the filter dropdown
+    payment_statuses = PaymentStatus.objects.all()
+    
+    # Get invoices with filters
+    invoices = Payment.objects.filter(booking__hospital=hospital).select_related('booking', 'booking__patient')
+    
+    # Apply filters if provided
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    payment_status = request.GET.get('payment_status')
+    amount_min = request.GET.get('amount_min')
+    amount_max = request.GET.get('amount_max')
+    
+    if date_from:
+        invoices = invoices.filter(payment_date__gte=date_from)
+    if date_to:
+        invoices = invoices.filter(payment_date__lte=date_to)
+    if payment_status:
+        invoices = invoices.filter(payment_status_id=payment_status)
+    if amount_min:
+        invoices = invoices.filter(payment_totalamount__gte=amount_min)
+    if amount_max:
+        invoices = invoices.filter(payment_totalamount__lte=amount_max)
+        
+    # Order by latest first
+    invoices = invoices.order_by('-payment_date')
 
-    context = {
+    # جلب جميع المواعيد للمستشفى
+    schedules = DoctorSchedules.objects.filter(hospital=hospital).select_related('doctor')
+    doctor_schedules = {}
+    
+    # تنظيم المواعيد حسب الطبيب واليوم
+    for schedule in schedules:
+        if schedule.doctor_id not in doctor_schedules:
+            doctor_schedules[schedule.doctor_id] = {}
+        
+        shifts = []
+        for shift in schedule.shifts.all():
+            shifts.append({
+                'id': shift.id,
+                'start_time': shift.start_time.strftime('%I:%M %p'),
+                'end_time': shift.end_time.strftime('%I:%M %p'),
+                'available_slots': shift.available_slots,
+                'booked_slots': shift.booked_slots if hasattr(shift, 'booked_slots') else 0
+            })
+        doctor_schedules[schedule.doctor_id][schedule.day] = shifts
+    
+    # إحصائيات الحجوزات
+    bookings_stats = {
+        'total_bookings': bookings.count(),
+        'confirmed_bookings': bookings.filter(status='confirmed').count(),
+        'pending_bookings': bookings.filter(status='pending').count(),
+        'completed_bookings': bookings.filter(status='completed').count(),
+    }
+
+    # إحصائيات المدفوعات
+    payment_stats = {
+        'total_invoices_count': invoices.count(),
+        'total_paid_amount': invoices.filter(payment_status__status_code=2).aggregate(
+            total=Sum('payment_totalamount'))['total'] or 0,
+        'pending_payments_count': invoices.filter(payment_status__status_code=1).count(),
+        'total_pending_amount': invoices.filter(payment_status__status_code=1).aggregate(
+            total=Sum('payment_totalamount'))['total'] or 0,
+    }
+    
+    ctx = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
-        'speciality': speciality,
         'bookings': bookings,
-        
+        'doctors': doctors,
+        'doctor_schedules': doctor_schedules,
+        'days': DoctorSchedules.DAY_CHOICES,
+        'invoices': invoices,
+        'payment_statuses': payment_statuses,
+        'specialties': specialties,
+        'specialties_count_percentage': specialties_count_percentage,
+        'total_revenue': monthly_revenue,
+        'revenue_percentage': revenue_percentage,
+        'total_appointments': total_appointments,
+        'appointments_percentage': appointments_percentage,
+        'latest_appointments': latest_appointments,
+        'latest_doctors': latest_doctors,
+        'latest_payments': latest_payments,
+        'current_month_name': current_month_name,
+        **payment_stats,
+        **bookings_stats,
     }
-    return render(request, 'frontend/dashboard/hospitals/index.html', context)
+    
+    return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
+
 
 @login_required
 def blog_list(request):
@@ -383,7 +535,7 @@ def accept_appointment(request, booking_id):
         )
         
         # تحديث حالة الدفع
-        payment.status = 'confirmed'
+        payment.payment_status = PaymentStatus.objects.get(status_code=2)
         payment.save()
         
         return JsonResponse({
@@ -620,3 +772,321 @@ def edit_booking(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
+@login_required
+def schedule_timings(request):
+    try:
+        hospital = Hospital.objects.get(hospital_manager=request.user)
+        
+        if request.method == 'POST':
+            doctor_id = request.POST.get('doctor_id')
+            day = request.POST.get('day')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            max_appointments = int(request.POST.get('max_appointments', 1))
+
+            doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+            
+            # إنشاء أو الحصول على جدول الطبيب
+            schedule, created = DoctorSchedules.objects.get_or_create(
+                doctor=doctor,
+                hospital=hospital,
+                day=day
+            )
+            
+            # إنشاء الفترة الزمنية
+            shift = DoctorShifts.objects.create(
+                doctor_schedule=schedule,
+                start_time=start_time,
+                end_time=end_time,
+                available_slots=max_appointments,
+                booked_slots=0
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم إضافة الموعد بنجاح',
+                'shift': {
+                    'id': shift.id,
+                    'start_time': shift.start_time.strftime('%H:%M'),
+                    'end_time': shift.end_time.strftime('%H:%M'),
+                    'available_slots': shift.available_slots,
+                    'booked_slots': shift.booked_slots
+                }
+            })
+
+        # GET request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            doctor_id = request.GET.get('doctor_id')
+            if doctor_id:
+                doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+                schedules = DoctorShifts.objects.filter(
+                    doctor_schedule__doctor=doctor,
+                    doctor_schedule__hospital=hospital
+                ).select_related('doctor_schedule')
+                
+                # تنظيم المواعيد حسب اليوم
+                doctor_schedules = {}
+                for shift in schedules:
+                    day = shift.doctor_schedule.day
+                    if day not in doctor_schedules:
+                        doctor_schedules[day] = []
+                    
+                    doctor_schedules[day].append({
+                        'id': shift.id,
+                        'start_time': shift.start_time.strftime('%H:%M'),
+                        'end_time': shift.end_time.strftime('%H:%M'),
+                        'available_slots': shift.available_slots,
+                        'booked_slots': shift.booked_slots
+                    })
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'schedules': {
+                        str(doctor_id): doctor_schedules
+                    }
+                })
+            return JsonResponse({'status': 'error', 'message': 'معرف الطبيب مطلوب'})
+
+        # عرض الصفحة
+        doctors = Doctor.objects.filter(hospitals=hospital)
+        schedules = DoctorShifts.objects.filter(
+            doctor_schedule__hospital=hospital
+        ).select_related('doctor_schedule__doctor')
+        
+        # تنظيم المواعيد حسب الطبيب واليوم
+        doctor_schedules = {}
+        for shift in schedules:
+            doctor_id = shift.doctor_schedule.doctor.id
+            day = shift.doctor_schedule.day
+            
+            if doctor_id not in doctor_schedules:
+                doctor_schedules[doctor_id] = {}
+            
+            if day not in doctor_schedules[doctor_id]:
+                doctor_schedules[doctor_id][day] = []
+            
+            doctor_schedules[doctor_id][day].append({
+                'id': shift.id,
+                'start_time': shift.start_time.strftime('%H:%M'),
+                'end_time': shift.end_time.strftime('%H:%M'),
+                'available_slots': shift.available_slots,
+                'booked_slots': shift.booked_slots
+            })
+
+        context = {
+            'doctors': doctors,
+            'doctor_schedules': doctor_schedules,
+            'days': DoctorSchedules.DAY_CHOICES,
+            'section': 'schedule_timings'
+        }
+        
+        return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+    except Hospital.DoesNotExist:
+        messages.error(request, 'لا يمكنك الوصول إلى هذه الصفحة')
+        return redirect('home')
+    except Exception as e:
+        print(f"Error: {str(e)}")  # للتصحيح
+        messages.error(request, 'حدث خطأ أثناء معالجة الطلب')
+        return redirect('home')
+
+@login_required
+def delete_shift(request, shift_id):
+    if request.method == 'POST':
+        try:
+            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+            shift = get_object_or_404(DoctorShifts, 
+                id=shift_id, 
+                doctor_schedule__hospital=hospital
+            )
+            shift.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم حذف الموعد بنجاح'
+            })
+        except (Hospital.DoesNotExist, DoctorShifts.DoesNotExist):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لا يمكنك حذف هذا الموعد'
+            }, status=403)
+        except Exception as e:
+            print(f"Error: {str(e)}")  # للتصحيح
+            return JsonResponse({
+                'status': 'error',
+                'message': 'حدث خطأ أثناء حذف الموعد'
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'طريقة الطلب غير صحيحة'
+    }, status=405)
+
+@login_required
+def filter_invoices(request):
+    """تصفية الفواتير"""
+    hospital = request.user.hospital
+    invoices = Payment.objects.filter(payment_method__hospital=hospital)
+    
+    # إحصائيات سريعة
+    context = {
+       
+    }
+    
+    # تطبيق الفلترة
+    date_from = request.GET.get('date_from')
+    if date_from:
+        invoices = invoices.filter(payment_date__date__gte=date_from)
+        
+    date_to = request.GET.get('date_to')
+    if date_to:
+        invoices = invoices.filter(payment_date__date__lte=date_to)
+        
+    payment_status = request.GET.get('payment_status')
+    if payment_status:
+        invoices = invoices.filter(payment_status__id=payment_status)
+        
+    amount_min = request.GET.get('amount_min')
+    if amount_min:
+        invoices = invoices.filter(payment_totalamount__gte=amount_min)
+        
+    amount_max = request.GET.get('amount_max')
+    if amount_max:
+        invoices = invoices.filter(payment_totalamount__lte=amount_max)
+
+    # تحديث الإحصائيات بعد التصفية
+    context.update({
+        'invoices': invoices.order_by('-payment_date'),
+        'payment_statuses': PaymentStatus.objects.all()
+    })
+    
+    return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', context)
+
+@login_required
+def invoice_detail(request, invoice_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    
+    # Get the invoice with related data
+    invoice = get_object_or_404(
+        Payment.objects.select_related(
+            'booking',
+            'booking__patient',
+            'booking__doctor',
+            'payment_status',
+            'payment_method',
+            'payment_method__payment_option'
+        ),
+        id=invoice_id,
+        booking__hospital=hospital
+    )
+    
+    context = {
+        'invoice': invoice,
+        'hospital': hospital,
+    }
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # If AJAX request, return only the modal content
+        return render(request, 'frontend/dashboard/hospitals/sections/invoice_detail_modal.html', context)
+    
+    # If regular request, return the full page
+    return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
+
+@login_required
+def hospital_dashboard(request):
+    """عرض لوحة تحكم المستشفى"""
+    
+    # Get the current hospital
+    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+    
+    # Get current date and first day of month
+    today = timezone.now().date()
+    first_day_of_month = today.replace(day=1)
+    
+    # Get all specialties in the hospital
+    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+    total_specialties = specialties.count()
+    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target number of specialties
+    
+    # Get monthly revenue
+    monthly_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_date__year=today.year,
+        payment_date__month=today.month,
+        payment_status__status_code=2
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    # Calculate revenue percentage (compared to target)
+    monthly_target = 50000  # Example target
+    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
+    
+    # Get appointments statistics
+    total_appointments = Booking.objects.filter(
+        hospital=hospital,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    
+    appointments_target = 100  # Example target
+    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
+    
+    # Get latest appointments
+    latest_appointments = Booking.objects.filter(
+        hospital=hospital
+    ).select_related(
+        'doctor', 'doctor__specialty', 'patient'
+    ).order_by('-created_at')[:10]
+    
+    # Get latest doctors
+    latest_doctors = Doctor.objects.filter(
+        hospitals=hospital
+    ).select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    
+    # Calculate today's appointments for each doctor
+    for doctor in latest_doctors:
+        doctor.today_appointments_count = Booking.objects.filter(
+            doctor=doctor,
+            booking_date=today
+        ).count()
+        
+        # Calculate average rating
+        reviews = doctor.reviews.all()
+        if reviews:
+            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
+        else:
+            doctor.average_rating = 0
+    
+    # Get latest payments
+    latest_payments = Payment.objects.filter(
+        booking__hospital=hospital
+    ).select_related(
+        'booking__doctor', 
+        'booking__patient',
+        'payment_method'
+    ).order_by('-payment_date')[:10]
+    
+    # Get Arabic month name
+    ARABIC_MONTHS = {
+        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
+        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
+        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
+    }
+    current_month_name = ARABIC_MONTHS[today.month]
+    
+    context = {
+        'hospital': hospital,
+        'specialties': specialties,
+        'specialties_count_percentage': specialties_count_percentage,
+        'total_revenue': monthly_revenue,
+        'revenue_percentage': revenue_percentage,
+        'total_appointments': total_appointments,
+        'appointments_percentage': appointments_percentage,
+        'latest_appointments': latest_appointments,
+        'latest_doctors': latest_doctors,
+        'latest_payments': latest_payments,
+        'current_month_name': current_month_name,
+    }
+    
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
