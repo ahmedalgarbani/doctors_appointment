@@ -8,6 +8,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     # path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
+    path('hospitals/blogs', views.blog_list, name='blog_list'),
+    path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
+    path('hospitals/add-blog/', views.add_blog, name='add_blog'),
+    path('hospitals/edit-blog/<int:blog_id>/', views.edit_blog, name='edit_blog'),
     path('add-payment/', views.add_payment_method, name='add_payment_method'),
     path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
    

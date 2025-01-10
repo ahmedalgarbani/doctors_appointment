@@ -1,29 +1,30 @@
-# Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from bookings.models import Booking
-from hospitals.forms import DoctorForm
-from payments.models import HospitalPaymentMethod, PaymentOption, PaymentStatus
-from .models import Hospital, HospitalAccountRequest,HospitalDetail
-from django.core.mail import send_mail
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseBadRequest
-from doctors.models import Doctor,DoctorShifts,DoctorSchedules
-from hospitals.models import Hospital
-from doctors.models import Specialty   
-from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
-from payments.models import Payment
+from blog.forms import PostForm
+from blog.models import Post, Tag,Category
+from payments.models import Payment, PaymentStatus
 from bookings.models import BookingStatusHistory
+from bookings.models import Booking
+from payments.models import (
+    HospitalPaymentMethod,
+    PaymentOption,
+    Payment,
+)
+from hospitals.models import Hospital, HospitalAccountRequest
+from doctors.models import (
+    Doctor,
+    DoctorPricing,
+    DoctorSchedules,
+    Specialty,
+)
+from django.core.paginator import Paginator
 from datetime import datetime, date, timedelta
 from django.db.models import Sum
-
 
 def index(request):
     user = request.user
@@ -194,6 +195,94 @@ def index(request):
     return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
 
 
+@login_required
+def blog_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
+
+@login_required
+def blog_pending_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_pending_blog.html', context)
+
+
+
+@login_required
+def add_blog(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_blog = form.save(commit=False)
+            new_blog.author = hospital
+            new_blog.save()
+            form.save_m2m() 
+            messages.success(request, 'Blog added successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm()
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-add-blog.html', context)
+
+@login_required
+def edit_blog(request, blog_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    blog = get_object_or_404(Post, id=blog_id, author=hospital)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=blog)
+        if form.is_valid():
+            updated_blog = form.save(commit=False)  
+            updated_blog.save()  
+            form.save_m2m()  
+            messages.success(request, 'Blog updated successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm(instance=blog)
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+        'blog': blog,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-edit-blog.html', context)
+
+
+
+
 def hospital_detail(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
     return render(request, 'hospital_detail.html', {'hospital': hospital})
@@ -279,14 +368,13 @@ def hospital_request_status(request, request_id):
 
 def add_doctor(request):
     if request.method == "POST":
-        # Extract form data
         full_name = request.POST.get("full_name")
         birthday = request.POST.get("birthday")
         phone_number = request.POST.get("phone_number")
         email = request.POST.get("email")
         gender = request.POST.get("gender")
-        specialty_id = 1
-        hospital_id = 1
+        specialty_id = request.POST.get("specialty")
+        hospital_id = request.user.id
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -294,6 +382,7 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
+        price = request.POST.get("price")
 
         if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
             return HttpResponseBadRequest("Missing required fields")
@@ -319,10 +408,14 @@ def add_doctor(request):
             status=status,
             show_at_home=show_at_home,
         )
-
+        priceCreate = DoctorPricing.objects.create(
+            doctor = get_object_or_404(Doctor,id=doctor.id),
+            hospital = get_object_or_404(Hospital,id=hospital_id),
+            amount = price,
+        )
         doctor.hospitals.set([hospital])  
         doctor.save()
-
+        
         return render(request, "frontend/dashboard/hospitals/index.html")
 
     context = {
@@ -330,6 +423,9 @@ def add_doctor(request):
         "specialties": Specialty.objects.all(),  
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+
 
 
 def add_payment_method(request):

@@ -1,0 +1,140 @@
+{% extends "frontend/layouts/master.html" %}
+{% block content %}
+
+<div class="content" style="min-height: 159.1px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+
+                <div class="col-md-7 col-lg-8 col-xl-9 m-5 ">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
+                            <i class="fas fa-md"></i> الرجوع  
+                        </a>
+                    </div>
+                    <div class="doc-review review-listing">
+                
+                        <div class="row mb-5">
+                            <div class="col">
+                                <ul class="nav nav-tabs nav-tabs-solid">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">Active Blog</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">Pending Blog</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-auto">
+                                <a class="btn btn-primary btn-sm" href="{% url 'hospitals:add_blog' %}" ><i class="fas fa-plus me-1"></i> Add Blog</a>
+                            </div>
+                        </div>
+                
+                        <!-- Blog -->
+                        <div class="row blog-grid-row">
+                            {% if allBlogs %}
+                            {% for blog in allBlogs %}
+                            {% if blog.status %}
+                            <div class="col-md-6 col-xl-4 col-sm-12">
+                                <!-- Blog Post -->
+                                <div class="blog grid-blog" data-blog-id="{{ blog.id }}">
+                                    <div class="blog-image">
+                                        <a href="javascript:;"><img class="img-fluid" src="{{ blog.image.url }}" alt="Post Image"></a>
+                                    </div>
+                                    <div class="blog-content">
+                                        <ul class="entry-meta meta-item">
+                                            <li>
+                                                <div class="post-author">
+                                                    <a href="javascript:;">
+                                                        {% if blog.author.details.photo %}
+                                                        <img src="{{ blog.author.details.photo.url }}" alt="{{ blog.author.name }}">
+                                                        {% endif %}
+                                                        <span>{{ blog.author.name }}</span>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                            <li><i class="far fa-clock"></i> {{ blog.created_at }}</li>
+                                        </ul>
+                                        <h3 class="blog-title"><a href="{{ blog.get_absolute_url }}">{{ blog.title }}</a></h3>
+                                        <p class="mb-0">{{ blog.content }}</p>
+                                    </div>
+                                    <div class="row pt-3">
+                                        <div class="col">
+                                            <a href="{% url 'hospitals:edit_blog' blog.id %}" class="text-success"><i class="far fa-edit"></i> Edit</a>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                <!-- /Blog Post -->
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                
+                        <!-- Blog Pagination -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="blog-pagination">
+                                    <nav>
+                                        <ul class="pagination justify-content-center">
+                                            {% if allBlogs.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=1" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ allBlogs.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#"><i class="fas fa-angle-left"></i></a>
+                                            </li>
+                                        {% endif %}
+                
+                                        <!-- Page Numbers -->
+                                        {% for num in allBlogs.paginator.page_range %}
+                                            {% if num == allBlogs.number %}
+                                                <li class="page-item active">
+                                                    <a class="page-link" href="?page={{ num }}">{{ num }} <span class="visually-hidden">(current)</span></a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                
+                                        {% if allBlogs.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ allBlogs.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ allBlogs.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#"><i class="fas fa-angle-right"></i></a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#"><i class="fas fa-angle-double-right"></i></a>
+                                            </li>
+                                        {% endif %}
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Blog Pagination -->
+                        <!-- /Blog -->
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

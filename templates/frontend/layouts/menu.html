@@ -1,6 +1,73 @@
 {% load static %}
 {% load menu_generator %}
 {% get_menu "NAV_MENU_TOP" as top_menu %}
+<style>
+    .notification-container .noti-content {
+        max-height: 300px; /* يمكنك تعديل الارتفاع */
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .notification-container .notification-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .notification-container .notification-message {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 10px 15px;
+    }
+
+    /* تنسيق القوائم المنسدلة */
+    .dropdown-menu.notifications {
+        max-width: 350px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .notification-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .noti-details {
+        color: #555;
+        font-size: 14px;
+    }
+
+    .notify-block {
+        display: flex;
+        align-items: center;
+    }
+
+    .avatar {
+        margin-right: 10px;
+    }
+
+    .avatar-img {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: #888;
+    }
+
+    /* تهيئة البادج للإشعارات */
+    .badge.bg-danger {
+        font-size: 12px;
+        padding: 4px 7px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
+
 <!-- Header -->
 <header class="header header-custom header-fixed header-one">
     <div class="container">
@@ -27,9 +94,7 @@
                     </a>
                 </div>
                 <ul class="main-nav">
-                    
                     {% for item in top_menu %}
-                    
                     <li class="has-submenu">
                         <a href="{{ item.url }}">{{item.name}} 
                         {% if item.submenu %}
@@ -41,11 +106,10 @@
                             {% for menu in item.submenu %}
                             <li><a href="{{ menu.url }}">{{menu.name}}</a></li>
                             {% endfor %}
-                            
                         </ul>
                         {% endif %}
                     </li>
-               {% endfor %}
+                    {% endfor %}
                     <li class="searchbar">
                         <a href="javascript:void(0);"><i class="feather-search"></i></a>
                         <div class="togglesearch">
@@ -57,6 +121,55 @@
                             </form>
                         </div>
                     </li>
+                    
+                    <!-- Notifications -->
+                    <div class="notification-container">
+                        <li class="nav-item dropdown noti-nav me-3 pe-0">
+                            <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
+                                <i class="fa-solid fa-bell"></i>
+                                {% if unread_notifications_count != 0 %}
+                                <span class="badge bg-danger" id="notification-count">{{ unread_notifications_count }}</span>
+                                {% endif %}
+                            </a>
+                            <div class="dropdown-menu notifications dropdown-menu-end" id="notification-dropdown">
+                                <div class="topnav-dropdown-header">
+                                    <span class="notification-title">الإشعارات</span>
+                                </div>
+                                <div class="noti-content">
+                                    <ul class="notification-list" id="notification-list">
+                                        {% for notification in notifications %}
+                                            {% if notification.status == '0' %}
+                                            <li class="notification-message">
+                                                <a href="#">
+                                                    <div class="notify-block d-flex">
+                                                        {% if notification.image %}
+                                                        <span class="avatar">
+                                                            <img class="avatar-img" alt="Notification Image" src="{{ notification.image.url }}">
+                                                        </span>
+                                                        {% endif %}
+                                                        <div class="media-body">
+                                                            <h6>{{ notification.sender.name }} 
+                                                                <span class="notification-time">
+                                                                    {{ notification.send_time|date:"H:i A" }}
+                                                                </span>
+                                                            </h6>
+                                                            <p class="noti-details">
+                                                                {{ notification.message }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </div>
+                    <!-- /Notifications -->
+
+
                     <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
                     <li class="register-btn">
                         <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
@@ -69,4 +182,14 @@
         </nav>
     </div>
 </header>
-    
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const notificationList = document.getElementById("notification-list");
+        const notificationContainer = document.querySelector(".noti-content");
+        
+        const maxHeight = 300; 
+        notificationContainer.style.maxHeight = `${maxHeight}px`;
+        notificationContainer.style.overflowY = 'auto'; 
+    });
+</script>
