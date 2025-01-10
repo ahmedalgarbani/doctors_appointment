@@ -24,7 +24,7 @@ from doctors.models import (
 )
 from django.core.paginator import Paginator
 from datetime import datetime, date, timedelta
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 def index(request):
     user = request.user
@@ -68,16 +68,22 @@ def index(request):
         'doctor', 'doctor__specialty', 'patient'
     ).order_by('-created_at')[:10]
     
-    # Get latest doctors with ratings
-    latest_doctors = doctors.select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    # Get latest doctors with ratings and today's appointments
+    latest_doctors = list(doctors.select_related('specialty').prefetch_related('reviews')[:10])
+    doctor_ids = [doctor.id for doctor in latest_doctors]
     
-    # Calculate today's appointments for each doctor
+    # Get today's appointments count for each doctor using a single query
+    today_appointments = bookings.filter(
+        doctor_id__in=doctor_ids,
+        booking_date=today
+    ).values('doctor').annotate(count=Count('id'))
+    
+    # Create a dictionary of doctor_id: appointment_count
+    appointments_dict = {item['doctor']: item['count'] for item in today_appointments}
+    
+    # Assign the count to each doctor
     for doctor in latest_doctors:
-        doctor.today_appointments_count = bookings.filter(
-            doctor=doctor,
-            hospital=hospital,
-            booking_date=today
-        ).count()
+        doctor.today_appointments_count = appointments_dict.get(doctor.id, 0)
         
         # Calculate average rating
         reviews = doctor.reviews.all()
@@ -426,8 +432,6 @@ def add_doctor(request):
 
 
 
-
-
 def add_payment_method(request):
     if request.method == "POST":
         hospital_id = 1
@@ -513,7 +517,6 @@ def accept_appointment(request, booking_id):
                 'status': 'error',
                 'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
             }, status=403)
-         
         # تحديث عدد الحجوزات في الفترة المحددة
         doctor_shifts = booking.appointment_time
         if doctor_shifts:
