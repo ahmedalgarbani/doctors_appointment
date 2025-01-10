@@ -74,6 +74,7 @@ def index(request):
     for doctor in latest_doctors:
         doctor.today_appointments_count = bookings.filter(
             doctor=doctor,
+            hospital=hospital,
             booking_date=today
         ).count()
         
@@ -898,8 +899,8 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
-@login_required
-def hospital_dashboard(request):
+# @login_required
+# def hospital_dashboard(request):
     """عرض لوحة تحكم المستشفى"""
     
     # Get the current hospital
@@ -952,6 +953,7 @@ def hospital_dashboard(request):
     for doctor in latest_doctors:
         doctor.today_appointments_count = Booking.objects.filter(
             doctor=doctor,
+            hospitals=hospital,
             booking_date=today
         ).count()
         

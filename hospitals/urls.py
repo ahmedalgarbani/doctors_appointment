@@ -6,15 +6,11 @@ app_name = 'hospitals'
 urlpatterns = [
     
     path('', views.index, name='index'),
-    path('dashboard/', views.hospital_dashboard, name='dashboard'),
+    # path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
     path('add-payment/', views.add_payment_method, name='add_payment_method'),
     path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
-    # path('hospitals/<int:pk>/', views.HospitalDetailView.as_view(), name='hospital_detail'),
-    # path('hospital-details/<int:pk>/', views.HospitalDetailDetailView.as_view(), name='hospital_detail_detail'),
-    # path('phone-numbers/', views.PhoneNumberListView.as_view(), name='phone_number_list'),
-    # path('hospital-doctors/', views.HospitalDoctorListView.as_view(), name='hospital_doctor_list'),
-    
+   
 
     # URLs الخاصة بطلبات فتح حساب المستشفى
     path('account/request/', views.hospital_account_request, name='hospital_account_request'),

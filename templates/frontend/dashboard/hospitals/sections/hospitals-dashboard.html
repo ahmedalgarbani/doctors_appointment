@@ -241,7 +241,7 @@
                                                              alt="{{ doctor.full_name }}">
                                                     </a>
                                                     {% endif %}
-                                                    {% comment %} <a href="{% url 'doctor_profile' doctor.slug %}">{{ doctor.full_name }}</a> {% endcomment %}
+                                                    <a href="">{{ doctor.full_name }}</a>
                                                 </h2>
                                             </td>
                                             <td>{{ doctor.specialty.name }}</td>
@@ -256,21 +256,21 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <div class="actions">
-                                                    {% comment %} <a href="{% url 'edit_doctor' doctor.id %}"  {% endcomment %}
+                                                {% comment %} <div class="actions">
+                                                    <a href="{% url 'hospitals:edit_doctor' doctor.id %}" 
                                                        class="btn btn-sm bg-success-light me-2">
                                                         <i class="fe fe-pencil"></i>
                                                     </a>
-                                                    {% comment %} <a href="{% url 'doctor_schedule' doctor.id %}" 
+                                                    <a href="{% url 'doctor_schedule' doctor.id %}" 
                                                        class="btn btn-sm bg-info-light me-2">
                                                         <i class="far fa-calendar-alt"></i>
-                                                    </a> {% endcomment %}
+                                                    </a> 
                                                     <a href="#" class="btn btn-sm bg-danger-light" 
                                                        data-bs-toggle="modal" 
                                                        data-bs-target="#delete_doctor_{{ doctor.id }}">
                                                         <i class="fe fe-trash"></i>
                                                     </a>
-                                                </div>
+                                                </div> {% endcomment %}
                                             </td>
                                         </tr>
                                         {% empty %}
@@ -308,11 +308,11 @@
                                             <td>{{ payment.payment_method }}</td>
                                             <td>{{ payment.created_at|date:"Y/m/d" }}</td>
                                             <td>
-                                                <span class="badge {% if payment.status == 'completed' %}badge-success
-                                                                  {% elif payment.status == 'pending' %}badge-warning
-                                                                  {% elif payment.status == 'failed' %}badge-danger
+                                                <span class="badge {% if payment.payment_status.payment_status_name == 'completed' %}badge-success
+                                                                  {% elif payment.payment_status.payment_status_name == 'pending' %}badge-warning
+                                                                  {% elif payment.payment_status.payment_status_name == 'failed' %}badge-danger
                                                                   {% endif %}">
-                                                    {{ payment.get_status_display }}
+                                                    {{payment.payment_status.payment_status_name }}
                                                 </span>
                                             </td>
                                         </tr>
