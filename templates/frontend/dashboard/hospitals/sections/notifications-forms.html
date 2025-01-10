@@ -1,0 +1,115 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section notifications_forms d-none">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4>إرسال إشعار جديد</h4>
+                    <form id="send-notification-form" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="message">الرسالة:</label>
+                            <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notification_type">نوع الإشعار:</label>
+                            <select id="notification_type" name="notification_type" class="form-control" required>
+                                <option value="0">معلومة</option>
+                                <option value="1">تحذير</option>
+                                <option value="2">نجاح</option>
+                                <option value="3">خطأ</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipients">حدد المستلمين:</label>
+                            <select id="recipients" name="recipients" class="form-control" multiple>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.email }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">استخدم Ctrl لتحديد عدة مستخدمين</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="send_to_all" name="send_to_all">
+                                <label class="form-check-label" for="send_to_all">إرسال لجميع المستخدمين</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">إرسال الإشعار</button>
+                    </form>
+
+                    <div id="response-message" class="alert alert-success mt-3" style="display:none;">
+                        تم إرسال الإشعار بنجاح!
+                    </div>
+
+                    <div id="error-message" class="alert alert-danger mt-3" style="display:none;">
+                        حدث خطأ أثناء إرسال الإشعار!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS مدمج داخل الصفحة -->
+<style>
+    /* تنسيق النموذج */
+    #send-notification-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    /* تنسيق الحقول */
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 4px;
+        padding: 10px;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    /* تنسيق رسائل النجاح والفشل */
+    .alert {
+        border-radius: 5px;
+        padding: 15px;
+        font-size: 16px;
+        margin-top: 15px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>

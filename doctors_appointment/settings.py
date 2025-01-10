@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'blog',
     'menu_generator',
     'ckeditor',
-        'widget_tweaks',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

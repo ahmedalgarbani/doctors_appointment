@@ -16,26 +16,25 @@
                   <div class="row mb-5">
                     <div class="col">
                       <ul class="nav nav-tabs nav-tabs-solid">
-                        <ul class="nav nav-tabs nav-tabs-solid">
-                          <li class="nav-item">
-                              <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">Active Blog</a>
-                          </li>
-                          <li class="nav-item">
-                              <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">Pending Blog</a>
-                          </li>
-                      </ul>
-                      </ul>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">Active Blog</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">Pending Blog</a>
+                        </li>
+                    </ul>
                     </div>
                     <div class="col-auto">
                       <a class="btn btn-primary btn-sm" href="{% url 'hospitals:add_blog' %}" ><i class="fas fa-plus me-1"></i> Add Blog</a>
 
+                      
                     </div>
                   </div>
               
-                  <!-- Add Blog -->
+                  <!-- Update Blog -->
                   <div class="card">
                     <div class="card-body">
-                      <h3 class="pb-3">Add Blog</h3>
+                      <h3 class="pb-3">Update Blog</h3>
               
                       <form
                         method="post"
@@ -50,7 +49,7 @@
                             name="form_submit"
                             value="submit"
                           >
-                    {% if editing_blog %}Update Blog{% else %}Add Blog{% endif %}
+                   Update Blog
                           </button>
                         </div>
                       </form>
