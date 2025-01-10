@@ -344,7 +344,7 @@ def accept_appointment(request, booking_id):
         )
         
         # تحديث حالة الدفع
-        payment.status = 'confirmed'
+        payment.payment_status.payment_status_name=PaymentStatus.objects.get(status_code=2)
         payment.save()
         
         return JsonResponse({
@@ -762,3 +762,34 @@ def filter_invoices(request):
     invoices = invoices.order_by('-payment_date')
     
     return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', {'invoices': invoices})
+
+@login_required
+def invoice_detail(request, invoice_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    
+    # Get the invoice with related data
+    invoice = get_object_or_404(
+        Payment.objects.select_related(
+            'booking',
+            'booking__patient',
+            'booking__doctor',
+            'payment_status',
+            'payment_method',
+            'payment_method__payment_option'
+        ),
+        id=invoice_id,
+        booking__hospital=hospital
+    )
+    
+    context = {
+        'invoice': invoice,
+        'hospital': hospital,
+    }
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # If AJAX request, return only the modal content
+        return render(request, 'frontend/dashboard/hospitals/sections/invoice_detail_modal.html', context)
+    
+    # If regular request, return the full page
+    return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)

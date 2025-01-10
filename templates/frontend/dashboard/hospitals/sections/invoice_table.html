@@ -13,7 +13,7 @@
         {% for invoice in invoices %}
         <tr>
             <td>
-                <a href="#">#INV-{{ invoice.id }}</a>
+                <a href="{% url 'hospitals:invoice_detail' invoice_id=invoice.id %}">#INV-{{ invoice.id }}</a>
             </td>
             <td>
                 <h2 class="table-avatar">
@@ -34,7 +34,7 @@
             <td>{{ invoice.payment_date|date:"d M Y" }}</td>
             <td>
                 <div class="table-action">
-                    <a href="#" class="btn btn-sm bg-info-light view-invoice" data-invoice-id="{{ invoice.id }}">
+                    <a href="{% url 'hospitals:invoice_detail' invoice_id=invoice.id %}" class="btn btn-sm bg-info-light">
                         <i class="far fa-eye"></i> View
                     </a>
                     <a href="#" class="btn btn-sm bg-primary-light print-invoice" data-invoice-id="{{ invoice.id }}">
