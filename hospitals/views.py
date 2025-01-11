@@ -1090,3 +1090,29 @@ def hospital_dashboard(request):
     }
     
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
+def profile_update_request(request, pk):
+    hospital = get_object_or_404(Hospital, pk=pk)
+    hospitalDetail = get_object_or_404(HospitalDetail, hospital=hospital)
+
+    if request.method == 'POST':
+        hospital.name = request.POST.get('name')
+        hospital.location = request.POST.get('location')
+        city_id = request.POST.get('city')
+        hospital.city = get_object_or_404(City, id=city_id)
+        
+        
+        hospital.save()
+
+        hospitalDetail.description = request.POST.get('description')
+        specialty_id = request.POST.get('specialty')
+        hospitalDetail.specialty = get_object_or_404(Specialty, id=specialty_id)
+        hospitalDetail.about=request.POST.get('about')
+        if 'photo' in request.FILES:
+            hospitalDetail.photo = request.FILES['photo']
+
+        hospitalDetail.save()
+
+        messages.success(request, 'Profile updated successfully')
+        return redirect('hospitals:index')
+
+    return redirect('hospitals:index')
