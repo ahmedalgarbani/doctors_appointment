@@ -1,6 +1,90 @@
 
 {% csrf_token %}
+
+{% csrf_token %}
 <div class="col-md-7 col-lg-8 col-xl-9 appointments section d-none">
+<div class="row mb-4">
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-primary border-primary">
+                        <i class="fas fa-file-invoice"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ total_bookings }}</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">إجمالي الحجوزات</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-primary w-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ confirmed_bookings }} حجز</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">الحجوزات الموكده</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-success w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ completed_bookings }} حجز</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">الحجوزات المكتمله </h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-success w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ pending_bookings }} حجز</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">الحجوزات المنتضره</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-success w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="card">
@@ -22,14 +106,14 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
                             <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
                             
-                            <button onclick="printTable()" class="btn btn-primary" data-bs-toggle="tooltip" title="طباعة الحجوزات">
-                                <i class="fas fa-print"></i> طباعة
-                            </button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -348,86 +432,6 @@
             currentPage = newPage;
             displayRows();
         }
-    }
-
-    // دالة الطباعة
-    function printTable() {
-        // حفظ حالة العرض الحالية لجميع الصفوف
-        const table = document.getElementById('appointments-table');
-        const rows = Array.from(table.getElementsByTagName('tr')).slice(1); // تجاهل صف العناوين
-        const displayStates = rows.map(row => row.style.display);
-
-        // إظهار جميع الصفوف التي تتطابق مع الفلتر الحالي
-        const searchInput = document.getElementById('search-input').value.toLowerCase();
-        const statusFilter = document.getElementById('status-filter').value;
-
-        rows.forEach(row => {
-            const cells = Array.from(row.getElementsByTagName('td'));
-            if (cells.length > 0) {
-                // البحث النصي
-                const searchableText = [
-                    cells[1].textContent, // اسم المريض
-                    cells[2].textContent, // اسم الطبيب
-                    cells[5].textContent  // رقم الحوالة
-                ].join(' ').toLowerCase();
-
-                const textMatch = searchInput === '' || searchableText.includes(searchInput);
-
-                // فلتر الحالة
-                const statusCell = cells[6]; // خلية الحالة
-                let statusMatch = statusFilter === 'all';
-                
-                if (statusCell) {
-                    const statusText = statusCell.textContent.trim().toLowerCase();
-                    if (statusFilter === 'pending' && statusText.includes('قيد الانتظار')) {
-                        statusMatch = true;
-                    } else if (statusFilter === 'confirmed' && statusText.includes('مؤكد')) {
-                        statusMatch = true;
-                    } else if (statusFilter === 'completed' && statusText.includes('مكتمل')) {
-                        statusMatch = true;
-                    } else if (statusFilter === 'cancelled' && statusText.includes('ملغي')) {
-                        statusMatch = true;
-                    }
-                }
-
-                // تحديث حالة العرض للطباعة
-                if (textMatch && statusMatch) {
-                    row.style.display = '';
-                    row.classList.add('table-print');
-                } else {
-                    row.style.display = 'none';
-                    row.classList.remove('table-print');
-                }
-            }
-        });
-
-        // إنشاء وإضافة ترويسة الطباعة
-        const printHeader = document.createElement('div');
-        printHeader.className = 'print-header';
-        const visibleRowsCount = rows.filter(row => row.style.display !== 'none').length;
-        
-        printHeader.innerHTML = `
-            <h2>قائمة الحجوزات</h2>
-            <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}</p>
-            <p>عدد الحجوزات: ${visibleRowsCount}</p>
-            ${statusFilter !== 'all' ? `<p>الفلتر: ${document.getElementById('status-filter').options[document.getElementById('status-filter').selectedIndex].text}</p>` : ''}
-            ${searchInput ? `<p>البحث: ${searchInput}</p>` : ''}
-        `;
-
-        // إضافة الترويسة قبل الجدول
-        table.parentNode.insertBefore(printHeader, table);
-
-        // طباعة الصفحة
-        window.print();
-
-        // استعادة حالة العرض الأصلية وإزالة الترويسة
-        setTimeout(() => {
-            rows.forEach((row, index) => {
-                row.style.display = displayStates[index];
-                row.classList.remove('table-print');
-            });
-            printHeader.remove();
-        }, 100);
     }
 
     // دالة لمعالجة قبول الحجز

@@ -1,287 +1,177 @@
 <div class="col-md-7 col-lg-8 col-xl-9 section notifications_forms d-none">
-   
-    <div class="container py-5">
-        <!-- Notification Header -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0">
-                        <i class="bi bi-bell-fill text-primary me-2"></i>
-                        Notification Center
-                    </h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sendNotificationModal">
-                        <i class="bi bi-send-fill me-2"></i>Send New Notification
-                    </button>
-                </div>
-            </div>
+  <div class="container py-5">
+    <!-- Notification Header -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="mb-0">
+            <i class="bi bi-bell-fill text-primary me-2"></i>
+            Notification Center
+          </h2>
+          <button id="toggleNotificationForm" class="btn btn-primary">
+            <i class="bi bi-send-fill me-2"></i>Add Notification
+          </button>
         </div>
-    
-        <!-- Filters and Search -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-                <form method="get" class="row g-3">
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control" placeholder="Search notifications..." value="{{ request.GET.search }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="type" class="form-select">
-                            <option value="">All Types</option>
-                            <option value="0" {% if request.GET.type == '0' %}selected{% endif %}>Information</option>
-                            <option value="1" {% if request.GET.type == '1' %}selected{% endif %}>Warning</option>
-                            <option value="2" {% if request.GET.type == '2' %}selected{% endif %}>Success</option>
-                            <option value="3" {% if request.GET.type == '3' %}selected{% endif %}>Error</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="status" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="0" {% if request.GET.status == '0' %}selected{% endif %}>Unread</option>
-                            <option value="1" {% if request.GET.status == '1' %}selected{% endif %}>Read</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-        </div>
-    
-        <!-- Notifications List -->
-        <div class="card shadow-sm">
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for notification in notifications %}
-                    <div class="list-group-item {% if notification.status == '0' %}bg-light{% endif %}">
-                        <div class="d-flex align-items-start">
-                            <!-- Notification Icon -->
-                            <div class="me-3">
-                                {% if notification.notification_type == '0' %}
-                                    <i class="bi bi-info-circle-fill text-info fs-4"></i>
-                                {% elif notification.notification_type == '1' %}
-                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
-                                {% elif notification.notification_type == '2' %}
-                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                {% else %}
-                                    <i class="bi bi-x-circle-fill text-danger fs-4"></i>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Notification Content -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between">
-                                    <h6 class="mb-1">From: {{ notification.sender }}</h6>
-                                    <small class="text-muted">{{ notification.send_time|timesince }} ago</small>
-                                </div>
-                                <p class="mb-1">{{ notification.message }}</p>
-                                <small class="text-muted">To: {{ notification.user }}</small>
-                            </div>
-    
-                            <!-- Actions -->
-                            <div class="ms-3">
-                                <div class="dropdown">
-                                    <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        {% if notification.status == '0' %}
-                                            <li><a class="dropdown-item" href="{% url 'hospitals:notifications:mark_as_read' notification.id %}">
-                                                <i class="bi bi-check2 me-2"></i>Mark as Read
-                                            </a></li>
-                                        {% else %}
-                                            <li><a class="dropdown-item" href="{% url 'hospitals:notifications:mark_as_unread' notification.id %}">
-                                                <i class="bi bi-circle me-2"></i>Mark as Unread
-                                            </a></li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-bell-slash fs-1 text-muted"></i>
-                        <p class="mt-2 text-muted">No notifications found</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    
-        <!-- Send Notification Modal -->
-        <div class="modal fade" id="sendNotificationModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <form method="post" action="{% url 'hospitals:notifications:send_notification' %}">
-                        {% csrf_token %}
-                        <div class="modal-header">
-                            <h5 class="modal-title">Send New Notification</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Recipients</label>
-                                <select name="recipients" class="form-select" required>
-                                    <option value="single">Single User</option>
-                                    <option value="multiple">Multiple Users</option>
-                                    <option value="all">All Users</option>
-                                </select>
-                            </div>
-                            <div class="mb-3" id="userSelect">
-                                <label class="form-label">Select Users</label>
-                                <select name="users" class="form-select" multiple>
-                                    {% for user in users %}
-                                        <option value="{{ user.id }}">{{ user.username }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Notification Type</label>
-                                <select name="notification_type" class="form-select" required>
-                                    <option value="0">Information</option>
-                                    <option value="1">Warning</option>
-                                    <option value="2">Success</option>
-                                    <option value="3">Error</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Message</label>
-                                <textarea name="message" class="form-control" rows="4" required></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Send Notification</button>
-                        </div>
-                    </form>
-
-                    <div id="response-message" class="alert alert-success mt-3" style="display:none;">
-                        تم إرسال الإشعار بنجاح!
-                    </div>
-
-                    <div id="error-message" class="alert alert-danger mt-3" style="display:none;">
-                        حدث خطأ أثناء إرسال الإشعار!
-                    </div>
-                    <!-- رسائل التأكيد أو الأخطاء ستظهر هنا -->
-                    <div id="notification-result" class="mt-3"></div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <div id="addNotificationForm" class="card mb-4 shadow-sm d-none">
+      <div class="card-body">
+        <form
+          method="post"
+          action="{% url 'hospitals:notifications:send_notification' %}"
+        >
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Recipients</label>
+            <select name="recipients" class="form-select" required>
+              <option value="single">Single User</option>
+              <option value="multiple">Multiple Users</option>
+              <option value="all">All Users</option>
+            </select>
+          </div>
+          <div class="mb-3" id="userSelect">
+            <label class="form-label">Select Users</label>
+            <select name="users" class="form-select" multiple>
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notification Type</label>
+            <select name="notification_type" class="form-select" required>
+              <option value="0">Information</option>
+              <option value="1">Warning</option>
+              <option value="2">Success</option>
+              <option value="3">Error</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message</label>
+            <textarea
+              name="message"
+              class="form-control"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button
+              type="button"
+              id="cancelNotificationForm"
+              class="btn btn-secondary me-2"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Send Notification
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for notification in hospital_notifications_sended %}
+          <div
+            class="list-group-item d-flex align-items-start {% if notification.notification_type == '0' %} bg-info text-white {% elif notification.notification_type == '1' %} bg-warning text-dark {% elif notification.notification_type == '2' %} bg-success text-white {% else %} bg-danger text-white {% endif %}"
+          >
+            <div class="me-3">
+              {% if notification.notification_type == '0' %}
+              <i class="bi bi-info-circle-fill fs-4"></i>
+              {% elif notification.notification_type == '1' %}
+              <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+              {% elif notification.notification_type == '2' %}
+              <i class="bi bi-check-circle-fill fs-4"></i>
+              {% else %}
+              <i class="bi bi-x-circle-fill fs-4"></i>
+              {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <h6 class="mb-1">From: {{ notification.sender }}</h6>
+                <small>{{ notification.send_time|timesince }} ago</small>
+              </div>
+              <p class="mb-1">{{ notification.message }}</p>
+              <small>To: {{ notification.user }}</small>
+            </div>
+
+            <div class="ms-3">
+              <div class="dropdown">
+                <button
+                  class="btn btn-light btn-sm"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  {% if notification.status == '0' %}
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{% url 'hospitals:notifications:mark_as_read' notification.id %}"
+                    >
+                      <i class="bi bi-check2 me-2"></i>Mark as Read
+                    </a>
+                  </li>
+                  {% else %}
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{% url 'hospitals:notifications:mark_as_unread' notification.id %}"
+                    >
+                      <i class="bi bi-circle me-2"></i>Mark as Unread
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {% empty %}
+          <div class="text-center py-5">
+            <i class="bi bi-bell-slash fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">No notifications found</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- تضمين jQuery إذا لم يكن موجودًا -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
-$(document).ready(function() {
-    $('#send-notification-form').on('submit', function(e) {
-        e.preventDefault();
-        var formData = new FormData(this);
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleFormBtn = document.getElementById("toggleNotificationForm");
+    const addNotificationForm = document.getElementById("addNotificationForm");
+    const cancelFormBtn = document.getElementById("cancelNotificationForm");
+    const recipientSelect = document.querySelector('select[name="recipients"]');
+    const userSelect = document.getElementById("userSelect");
 
-        // إذا تم تحديد "إرسال لجميع المستخدمين"
-        if ($('#send_to_all').is(':checked')) {
-            formData.append('send_to_all', 'true');
-        } else {
-            // جمع الـ recipients
-            var selectedRecipients = [];
-            $('#recipients input[type="checkbox"]:checked').each(function() {
-                selectedRecipients.push($(this).val()); // إضافة قيمة ID للمستخدم
-            });
-
-            // التأكد من أن المستلمين تم تحديدهم
-            if (selectedRecipients.length > 0) {
-                formData.append('recipients', selectedRecipients.join(',')); // إرسالهم كـ string مفصول بفواصل
-            } else {
-                $('#notification-result').html(
-                    '<div class="alert alert-warning">يرجى تحديد مستلمين للإشعار.</div>'
-                );
-                return;
-            }
-        }
-
-        $.ajax({
-            url: '{% url "hospitals:add_notification" %}', // تأكد من صحة الـ URL
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                $('#notification-result').html(
-                    '<div class="alert alert-' + response.alert_type + '">' + response.message + '</div>'
-                );
-                $('#send-notification-form')[0].reset();
-            },
-            error: function(xhr, status, error) {
-                $('#notification-result').html(
-                    '<div class="alert alert-danger">حدث خطأ أثناء إرسال الإشعار. يرجى المحاولة لاحقاً.</div>'
-                );
-            }
-        });
+    toggleFormBtn.addEventListener("click", function () {
+      addNotificationForm.classList.toggle("d-none");
     });
-});
+
+    cancelFormBtn.addEventListener("click", function () {
+      addNotificationForm.classList.add("d-none");
+    });
+
+    recipientSelect.addEventListener("change", function () {
+      if (this.value === "all") {
+        userSelect.style.display = "none";
+      } else {
+        userSelect.style.display = "block";
+      }
+    });
+
+    if (recipientSelect.value === "all") {
+      userSelect.style.display = "none";
+    }
+  });
 </script>
-
-<!-- CSS مدمج داخل الصفحة -->
-<style>
-    /* تنسيق النموذج */
-    #send-notification-form {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-    }
-
-    /* تنسيق الحقول */
-    .form-group label {
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .form-control {
-        border-radius: 4px;
-        padding: 10px;
-    }
-
-    textarea.form-control {
-        resize: vertical;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    .btn-primary:hover {
-        background-color: #0056b3;
-    }
-
-    /* تنسيق رسائل النجاح والفشل */
-    .alert {
-        border-radius: 5px;
-        padding: 15px;
-        font-size: 16px;
-        margin-top: 15px;
-    }
-
-    .alert-warning {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-
-    .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-    }
-
-    .alert-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-</style>

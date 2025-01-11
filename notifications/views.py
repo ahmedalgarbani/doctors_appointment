@@ -7,39 +7,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-@login_required
-def notifications_view(request):
-    # Get base queryset
-    notifications = Notifications.objects.filter(
-        Q(user=request.user) | Q(sender=request.user)
-    )
-
-    # Apply filters
-    search = request.GET.get('search')
-    notification_type = request.GET.get('type')
-    status = request.GET.get('status')
-
-    if search:
-        notifications = notifications.filter(
-            Q(message__icontains=search) |
-            Q(sender__username__icontains=search) |
-            Q(user__username__icontains=search)
-        )
-
-    if notification_type:
-        notifications = notifications.filter(notification_type=notification_type)
-
-    if status:
-        notifications = notifications.filter(status=status)
-
-    # Get all users for the send notification form
-    users = User.objects.filter(is_active=True).exclude(id=request.user.id)
-
-    context = {
-        'notifications': notifications,
-        'users': users,
-    }
-    return render(request, 'notifications/notifications.html', context)
 
 @login_required
 def send_notification(request):
@@ -50,7 +17,6 @@ def send_notification(request):
 
         try:
             if recipients == 'all':
-                # Send to all users
                 users = User.objects.filter(is_active=True).exclude(id=request.user.id)
                 for user in users:
                     Notifications.objects.create(
@@ -60,7 +26,6 @@ def send_notification(request):
                         notification_type=notification_type
                     )
             else:
-                # Send to selected users
                 user_ids = request.POST.getlist('users')
                 for user_id in user_ids:
                     user = User.objects.get(id=user_id)
@@ -75,7 +40,7 @@ def send_notification(request):
         except Exception as e:
             messages.error(request, f'Error sending notification: {str(e)}')
 
-    return redirect('notifications')
+    return redirect('hospitals:index')
 
 @login_required
 def mark_as_read(request, notification_id):
@@ -85,7 +50,7 @@ def mark_as_read(request, notification_id):
         messages.success(request, 'Notification marked as read.')
     except Notifications.DoesNotExist:
         messages.error(request, 'Notification not found.')
-    return redirect('notifications')
+    return redirect('hospitals:index')
 
 @login_required
 def mark_as_unread(request, notification_id):
@@ -95,4 +60,4 @@ def mark_as_unread(request, notification_id):
         messages.success(request, 'Notification marked as unread.')
     except Notifications.DoesNotExist:
         messages.error(request, 'Notification not found.')
-    return redirect('notifications')
+    return redirect('hospitals:index')
