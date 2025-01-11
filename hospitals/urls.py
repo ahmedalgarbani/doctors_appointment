@@ -34,6 +34,8 @@ urlpatterns = [
     path('delete-shift/<int:shift_id>/', views.delete_shift, name='delete_shift'),
     path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
+    path('admin-review-profile-update/<int:pk>/', views.admin_review_profile_update, name='admin_review_profile_update'),
     
+
 
 ]
