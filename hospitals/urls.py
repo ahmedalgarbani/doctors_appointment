@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,include
 from . import views
 
 app_name = 'hospitals'
@@ -29,6 +29,7 @@ urlpatterns = [
     path('booking-history/<int:booking_id>/', views.booking_history, name='booking_history'),
     path('delete-booking/<int:booking_id>/', views.delete_booking, name='delete_booking'),
     path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
+    path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
     
 
 ]
