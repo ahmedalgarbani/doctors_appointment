@@ -258,7 +258,7 @@ def index(request):
         'unread_notifications_count': unread_notifications_count,
     }
     
-    return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
 
 
 @login_required
@@ -348,7 +348,6 @@ def edit_blog(request, blog_id):
 
 
 
-    return render(request, 'frontend/dashboard/hospitals/index.html', context)
 
 
 
