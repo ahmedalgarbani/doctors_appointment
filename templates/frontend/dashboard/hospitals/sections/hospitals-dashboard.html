@@ -235,7 +235,7 @@
                                             <td>
                                                 <h2 class="table-avatar">
                                                     {% if doctor.photo %}
-                                                    <a href="{% url 'doctor_profile' doctor.slug %}" class="avatar avatar-sm me-2">
+                                                    <a href="{% url 'home:doctor_profile' doctor.id %}" class="avatar avatar-sm me-2">
                                                         <img class="avatar-img rounded-circle" 
                                                              src="{{ doctor.photo.url }}" 
                                                              alt="{{ doctor.full_name }}">

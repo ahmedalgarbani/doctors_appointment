@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'menu_generator',
     'ckeditor',
     'widget_tweaks',
+    'rolepermissions',
 ]
 
 MIDDLEWARE = [

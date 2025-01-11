@@ -1,4 +1,4 @@
-<div class="col-md-7 col-lg-8 col-xl-9 payment_settings section d-none">
+<div id="paymentMethodsSection" class="col-md-7 col-lg-8 col-xl-9 payment_settings section">
     <div class="col-md-4 mb-3">
         <a href="javascript:;" data-method="add_payment_page" data-section="add_payment_page" class="btn btn-info btn-block">
             <i class="fas fa-credit-card"></i> إدارة طرق الدفع
@@ -50,12 +50,24 @@
                                 </td>
                                 <td>
                                     <div class="table-action">
-                                        <a href="javascript:void(0);" class="btn btn-sm bg-info-light">
+                                        <a href="javascript:void(0);" 
+                                           class="btn btn-sm bg-info-light edit-payment-btn" 
+                                           data-method-id="{{ method.id }}" 
+                                           data-account-name="{{ method.account_name }}" 
+                                           data-account-number="{{ method.account_number }}" 
+                                           data-iban="{{ method.iban }}" 
+                                           data-method-name="{{ method.payment_option.method_name }}" 
+                                           data-currency="{{ method.payment_option.currency }}"
+                                           data-description="{{ method.description }}"
+                                           >
                                             <i class="far fa-eye"></i> Edit
                                         </a>
-                                        <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
-                                            <i class="fas fa-times"></i> Delete
-                                        </a>
+                                        <a href="javascript:void(0);" 
+                                        class="btn btn-sm bg-danger-light delete-payment-btn" 
+                                        data-hospital-id="{{ method.hospital.id }}" 
+                                        data-method-id="{{ method.id }}">
+                                         <i class="fas fa-times"></i> Delete
+                                     </a>
                                     </div>
                                 </td>
                             </tr>
@@ -68,36 +80,133 @@
     </div>
 </div>
 
+<!-- Edit Payment Section -->
+<div id="editPaymentSection" class="col-md-7 col-lg-8 col-xl-9 section d-none"> 
+    <form id="editPaymentForm" action="{% url 'hospitals:update_payment_method' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" id="edit-method-id" name="method_id">
+        <div class="mb-3">
+            <label for="edit-account-name" class="form-label">Account Name</label>
+            <input type="text" id="edit-account-name" name="account_name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="edit-account-number" class="form-label">Account Number</label>
+            <input type="text" id="edit-account-number" name="account_number" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="edit-iban" class="form-label">IBAN</label>
+            <input type="text" id="edit-iban" name="iban" class="form-control" required>
+        </div>
+         <!-- Description -->
+         <div class="col-md-12 mb-3">
+            <label for="description" class="form-label">تعليمات الدفع</label>
+            <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="edit-method-name" class="form-label">Method Name</label>
+            <input type="text" id="edit-method-name" class="form-control" disabled>
+        </div>
+        <div class="mb-3">
+            <label for="edit-currency" class="form-label">Currency</label>
+            <input type="text" id="edit-currency" class="form-control" disabled>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+
 <script>
-    // Use JavaScript (AJAX) to send the checkbox status to the backend
-    document.querySelectorAll(".status-toggle-checkbox").forEach(function (checkbox) {
-        checkbox.addEventListener("change", function () {
+
+
+
+    document.querySelectorAll(".delete-payment-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const hospitalId = this.dataset.hospitalId;
             const methodId = this.dataset.methodId;
-            const isActive = this.checked;
-
-            fetch("{% url 'hospitals:toggle_payment_status' %}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                    method_id: methodId,
-                    is_active: isActive
+    
+            if (confirm("Are you sure you want to delete this payment method?")) {
+                fetch("{% url 'hospitals:delete_payment_method' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({ hospital_id: hospitalId, payment_method_id: methodId })
                 })
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error("Failed to update status");
-            })
-            .then(data => {
+                .then(response => {
+                    if (response.ok) {
+                        const row = this.closest("tr");
+                        row.parentNode.removeChild(row);
 
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
+                    } else {
+
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+
+                });
+            }
         });
     });
+
+
+
+
+
+
+
+
+const paymentMethodsSection = document.getElementById("paymentMethodsSection");
+const editPaymentSection = document.getElementById("editPaymentSection");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+document.querySelectorAll(".edit-payment-btn").forEach(button => {
+    button.addEventListener("click", function () {
+        document.getElementById("edit-method-id").value = this.dataset.methodId;
+        document.getElementById("edit-account-name").value = this.dataset.accountName;
+        document.getElementById("edit-account-number").value = this.dataset.accountNumber;
+        document.getElementById("edit-iban").value = this.dataset.iban;
+        document.getElementById("description").value = this.dataset.description; 
+        document.getElementById("edit-method-name").value = this.dataset.methodName;
+        document.getElementById("edit-currency").value = this.dataset.currency;
+
+        paymentMethodsSection.classList.add("d-none");
+        editPaymentSection.classList.remove("d-none");
+    });
+});
+
+// Cancel button functionality
+cancelEditBtn.addEventListener("click", function () {
+    // Reset form and show main section
+    document.getElementById("editPaymentForm").reset();
+    editPaymentSection.classList.add("d-none");
+    paymentMethodsSection.classList.remove("d-none");
+});
+
+// Status toggle functionality
+document.querySelectorAll(".status-toggle-checkbox").forEach(checkbox => {
+    checkbox.addEventListener("change", function () {
+        const methodId = this.dataset.methodId;
+        const isActive = this.checked;
+
+        // Make an AJAX request to update the status
+        fetch("{% url 'hospitals:toggle_payment_status' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                method_id: methodId,
+                is_active: isActive
+            })
+        })
+        .then(response => response.json())
+        .catch(error => console.error("Error:", error));
+    });
+});
 </script>

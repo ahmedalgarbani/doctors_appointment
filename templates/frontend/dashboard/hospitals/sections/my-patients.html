@@ -1,356 +1,263 @@
-<div class="col-md-7 col-lg-8 col-xl-9 my_patients section d-none">
+{% load static %}
 
-	<div class="row row-grid">
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="patient-profile.html" class="booking-doc-img">
-								<img src="assets/img/patients/patient.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3><a href="patient-profile.html">Richard Wilson</a></h3>
+<div class="col-md-7 col-lg-8 col-xl-9 my_patient section d-none">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <h2 class="mb-3 mb-md-0">My Patients</h2>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                        <i class="fas fa-filter me-2"></i>Filters
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-sort me-2"></i>Sort by
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-sort="full_name">Name</a></li>
+                            <li><a class="dropdown-item" href="#" data-sort="id">Patient ID</a></li>
+                            <li><a class="dropdown-item" href="#" data-sort="age">Age</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> P0016</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Alabama,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 952 001 8563</span></li>
-							<li>Age <span>38 Years, Male</span></li>
-							<li>Blood Group <span>AB+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Search Bar -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" id="patientSearch" class="form-control border-start-0" placeholder="Search patients by name, ID, or location...">
+                            </div>
+                        </div>
+                    </div>
 
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="patient-profile.html" class="booking-doc-img">
-								<img src="assets/img/patients/patient1.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3><a href="patient-profile.html">Charlene Reed</a></h3>
+                    <!-- Collapsible Filters -->
+                    <div class="collapse" id="filterSection">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" id="genderFilter">
+                                    <option value="">All</option>
+                                    <option value="0">Male</option>
+                                    <option value="1">Female</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Age Range</label>
+                                <select class="form-select" id="ageFilter">
+                                    <option value="">All</option>
+                                    <option value="0-18">0-18</option>
+                                    <option value="19-30">19-30</option>
+                                    <option value="31-50">31-50</option>
+                                    <option value="51+">51+</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control" id="locationFilter" placeholder="Enter location">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> P0001</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> North
-										Carolina, USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 828 632 9170</span></li>
-							<li>Age <span>29 Years, Female</span></li>
-							<li>Blood Group <span>O+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
+    <!-- Patient Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="patientGrid">
+        {% for patient in patients %}
+        <div class="col patient-card" 
+             data-name="{{ patient.full_name }}"
+             data-id="{{ patient.id }}"
+             data-gender="{{ patient.gender }}"
+             data-age="{{ patient.age|default:0 }}"
+             data-location="{{ patient.address }}">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="position-relative">
+                    <img src="{{ patient.profile_picture.url|default:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&h=500&fit=crop' }}" 
+                         class="card-img-top patient-img" 
+                         alt="{{ patient.full_name }}">
+                    <div class="patient-id-badge">
+                        ID: {{ patient.id }}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">{{ patient.full_name }}</h5>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ patient.address }}
+                            </p>
+                        </div>
+						<span class="badge bg-primary">
+							{% if patient.gender == '0' %}
+								Male
+							{% else %}
+								Female
+							{% endif %}
+						</span>
+						
+                    </div>
+                    <div class="patient-details">
+                        <div class="detail-item">
+                            <i class="fas fa-phone text-primary"></i>
+                            <span>{{ patient.phone_number }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-user text-primary"></i>
+							<span class="badge bg-primary">
+								{% if patient.gender == '0' %}
+									Male
+								{% else %}
+									Female
+								{% endif %}
+							</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient2.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Travis Trimble </h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0002</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Maine,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 207 729 9974</span></li>
-							<li>Age <span>23 Years, Male</span></li>
-							<li>Blood Group <span>B+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient3.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Carl Kelly</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0003</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Indiana,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 260 724 7769</span></li>
-							<li>Age <span>32 Years, Male</span></li>
-							<li>Blood Group <span>A+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient4.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Michelle Fairfax</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0004</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Indiana,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 504 368 6874</span></li>
-							<li>Age <span>25 Years, Female</span></li>
-							<li>Blood Group <span>B+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient5.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Gina Moore</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0005</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Florida,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 954 820 7887</span></li>
-							<li>Age <span>25 Years, Female</span></li>
-							<li>Blood Group <span>AB-</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient6.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Elsie Gilley</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0006</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Kentucky,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 315 384 4562</span></li>
-							<li>Age <span>14 Years, Female</span></li>
-							<li>Blood Group <span>O-</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient7.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Joan Gardner</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0007</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i>
-										California, USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 707 2202 603</span></li>
-							<li>Age <span>25 Years, Female</span></li>
-							<li>Blood Group <span>A-</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient8.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Daniel Griffing</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0007</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> New
-										Jersey, USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 973 773 9497</span></li>
-							<li>Age <span>28 Years, Male</span></li>
-							<li>Blood Group <span>O+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient9.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Walter Roberson</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0009</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Florida,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 850 358 4445</span></li>
-							<li>Age <span>28 Years, Male</span></li>
-							<li>Blood Group <span>A+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient10.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Robert Rhodes</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0010</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i>
-										California, USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 858 259 5285</span></li>
-							<li>Age <span>19 Years, Male</span></li>
-							<li>Blood Group <span>B+</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-lg-4 col-xl-3">
-			<div class="card widget-profile pat-widget-profile">
-				<div class="card-body">
-					<div class="pro-widget-content">
-						<div class="profile-info-widget">
-							<a href="#" class="booking-doc-img">
-								<img src="assets/img/patients/patient11.jpg" alt="User Image">
-							</a>
-							<div class="profile-det-info">
-								<h3>Harry Williams</h3>
-								<div class="patient-details">
-									<h5><b>Patient ID :</b> PT0011</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Colorado,
-										USA</h5>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="patient-info">
-						<ul>
-							<li>Phone <span>+1 303 607 7075</span></li>
-							<li>Age <span>9 Years, Male</span></li>
-							<li>Blood Group <span>A-</span></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-
-	</div>
-
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center py-5 d-none">
+        <div class="text-muted">
+            <i class="fas fa-search fa-3x mb-3"></i>
+            <h4>No patients found</h4>
+            <p>Try adjusting your search or filters</p>
+        </div>
+    </div>
 </div>
+
+{% block extra_css %}
+<style>
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.patient-img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.patient-id-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.detail-item i {
+    width: 16px;
+}
+
+.patient-card.filtered {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const patientSearch = document.getElementById('patientSearch');
+    const genderFilter = document.getElementById('genderFilter');
+    const ageFilter = document.getElementById('ageFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    const patientCards = document.querySelectorAll('.patient-card');
+    const noResults = document.getElementById('noResults');
+
+    function filterPatients() {
+        const searchTerm = patientSearch.value.toLowerCase();
+        const gender = genderFilter.value;
+        const ageRange = ageFilter.value;
+        const location = locationFilter.value.toLowerCase();
+
+        let visibleCount = 0;
+
+        patientCards.forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            const id = card.dataset.id.toLowerCase();
+            const cardGender = card.dataset.gender;
+            const cardAge = parseInt(card.dataset.age);
+            const cardLocation = card.dataset.location.toLowerCase();
+
+            let isVisible = true;
+
+            // Search filter
+            if (searchTerm && !name.includes(searchTerm) && !id.includes(searchTerm)) {
+                isVisible = false;
+            }
+
+            // Gender filter
+            if (gender && cardGender !== gender) {
+                isVisible = false;
+            }
+
+            // Age range filter
+            if (ageRange) {
+                const [min, max] = ageRange.split('-').map(num => num.replace('+', ''));
+                if (max) {
+                    if (cardAge < parseInt(min) || cardAge > parseInt(max)) {
+                        isVisible = false;
+                    }
+                } else {
+                    if (cardAge < parseInt(min)) {
+                        isVisible = false;
+                    }
+                }
+            }
+
+            // Location filter
+            if (location && !cardLocation.includes(location)) {
+                isVisible = false;
+            }
+
+            card.classList.toggle('filtered', !isVisible);
+            if (isVisible) visibleCount++;
+        });
+
+        // Show no results message if no visible patients
+        if (visibleCount === 0) {
+            noResults.classList.remove('d-none');
+        } else {
+            noResults.classList.add('d-none');
+        }
+    }
+
+    patientSearch.addEventListener('input', filterPatients);
+    genderFilter.addEventListener('change', filterPatients);
+    ageFilter.addEventListener('change', filterPatients);
+    locationFilter.addEventListener('input', filterPatients);
+});
+</script>
+{% endblock %}

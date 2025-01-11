@@ -1,0 +1,172 @@
+<div class="col-md-7 col-lg-8 col-xl-9 all_doctor_page section d-none">
+    <!-- Quick Stats Section -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-sm-6 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dash-widget-header">
+                        <span class="dash-widget-icon text-primary border-primary">
+                            <i class="fas fa-user-md"></i>
+                        </span>
+                        <div class="dash-count">
+                            <h3>{{ total_doctors }}</h3>
+                        </div>
+                    </div>
+                    <div class="dash-widget-info">
+                        <h6 class="text-muted">إجمالي الأطباء</h6>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-primary w-100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dash-widget-header">
+                        <span class="dash-widget-icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                        <div class="dash-count">
+                            <h3>{{ active_doctors }}</h3>
+                        </div>
+                    </div>
+                    <div class="dash-widget-info">
+                        <h6 class="text-muted">الأطباء النشطون</h6>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-success w-50"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dash-widget-header">
+                        <span class="dash-widget-icon text-warning">
+                            <i class="fas fa-graduation-cap"></i>
+                        </span>
+                        <div class="dash-count">
+                            <h3>{{ specialties_count }}</h3>
+                        </div>
+                    </div>
+                    <div class="dash-widget-info">
+                        <h6 class="text-muted">التخصصات</h6>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-warning w-50"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="dash-widget-header">
+                        <span class="dash-widget-icon text-info">
+                            <i class="fas fa-hospital"></i>
+                        </span>
+                        <div class="dash-count">
+                            <h3>{{ hospitals_count }}</h3>
+                        </div>
+                    </div>
+                    <div class="dash-widget-info">
+                        <h6 class="text-muted">المستشفيات</h6>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-info w-50"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Quick Stats Section -->
+
+    <div class="card card-table">
+        <div class="card-body">
+            <!-- Filter Section -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <form id="doctor-filter-form" class="row">
+                        <div class="col-md-3 mb-2">
+                            <label>التخصص</label>
+                            <select name="specialty" class="form-control">
+                                <option value="">كل التخصصات</option>
+                                {% for specialty in specialties %}
+                                    <option value="{{ specialty.id }}" {% if request.GET.specialty == specialty.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ specialty.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>الجنس</label>
+                            <select name="gender" class="form-control">
+                                <option value="">الكل</option>
+                                <option value="1" {% if request.GET.gender == '1' %}selected{% endif %}>ذكر</option>
+                                <option value="0" {% if request.GET.gender == '0' %}selected{% endif %}>أنثى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>الحالة</label>
+                            <select name="status" class="form-control">
+                                <option value="">الكل</option>
+                                <option value="1" {% if request.GET.status == '1' %}selected{% endif %}>نشط</option>
+                                <option value="0" {% if request.GET.status == '0' %}selected{% endif %}>غير نشط</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>البحث</label>
+                            <input type="text" name="search" class="form-control" placeholder="اسم الطبيب أو البريد الإلكتروني" value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-12 text-end mt-3">
+                            <button type="submit" class="btn btn-primary">تصفية</button>
+                            <button type="button" class="btn btn-secondary" id="reset-filter">إعادة تعيين</button>
+                            <a  href="javascript:;" data-method="add_doctor_page" data-section="add_doctor_page" class="btn btn-success">
+                                <i class="fas fa-plus"></i> إضافة طبيب
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Doctors Table -->
+            <div class="table-responsive" id="doctors-table-container">
+                {% include "frontend/dashboard/hospitals/sections/doctor_table.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        function loadInvoices(formData) {
+            $.ajax({
+                url: '{% url "hospitals:filter_doctors" %}',
+                type: 'GET',
+                data: formData,
+                success: function(response) {
+                    $('#doctors-table-container').html(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading invoices:", error);
+                }
+            });
+        }
+    
+        // Handle form submission
+        $('#doctor-filter-form').on('submit', function(e) {
+            e.preventDefault();
+            var formData = $(this).serialize();
+            loadInvoices(formData);
+        });
+    
+        // Handle reset button
+        $('#reset-filter').on('click', function() {
+            $('#doctor-filter-form')[0].reset();
+            loadInvoices('');
+        });
+    });
+</script>

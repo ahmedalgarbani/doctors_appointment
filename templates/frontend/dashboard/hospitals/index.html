@@ -56,13 +56,19 @@
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:;" data-method="all_doctor_page" data-section="all_doctor_page">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>الاطباء</span>
+                  </a>
+                </li>
+                <li>
                   <a href="javascript:;" data-method="appointments" data-section="appointments">
                     <i class="fas fa-calendar-check"></i>
                     <span>الحجوزات</span>
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="my_patients" data-section="my_patients">
+                  <a href="javascript:;" data-method="my_patient" data-section="my_patient">
                     <i class="fas fa-user-injured"></i>
                     <span>المرضى</span>
                   </a>
@@ -83,7 +89,7 @@
                 <li>
                   <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
                     <i class="fas fa-user-cog"></i>
-                    <span>Payment Settings</span>
+                    <span> اعدادات طرق الدفع</span>
                   </a>
                 </li>
                 <li>
@@ -93,9 +99,16 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="social_media" data-section="social_media">
-                    <i class="fas fa-share-alt"></i>
-                    <span>وسائل التواصل الاجتماعي</span>
+                  <a href="javascript:;" data-method="notifications_list" >
+                    <i class="fas fa-comments"></i>
+                    <span>الأشعارات</span>
+                    <small class="unread-msg">{{ notifications.count }}</small>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="notifications_forms" >
+                    <i class="fas fa-comments"></i>
+                    <span>ارسال اشعار</span>
                   </a>
                 </li>
                 <li>
@@ -120,22 +133,21 @@
       <!-- Include Sections -->      
 
       
+      {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
+      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
+      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
-      
       {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/available-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/invoice-view.html" %}
-      
-      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
     
     </div>
@@ -143,6 +155,7 @@
 </div>
 <!-- /Page Content -->
 {% endblock %}
+
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

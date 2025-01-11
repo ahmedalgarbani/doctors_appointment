@@ -1,5 +1,8 @@
 from django import forms
 from doctors.models import Doctor
+from notifications.models import Notifications
+from users.models import CustomUser
+from django.contrib.auth import get_user_model
 
 class DoctorForm(forms.ModelForm):
     class Meta:
@@ -21,3 +24,35 @@ class DoctorForm(forms.ModelForm):
             'status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'show_at_home': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+
+class NotificationForm(forms.ModelForm):
+    recipients = forms.ModelMultipleChoiceField(
+        queryset=CustomUser.objects.all(),  # استخدام CustomUser
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="حدد المستلمين",
+    )
+    send_to_all = forms.BooleanField(
+        required=False,
+        label="إرسال لجميع المستخدمين"
+    )
+
+    class Meta:
+        model = Notifications
+        fields = ['message', 'notification_type', 'recipients', 'send_to_all']
+        widgets = {
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'notification_type': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        send_to_all = cleaned_data.get('send_to_all')
+        recipients = cleaned_data.get('recipients')
+
+        if not send_to_all and not recipients:
+            raise forms.ValidationError("يرجى تحديد المستلمين أو اختيار إرسال للجميع.")
+
+        return cleaned_data

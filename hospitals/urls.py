@@ -1,23 +1,33 @@
-from django.urls import path
+from django.urls import path,include
 from . import views
 
 app_name = 'hospitals'
 
 urlpatterns = [
     
+    
     path('', views.index, name='index'),
     path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
+    path('doctors-filter/', views.filter_doctors, name='filter_doctors'),
+    path('hospitals/blogs', views.blog_list, name='blog_list'),
+    path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
+    path('hospitals/add-blog/', views.add_blog, name='add_blog'),
+    path('hospitals/edit-blog/<int:blog_id>/', views.edit_blog, name='edit_blog'),
     path('hospitals/blogs', views.blog_list, name='blog_list'),
     path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
     path('hospitals/add-blog/', views.add_blog, name='add_blog'),
     path('hospitals/edit-blog/<int:blog_id>/', views.edit_blog, name='edit_blog'),
     path('add-payment/', views.add_payment_method, name='add_payment_method'),
+    path('update-payment/', views.update_payment_method, name='update_payment_method'),
+    path('delete-payment/', views.delete_payment_method, name='delete_payment_method'),
     path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
     # path('hospitals/<int:pk>/', views.HospitalDetailView.as_view(), name='hospital_detail'),
     # path('hospital-details/<int:pk>/', views.HospitalDetailDetailView.as_view(), name='hospital_detail_detail'),
     # path('phone-numbers/', views.PhoneNumberListView.as_view(), name='phone_number_list'),
     # path('hospital-doctors/', views.HospitalDoctorListView.as_view(), name='hospital_doctor_list'),
+    
+
     
 
     # URLs الخاصة بطلبات فتح حساب المستشفى
@@ -35,7 +45,7 @@ urlpatterns = [
     path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
     path('admin-review-profile-update/<int:pk>/', views.admin_review_profile_update, name='admin_review_profile_update'),
-    
-
+    path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
+   
 
 ]
