@@ -9,7 +9,7 @@ class CustomUser(AbstractUser):
         ('patients','patients'),]
     
     user_type=models.CharField(max_length=20,choices=USER_TYPE_CHOICES)
-    mobile_number = models.CharField(max_length=15, unique=True)
+    mobile_number = models.CharField(max_length=15, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')], blank=True)
     is_pregnant = models.BooleanField(default=False)
@@ -53,3 +53,8 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.get_user_type_display()})"
+
+    def save(self, *args, **kwargs):
+        if self.is_superuser and not self.mobile_number:
+            self.mobile_number = f'admin_{self.username}'  # إضافة رقم هاتف افتراضي للمستخدم الخارق
+        super().save(*args, **kwargs)

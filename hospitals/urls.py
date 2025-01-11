@@ -44,18 +44,8 @@ urlpatterns = [
     path('delete-shift/<int:shift_id>/', views.delete_shift, name='delete_shift'),
     path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
-    
-
-
-
-    path('accept-appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
-    path('completed_appointment/<int:booking_id>/', views.completed_appointment, name='completed_appointment'),
-    path('booking-history/<int:booking_id>/', views.booking_history, name='booking_history'),
-    path('delete-booking/<int:booking_id>/', views.delete_booking, name='delete_booking'),
-    path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
+    path('admin-review-profile-update/<int:pk>/', views.admin_review_profile_update, name='admin_review_profile_update'),
     path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
-    
-
-    path('send-notification/', views.add_notification, name='add_notification'),
+   
 
 ]

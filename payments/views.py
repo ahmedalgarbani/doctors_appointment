@@ -130,3 +130,5 @@ def payment_process(request, doctor_id):
     }
     
     return render(request, 'frontend/home/pages/payment.html', context)
+
+pass

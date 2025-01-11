@@ -24,10 +24,10 @@
        <div class="row">
            <div class="col-lg-8 col-md-12">
                <div class="booking-header">
-                   <h4 class="booking-title">Book Appointment with Dr. {{ doctor.full_name }}</h4>
-                   <p>{{ doctor.specialty.name }} • {{ doctor.hospitals.first.name }}</p>
-               </div>
-               <div class="booking-date choose-date-book">
+                   <h4 class="booking-title">حجز موعد مع د. {{ doctor.full_name }}</h4>
+                   <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
+                   </div>
+                   <div class="booking-date choose-date-book">
                    <p>Choose a Date</p>
                    <div class="booking-range">
                        <div class="bookingrange btn">
@@ -66,6 +66,7 @@
                    <input type="hidden" name="day" id="day_id" value="{{ selected_day }}">
                    <input type="hidden" name="date" id="date_id">
                    <input type="hidden" name="booking_date" id="booking_date_input">
+                   <input type="hidden" name="hospital_id" id="hospital_id" value="{{ doctor.hospitals.first.id }}">
                    <div class="booking-btn">
                        <button type="submit" id="next-btn" class="btn btn-primary prime-btn justify-content-center align-items-center" disabled>
                            Next <i class="feather-arrow-right-circle"></i>
@@ -131,7 +132,23 @@ $(document).ready(function () {
         onSelect: function (dateText) {
             $("#booking_date_input").val(dateText);
             checkFormCompletion();
+            updateTimeSlots();
         }
+    });
+
+    // عند النقر على زر المستشفى
+    $('.hospital-btn').on('click', function() {
+        // إزالة الفئة النشطة من جميع الأزرار
+        $('.hospital-btn').removeClass('active');
+        // إضافة الفئة النشطة للزر المحدد
+        $(this).addClass('active');
+        
+        // تحديث معرف المستشفى المختار
+        const hospitalId = $(this).data('hospital-id');
+        $('#hospital_id').val(hospitalId);
+        
+        // تحديث المواعيد المتاحة
+        updateTimeSlots();
     });
 
     // عند النقر على يوم
@@ -144,6 +161,20 @@ $(document).ready(function () {
         $(this).addClass('active');
         $('#day_id').val(selectedScheduleId);
         
+        updateTimeSlots();
+    });
+
+    // دالة تحديث المواعيد المتاحة
+    function updateTimeSlots() {
+        const selectedScheduleId = $('#day_id').val();
+        const doctorId = {{ doctor.id }};
+        const hospitalId = $('#hospital_id').val();
+        const bookingDate = $('#booking_date_input').val();
+        
+        if (!selectedScheduleId || !hospitalId || !bookingDate) {
+            return;
+        }
+        
         // إظهار رسالة تحميل
         $('#time-details').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المواعيد...</div>');
         
@@ -151,9 +182,12 @@ $(document).ready(function () {
         $.ajax({
             url: `/get-time-slots/${selectedScheduleId}/${doctorId}/`,
             method: 'GET',
+            data: {
+                hospital_id: hospitalId,
+                booking_date: bookingDate
+            },
             success: function(response) {
                 $('#time-details').html(response.html);
-                // إعادة تعيين اختيار الوقت
                 $('#date_id').val('');
                 checkFormCompletion();
             },
@@ -162,7 +196,7 @@ $(document).ready(function () {
                 console.error('Error fetching time slots:', error);
             }
         });
-    });
+    }
 
     // عند النقر على وقت
     $(document).on('click', '.timing.available', function() {
@@ -178,8 +212,9 @@ $(document).ready(function () {
         const dayId = $('#day_id').val();
         const dateId = $('#date_id').val();
         const bookingDate = $('#booking_date_input').val();
+        const hospitalId = $('#hospital_id').val();
         
-        if (dayId && dateId && bookingDate) {
+        if (dayId && dateId && bookingDate && hospitalId) {
             $('#next-btn').prop('disabled', false);
         } else {
             $('#next-btn').prop('disabled', true);
@@ -191,13 +226,15 @@ $(document).ready(function () {
         const dayId = $('#day_id').val();
         const dateId = $('#date_id').val();
         const bookingDate = $('#booking_date_input').val();
+        const hospitalId = $('#hospital_id').val();
 
-        if (!dayId || !dateId || !bookingDate) {
+        if (!dayId || !dateId || !bookingDate || !hospitalId) {
             e.preventDefault();
             let missingFields = [];
             if (!dayId) missingFields.push('يوم الموعد');
             if (!dateId) missingFields.push('وقت الموعد');
             if (!bookingDate) missingFields.push('تاريخ الحجز');
+            if (!hospitalId) missingFields.push('المستشفى');
             
             alert('الرجاء اختيار:\n- ' + missingFields.join('\n- '));
             return false;
