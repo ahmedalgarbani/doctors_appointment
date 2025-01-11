@@ -32,4 +32,6 @@ urlpatterns = [
     path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
     
 
+    path('send-notification/', views.add_notification, name='add_notification'),
+
 ]

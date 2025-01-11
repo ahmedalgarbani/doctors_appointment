@@ -11,6 +11,8 @@ from payments.models import Payment
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
 from notifications.models import Notifications
+from .forms import NotificationForm
+from users.models import CustomUser
 
 from payments.models import (
     HospitalPaymentMethod,
@@ -59,6 +61,56 @@ def index(request):
     return render(request, 'frontend/dashboard/hospitals/index.html', context)
 
 
+@login_required
+def add_notification(request):
+    if request.method == 'POST':
+        form = NotificationForm(request.POST)
+        if form.is_valid():
+            message = form.cleaned_data['message']
+            notification_type = form.cleaned_data['notification_type']
+            send_to_all = form.cleaned_data['send_to_all']
+            recipients = form.cleaned_data['recipients']
+
+            if send_to_all:
+                # إرسال لجميع المستخدمين
+                recipients = CustomUser.objects.all()
+            else:
+                if not recipients:
+                    return JsonResponse({'message': 'يرجى تحديد مستلمين للإشعار.', 'alert_type': 'danger'})
+
+                # تأكد من أن recipients هي قائمة مفصولة بفواصل وتحويلها إلى قائمة
+                recipients_list = recipients.split(',') if isinstance(recipients, str) else []
+
+                # التحقق من وجود مستلمين بعد التقسيم
+                if not recipients_list:
+                    return JsonResponse({'message': 'يرجى تحديد مستلمين للإشعار.', 'alert_type': 'danger'})
+
+                # تحويل الـ ID إلى قائمة من المستخدمين
+                recipients = CustomUser.objects.filter(id__in=recipients_list)
+
+            # إرسال الإشعارات للمستلمين
+            for recipient in recipients:
+                if recipient != request.user:
+                    Notifications.objects.create(
+                        sender=request.user,
+                        user=recipient,
+                        message=message,
+                        notification_type=notification_type
+                    )
+            return JsonResponse({
+                'message': 'تم إرسال الإشعار بنجاح.',
+                'alert_type': 'success'
+            })
+        else:
+            return JsonResponse({
+                'message': 'حدث خطأ أثناء إرسال الإشعار.',
+                'alert_type': 'danger'
+            })
+    else:
+        form = NotificationForm()
+
+    users = CustomUser.objects.all()
+    return render(request, 'frontend/dashboard/hospitals/sections/notifications-forms.html', {'form': form, 'users': users})
 
 #الاشعارات
 def get_notifications_for_user(user):
