@@ -1,11 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
 from doctors.models import BaseModel
 from django.urls import reverse
-from django.db import models
-from django.contrib.auth.models import User
-
+from django.utils.text import slugify
 from doctors_appointment import settings
+from hospitals.models import Hospital
 
 # Create your models here.
 
@@ -16,7 +14,7 @@ def author_directory_path(instance, filename):
     Generate a path for uploaded files based on the author's username.
     E.g., media/blog/author_username/filename
     """
-    return f'blog/{instance.author.username}/{filename}'
+    return f'blog/{instance.author.name}/{filename}'
 
 
 
@@ -45,7 +43,7 @@ class Post(BaseModel):
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
     image = models.ImageField(upload_to=author_directory_path, blank=True, null=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    author = models.ForeignKey(Hospital, on_delete=models.CASCADE)
     categories = models.ForeignKey('Category', on_delete=models.CASCADE, related_name="posts")
     tags = models.ManyToManyField('Tag', related_name="posts")
     status = models.BooleanField(default=False)
@@ -54,6 +52,21 @@ class Post(BaseModel):
         ordering = ('-created_at',)
     def __str__(self):
         return self.title
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.generate_unique_slug()  
+        super(Post, self).save(*args, **kwargs)
+
+    def generate_unique_slug(self):
+        base_slug = slugify(self.title)
+        slug = base_slug
+        num = 1
+
+        while Post.objects.filter(slug=slug).exists():
+            slug = f'{base_slug}-{num}'
+            num += 1
+
+        return slug    
     def get_absolute_url(self):
         return reverse('home:blog:post_detail', args=[self.slug])
 

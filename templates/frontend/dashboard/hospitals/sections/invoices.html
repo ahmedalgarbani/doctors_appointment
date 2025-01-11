@@ -1,0 +1,167 @@
+<div class="col-md-7 col-lg-8 col-xl-9 invoices section d-none">
+    <!-- Quick Stats Section -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-primary border-primary">
+                        <i class="fas fa-file-invoice"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ total_invoices_count }}</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">إجمالي الفواتير</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-primary w-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ total_paid_amount }} ريال</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">المدفوعات المكتملة</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-success w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-warning">
+                        <i class="fas fa-clock"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ pending_payments_count }}</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">المدفوعات المعلقة</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-warning w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="dash-widget-header">
+                    <span class="dash-widget-icon text-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </span>
+                    <div class="dash-count">
+                        <h3>{{ total_pending_amount }} ريال</h3>
+                    </div>
+                </div>
+                <div class="dash-widget-info">
+                    <h6 class="text-muted">المبالغ المعلقة</h6>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-danger w-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Quick Stats Section -->
+
+    
+    
+    <div class="card card-table">
+        <div class="card-body">
+            <!-- Filter Section -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <form id="invoice-filter-form" class="row">
+                        <div class="col-md-3 mb-2">
+                            <label>من تاريخ</label>
+                            <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>إلى تاريخ</label>
+                            <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>حالة الدفع</label>
+                            <select name="payment_status" class="form-control">
+                                <option value="">الكل</option>
+                                {% for status in payment_statuses %}
+                                    <option value="{{ status.id }}" {% if request.GET.payment_status == status.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ status.payment_status_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label>نطاق المبلغ</label>
+                            <div class="input-group">
+                                <input type="number" name="amount_min" class="form-control" placeholder="الحد الأدنى" value="{{ request.GET.amount_min }}">
+                                <input type="number" name="amount_max" class="form-control" placeholder="الحد الأقصى" value="{{ request.GET.amount_max }}">
+                            </div>
+                        </div>
+                        <div class="col-md-12 text-end">
+                            <button type="submit" class="btn btn-primary">تصفية</button>
+                            <button type="button" class="btn btn-secondary" id="reset-filter">إعادة تعيين</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Invoice Table -->
+            <div class="table-responsive" id="invoice-table-container">
+                {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
+            </div>
+            <!-- /Invoice Table -->
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    function loadInvoices(formData) {
+        $.ajax({
+            url: '{% url "hospitals:filter_invoices" %}',
+            type: 'GET',
+            data: formData,
+            success: function(response) {
+                $('#invoice-table-container').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error loading invoices:", error);
+            }
+        });
+    }
+
+    // Handle form submission
+    $('#invoice-filter-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        loadInvoices(formData);
+    });
+
+    // Handle reset button
+    $('#reset-filter').on('click', function() {
+        $('#invoice-filter-form')[0].reset();
+        loadInvoices('');
+    });
+});
+</script>

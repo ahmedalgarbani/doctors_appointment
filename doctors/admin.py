@@ -21,9 +21,9 @@ class SpecialtyAdmin(admin.ModelAdmin):
 # تخصيص واجهة إدارة Doctor
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'specialty', 'email', 'phone_number', 'status', 'show_at_home')
+    list_display = ('full_name','gender', 'specialty', 'email', 'phone_number', 'status', 'show_at_home')
     list_filter = ('status', 'show_at_home', 'specialty')
-    search_fields = ('full_name', 'email', 'phone_number')
+    search_fields = ('full_name', 'email', 'phone_number','gender')
     filter_horizontal = ('hospitals',)
     ordering = ('full_name',)
     fieldsets = (

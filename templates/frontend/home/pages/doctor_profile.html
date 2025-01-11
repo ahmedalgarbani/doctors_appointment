@@ -52,7 +52,7 @@
 									</p>
 
 									 <!-- التقييمات -->
-									 <div class="rating">
+									<div class="rating">
 										<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
 										<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
 										<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
@@ -88,7 +88,7 @@
 									</a>
 								</div>
 								<div class="clinic-booking">
-									<a class="apt-btn" href="booking.html">Book Appointment</a>
+									<a class="apt-btn" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
 								</div>
 							</div>
 						</div>
@@ -253,7 +253,6 @@
 										<li>
 											<div class="comment">
 												{% if review.user.profile_picture %}
-												 
 												<img class="avatar avatar-sm rounded-circle" alt="User Image" src="{{review.user.profile_picture.url}}">
 												{% endif %}
 												<div class="comment-body">
@@ -299,6 +298,7 @@
 										<!-- Write Review Form -->
 										<form method="post" action='{% url "home:doctor_profile" doctor.id  %}' > 
 											{% csrf_token %}
+
 											<div class="mb-3">
 												<label class="mb-2">Review</label>
 												<div class="star-rating">
@@ -328,23 +328,18 @@
 											<div class="mb-3">
 												<label class="mb-2">Your review</label>
 												<textarea id="review_desc" maxlength="100" name="review" class="form-control"></textarea>
-											  
 											  <div class="d-flex justify-content-between mt-3"><small class="text-muted"><span id="chars">100</span> characters remaining</small></div>
 											</div>
 											<hr>
-											 
 											<div class="submit-section">
 												<button type="submit" class="btn btn-primary submit-btn">Add Review</button>
 											</div>
 										</form>
 										<!-- /Write Review Form -->
-										 
 									</div>
 									<!-- /Write Review -->
-						
 								</div>
 								<!-- /Reviews Content -->
-							
 								<!-- Business Hours Content -->
 								<div role="tabpanel" id="doc_business_hours" class="tab-pane fade">
 									<div class="row">

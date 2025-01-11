@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from .models import Hospital, HospitalAccountRequest, City, PhoneNumber
+from .models import Hospital, HospitalAccountRequest, City, PhoneNumber,HospitalDetail
 
 User = get_user_model()
 @admin.register(City)
@@ -104,4 +104,5 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Hospital)
+admin.site.register(HospitalDetail)
 admin.site.register(PhoneNumber)

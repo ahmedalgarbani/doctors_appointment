@@ -1,0 +1,173 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+  <div class="container">
+    <div class="row align-items-center inner-banner">
+      <div class="col-md-12 col-12 text-center">
+        <h2 class="breadcrumb-title">Doctor Blog</h2>
+        <nav aria-label="breadcrumb" class="page-breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Doctor Blog</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5 col-lg-4 col-xl-3 theiaStickySidebar">
+        <!-- Profile Sidebar -->
+        <div class="profile-sidebar">
+          <div class="widget-profile pro-widget-content">
+            <div class="profile-info-widget">
+              <a href="#" class="booking-doc-img">
+                <img src="{{hospital.details.photo.url}}" alt="User Image" />
+              </a>
+              <div class="profile-det-info">
+                <h3>{{hospital.name}}</h3>
+                <div class="patient-details">
+                  <h5 class="mb-0">{{hospital.details.sub_title}}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-widget">
+            <nav class="dashboard-menu">
+              <ul>
+                <li>
+                  <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard">
+                    <i class="fas fa-columns"></i>
+                    <span>لوحة التحكم</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
+                    <i class="fas fa-clock"></i>
+                    <span>جدولة المواعيد</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="appointments" data-section="appointments">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>الحجوزات</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="my_patients" data-section="my_patients">
+                    <i class="fas fa-user-injured"></i>
+                    <span>المرضى</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="invoices" data-section="invoices">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>الفواتير</span>
+                  </a>
+                </li>
+               
+                <li>
+                  <a href="{% url 'hospitals:blog_list' %}">
+                    <i class="fas fa-comments"></i>
+                    <span>المدونة</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Payment Settings</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
+                    <i class="fas fa-user-cog"></i>
+                    <span>إعدادات الملف الشخصي</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="social_media" data-section="social_media">
+                    <i class="fas fa-share-alt"></i>
+                    <span>وسائل التواصل الاجتماعي</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="doctor_change_password" data-section="doctor_change_password">
+                    <i class="fas fa-lock"></i>
+                    <span>تغيير كلمة المرور</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-section="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /Profile Sidebar -->
+      </div>
+
+      <!-- Include Sections -->      
+
+      
+      {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
+      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+      
+      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
+      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/available-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
+      {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoice-view.html" %}
+      
+      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+    
+    </div>
+  </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function showSection(targetSection) {
+    // إخفاء جميع الأقسام
+    $('.section').addClass('d-none');
+    
+    // إظهار القسم المطلوب
+    $('.' + targetSection).removeClass('d-none');
+    
+    // تحديث الرابط النشط في القائمة
+    $('.dashboard-menu li').removeClass('active');
+    $('a[data-section="' + targetSection + '"]').parent().addClass('active');
+  }
+  
+  $(document).ready(function() {
+    // عرض لوحة التحكم عند تحميل الصفحة
+    showSection('hospital_dashboard');
+    
+    // تحديث القسم المعروض عند النقر على الروابط
+    $("a[data-method]").on("click", function () {
+      const methodName = $(this).data("method");
+      showSection(methodName);
+    });
+  });
+</script>
+{% endblock extra_js %}

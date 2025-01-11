@@ -3,7 +3,7 @@ from hospitals.models import BaseModel
 from django.urls import reverse
 from django.utils.text import slugify
 from ckeditor.fields import RichTextField
-
+import uuid
 # نموذج التخصصات
 class Specialty(BaseModel):
     name = models.CharField(max_length=255)
@@ -126,13 +126,32 @@ class DoctorShifts(models.Model):
 
 
 class DoctorPricing(models.Model):
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='pricing')
-    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.SET_NULL, related_name='doctor_prices', null=True, blank=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر")
+    doctor = models.ForeignKey(
+        'doctors.Doctor', 
+        on_delete=models.CASCADE, 
+        related_name='pricing'
+    )
+    hospital = models.ForeignKey(
+        'hospitals.Hospital', 
+        on_delete=models.SET_NULL, 
+        related_name='doctor_prices', 
+        null=True, 
+        blank=True
+    )
+    amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name="السعر"
+    )
+    transaction_number = models.UUIDField(
+        default=uuid.uuid4, 
+        editable=False, 
+        verbose_name="رقم العملية"
+    )  
 
     def __str__(self):
         hospital_name = self.hospital.name if self.hospital else "No Hospital"
-        return f"{self.doctor.full_name} - {hospital_name} - {self.amount}"
+        return f"{self.doctor.full_name} - {hospital_name} - {self.amount} - {self.transaction_number}"
 
     class Meta:
         verbose_name = "جدول اسعار الطبيب"

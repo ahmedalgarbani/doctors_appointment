@@ -1,0 +1,69 @@
+{% extends "frontend/layouts/master.html" %}
+{% block content %}
+
+<div class="content" style="min-height: 159.1px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+
+              <div class="col-md-7 col-lg-8 col-xl-9 m-5">
+                <div class="col-md-4 mb-3">
+                  <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
+                      <i class="fas fa-md"></i> الرجوع  
+                  </a>
+              </div>
+                <div class="doc-review review-listing custom-edit-service">
+                  <div class="row mb-5">
+                    <div class="col">
+                      <ul class="nav nav-tabs nav-tabs-solid">
+                        <ul class="nav nav-tabs nav-tabs-solid">
+                          <li class="nav-item">
+                              <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">Active Blog</a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">Pending Blog</a>
+                          </li>
+                      </ul>
+                      </ul>
+                    </div>
+                    <div class="col-auto">
+                      <a class="btn btn-primary btn-sm" href="{% url 'hospitals:add_blog' %}" ><i class="fas fa-plus me-1"></i> Add Blog</a>
+
+                    </div>
+                  </div>
+              
+                  <!-- Add Blog -->
+                  <div class="card">
+                    <div class="card-body">
+                      <h3 class="pb-3">Add Blog</h3>
+              
+                      <form
+                        method="post"
+                        enctype="multipart/form-data"
+                      >
+                  {% csrf_token %}
+                  {{ form.as_p }}
+                        <div class="submit-section">
+                          <button
+                            class="btn btn-primary submit-btn"
+                            type="submit"
+                            name="form_submit"
+                            value="submit"
+                          >
+                    {% if editing_blog %}Update Blog{% else %}Add Blog{% endif %}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                  <!-- /Add Blog -->
+                </div>
+              </div>
+              
+                
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

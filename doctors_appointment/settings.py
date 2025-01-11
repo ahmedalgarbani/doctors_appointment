@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'blog',
     'menu_generator',
     'ckeditor',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -110,11 +111,6 @@ DATABASE_OPTIONS = {
 
 AUTH_USER_MODEL='users.CustomUser'
 
-
-# Authentication settings
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = 'login'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

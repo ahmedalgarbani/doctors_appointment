@@ -1,0 +1,421 @@
+<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section">
+						 
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="card">
+				<div class="card-body">
+					<h4 class="card-title">جدولة المواعيد</h4>
+					<div class="profile-box">
+						<div class="row">
+							<div class="row mb-4">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>اختر الطبيب</label>
+										<select class="form-select" id="doctor_select">
+											<option value="">-- اختر الطبيب --</option>
+											{% for doctor in doctors %}
+											<option value="{{ doctor.id }}">{{ doctor.full_name }} - {{ doctor.specialty.name }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>حالة الجدول</label>
+										<div class="status-toggle">
+											<input type="checkbox" id="status_toggle" class="check">
+											<label for="status_toggle" class="checktoggle">متاح/غير متاح</label>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div class="card schedule-widget mb-0">
+									
+									<!-- Schedule Header -->
+									<div class="schedule-header">
+										<div class="schedule-nav">
+											<ul class="nav nav-tabs nav-justified">
+												{% for value, name in days %}
+												<li class="nav-item">
+													<a class="nav-link {% if forloop.counter == 2 %}active{% endif %}" data-bs-toggle="tab" href="#slot_{{ value|lower }}">{{ name }}</a>
+												</li>
+												{% endfor %}
+											</ul>
+										</div>
+									</div>
+									<!-- /Schedule Header -->
+									
+									<!-- Schedule Content -->
+									<div class="tab-content schedule-cont">
+										
+										{% for value, name in days %}
+										<div id="slot_{{ value|lower }}" class="tab-pane fade {% if forloop.counter == 2 %}show active{% endif %}">
+											<div class="row">
+												<div class="col-md-8">
+													<h4 class="card-title">{{ name }}</h4>
+													<!-- Time Slots -->
+													<div class="doc-times">
+														<p class="text-muted mb-0">لا توجد مواعيد</p>
+													</div>
+												</div>
+												<div class="col-md-4">
+													<div class="card">
+														<div class="card-body">
+															<h4 class="card-title">إضافة موعد</h4>
+															<form class="add-time-slot-form" data-day="{{ value }}">
+																{% csrf_token %}
+																<input type="hidden" name="day" value="{{ value }}">
+																
+																<div class="mb-3">
+																	<label class="form-label">وقت البداية</label>
+																	<div class="row g-2">
+																		<div class="col">
+																			<select name="start_hour" class="form-select" required>
+																				{% for h in ""|rjust:"24" %}
+																				<option value="{{ forloop.counter0|stringformat:'02d' }}">{{ forloop.counter0|stringformat:'02d' }}</option>
+																				{% endfor %}
+																			</select>
+																		</div>
+																		<div class="col">
+																			<select name="start_minute" class="form-select" required>
+																				<option value="00">00</option>
+																				<option value="15">15</option>
+																				<option value="30">30</option>
+																				<option value="45">45</option>
+																			</select>
+																		</div>
+																	</div>
+																</div>
+
+																<div class="mb-3">
+																	<label class="form-label">وقت النهاية</label>
+																	<div class="row g-2">
+																		<div class="col">
+																			<select name="end_hour" class="form-select" required>
+																				{% for h in ""|rjust:"24" %}
+																				<option value="{{ forloop.counter0|stringformat:'02d' }}">{{ forloop.counter0|stringformat:'02d' }}</option>
+																				{% endfor %}
+																			</select>
+																		</div>
+																		<div class="col">
+																			<select name="end_minute" class="form-select" required>
+																				<option value="00">00</option>
+																				<option value="15">15</option>
+																				<option value="30">30</option>
+																				<option value="45">45</option>
+																			</select>
+																		</div>
+																	</div>
+																</div>
+
+																<div class="mb-3">
+																	<label class="form-label">عدد المواعيد المتاحة</label>
+																	<input type="number" name="max_appointments" class="form-control" value="1" min="1" required>
+																</div>
+
+																<div class="text-end">
+																	<button type="submit" class="btn btn-primary">
+																		<i class="fas fa-plus-circle me-1"></i>
+																		إضافة
+																	</button>
+																</div>
+															</form>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										{% endfor %}
+										
+									</div>
+									<!-- /Schedule Content -->
+									
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+</div>
+
+<!-- Add Time Slot Modal -->
+<div class="modal fade" id="add_time_slot">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">إضافة موعد جديد</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<form id="add_time_slot_form">
+					{% csrf_token %}
+					<input type="hidden" name="doctor_id" id="modal_doctor_id">
+					<div class="form-group">
+						<label>اليوم</label>
+						<select name="day" class="form-select" required>
+							{% for day_value, day_name in days %}
+							<option value="{{ day_value }}">{{ day_name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="form-group">
+						<label>وقت البداية</label>
+						<input type="time" name="start_time" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>وقت النهاية</label>
+						<input type="time" name="end_time" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>مدة الموعد (بالدقائق)</label>
+						<input type="number" name="slot_duration" class="form-control" min="15" step="15" value="30">
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+				<button type="submit" form="add_time_slot_form" class="btn btn-primary">حفظ</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Copy Timings Modal -->
+<div class="modal fade" id="copy_timings">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">نسخ المواعيد</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<form>
+					<div class="form-group">
+						<label>نسخ من</label>
+						<select class="form-select">
+							<option>الإثنين</option>
+							<option>الثلاثاء</option>
+							<option>الأربعاء</option>
+							<option>الخميس</option>
+							<option>الجمعة</option>
+							<option>السبت</option>
+							<option>الأحد</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>نسخ إلى</label>
+						<div class="checkbox-group">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" id="copy_sunday">
+								<label class="form-check-label" for="copy_sunday">الأحد</label>
+							</div>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" id="copy_monday">
+								<label class="form-check-label" for="copy_monday">الإثنين</label>
+							</div>
+							<!-- Add other days... -->
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+				<button type="button" class="btn btn-primary">نسخ المواعيد</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
+    console.log("Initial doctor schedules:", doctorSchedules);
+    
+    // تحميل جدول الطبيب عند اختياره
+    $('#doctor_select').change(function() {
+        var doctorId = $(this).val();
+        console.log("Selected doctor:", doctorId);
+        
+        if (doctorId) {
+            var schedules = doctorSchedules[doctorId] || {};
+            updateScheduleDisplay(schedules);
+            $('.add-time-slot-form button[type="submit"]').prop('disabled', false);
+        } else {
+            $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
+            $('.add-time-slot-form button[type="submit"]').prop('disabled', true);
+        }
+    });
+
+    // إضافة موعد جديد
+    $('.add-time-slot-form').on('submit', function(e) {
+        e.preventDefault();
+        console.log("Form submitted");
+        
+        var form = $(this);
+        var doctorId = $('#doctor_select').val();
+        
+        if (!doctorId) {
+            toastr.error('الرجاء اختيار طبيب أولاً');
+            return;
+        }
+
+        // تجميع البيانات
+        var formData = {
+            'doctor_id': doctorId,
+            'day': form.data('day'),
+            'start_time': form.find('[name="start_hour"]').val() + ':' + form.find('[name="start_minute"]').val(),
+            'end_time': form.find('[name="end_hour"]').val() + ':' + form.find('[name="end_minute"]').val(),
+            'max_appointments': form.find('[name="max_appointments"]').val(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+
+        console.log("Sending data:", formData);
+
+        // تعطيل الزر أثناء الإرسال
+        var submitButton = form.find('button[type="submit"]');
+        submitButton.prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "hospitals:schedule_timings" %}',
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                console.log("Success response:", response);
+                if (response.status === 'success') {
+                    if (!doctorSchedules[doctorId]) {
+                        doctorSchedules[doctorId] = {};
+                    }
+                    var day = form.data('day');
+                    if (!doctorSchedules[doctorId][day]) {
+                        doctorSchedules[doctorId][day] = [];
+                    }
+                    doctorSchedules[doctorId][day].push(response.shift);
+                    updateScheduleDisplay(doctorSchedules[doctorId]);
+                    toastr.success(response.message);
+                    form[0].reset();
+                } else {
+                    toastr.error(response.message || 'حدث خطأ أثناء إضافة الموعد');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", {xhr: xhr, status: status, error: error});
+                var errorMessage = 'حدث خطأ أثناء إضافة الموعد';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                // إعادة تفعيل الزر بعد انتهاء الطلب
+                submitButton.prop('disabled', false);
+            }
+        });
+    });
+
+    // تحديث عرض الجدول
+    function updateScheduleDisplay(schedules) {
+        console.log("Updating display with schedules:", schedules);
+        $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
+        
+        Object.keys(schedules).forEach(function(day) {
+            var shifts = schedules[day];
+            var dayId = day.toString().padStart(1, '0');
+            var docTimes = $(`#slot_${dayId}`).find('.doc-times');
+            
+            if (shifts && shifts.length > 0) {
+                docTimes.empty();
+                shifts.forEach(function(shift) {
+                    var slotHtml = `
+                        <div class="card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">${shift.start_time} - ${shift.end_time}</h5>
+                                        <div class="text-muted small">
+                                            عدد المواعيد: ${shift.available_slots}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="mb-1">
+                                            <span class="badge bg-success">${shift.available_slots} متاح</span>
+                                            <span class="badge bg-warning">${shift.booked_slots} محجوز</span>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-danger delete-shift" data-shift-id="${shift.id}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    docTimes.append(slotHtml);
+                });
+            }
+        });
+    }
+
+    // حذف موعد
+    $(document).on('click', '.delete-shift', function(e) {
+        e.preventDefault();
+        console.log("Delete button clicked");
+        
+        var button = $(this);
+        var shiftId = button.data('shift-id');
+        var doctorId = $('#doctor_select').val();
+        
+        if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+            button.prop('disabled', true);
+            
+            $.ajax({
+                url: "{% url 'hospitals:delete_shift' 0 %}".replace('0', shiftId),
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    console.log("Delete success:", response);
+                    if (response.status === 'success') {
+                        Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
+                            doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
+                                shift => shift.id !== shiftId
+                            );
+                        });
+                        updateScheduleDisplay(doctorSchedules[doctorId]);
+                        toastr.success(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Delete error:", {xhr: xhr, status: status, error: error});
+                    button.prop('disabled', false);
+                    var errorMessage = 'حدث خطأ أثناء حذف الموعد';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMessage);
+                }
+            });
+        }
+    });
+
+    // تفعيل toastr
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
+});
+</script>
+{% endblock %}

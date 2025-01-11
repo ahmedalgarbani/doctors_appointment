@@ -1,0 +1,103 @@
+<div class="col-md-7 col-lg-8 col-xl-9 payment_settings section d-none">
+    <div class="col-md-4 mb-3">
+        <a href="javascript:;" data-method="add_payment_page" data-section="add_payment_page" class="btn btn-info btn-block">
+            <i class="fas fa-credit-card"></i> إدارة طرق الدفع
+        </a>
+    </div>
+    <div class="tab-pane show active" id="upcoming-appointments" role="tabpanel">
+        <div class="card card-table mb-0">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-center mb-0">
+                        <thead>
+                            <tr>
+                                <th>Payment Image</th>
+                                <th>Account Name</th>
+                                <th>Account Number</th>
+                                <th>IBAN</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for method in payment_methods %}
+                            <tr>
+                                <td>
+                                    <h2 class="table-avatar">
+                                        <a href="javascript:void(0);" class="avatar avatar-sm me-2">
+                                            <img class="avatar-img rounded-circle" src="{{ method.payment_option.logo.url }}" alt="Payment Image">
+                                        </a>
+                                        <a href="javascript:void(0);">
+                                            {{ method.payment_option.method_name }} 
+                                            <span>{{ method.payment_option.currency }}</span>
+                                        </a>
+                                    </h2>
+                                </td>
+                                <td>{{ method.account_name }}</td>
+                                <td>{{ method.account_number }}</td>
+                                <td>{{ method.iban }}</td>
+                                <td>
+                                    <div class="status-toggle">
+                                        <input 
+                                            type="checkbox" 
+                                            id="status_{{ method.id }}" 
+                                            class="check status-toggle-checkbox" 
+                                            data-method-id="{{ method.id }}" 
+                                            {% if method.is_active %} checked {% endif %}
+                                        >
+                                        <label for="status_{{ method.id }}" class="checktoggle">checkbox</label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="table-action">
+                                        <a href="javascript:void(0);" class="btn btn-sm bg-info-light">
+                                            <i class="far fa-eye"></i> Edit
+                                        </a>
+                                        <a href="javascript:void(0);" class="btn btn-sm bg-danger-light">
+                                            <i class="fas fa-times"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Use JavaScript (AJAX) to send the checkbox status to the backend
+    document.querySelectorAll(".status-toggle-checkbox").forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+            const methodId = this.dataset.methodId;
+            const isActive = this.checked;
+
+            fetch("{% url 'hospitals:toggle_payment_status' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    method_id: methodId,
+                    is_active: isActive
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error("Failed to update status");
+            })
+            .then(data => {
+
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+    });
+</script>

@@ -8,7 +8,7 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('username', 'email', 'mobile_number')
 
     fieldsets = (
-        (None, {'fields': ('username', 'password', 'email', 'mobile_number', 'profile_picture')}),
+        (None, {'fields': ('username', 'password', 'email', 'mobile_number', 'profile_picture','user_type')}),
         ('Personal Info', {'fields': ('gender', 'is_pregnant', 'pregnancy_term', 'age', 'blood_group', 'weight', 'height')}),
         ('Family Data', {'fields': ('family_data',)}),
         ('Location', {'fields': ('city', 'state')}),
