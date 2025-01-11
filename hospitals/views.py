@@ -3,10 +3,14 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.db import models
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
+from patients.models import Patients
 from payments.models import Payment, PaymentStatus
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
@@ -20,21 +24,54 @@ from doctors.models import (
     Doctor,
     DoctorPricing,
     DoctorSchedules,
+    DoctorShifts,
     Specialty,
 )
 from django.core.paginator import Paginator
-from datetime import datetime, date, timedelta
 from django.db.models import Sum
-
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.shortcuts import render
+from blog.forms import PostForm
+from blog.models import Post, Tag,Category
+from payments.models import Payment
+from bookings.models import BookingStatusHistory
+from bookings.models import Booking
+from notifications.models import Notifications
+from django.contrib.auth import get_user_model
+from .forms import NotificationForm
+from users.models import CustomUser
+from payments.models import (
+    HospitalPaymentMethod,
+    PaymentOption,
+    Payment,
+)
+from hospitals.models import Hospital, HospitalAccountRequest
+from doctors.models import (
+    Doctor,
+    DoctorPricing,
+    Specialty,
+)
+from django.core.paginator import Paginator
+User = get_user_model()
+@login_required
 def index(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    speciality = Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
     city = City.objects.filter( status=True)
+    patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
+
     
     # Get current date and first day of month
+
+
     today = timezone.now().date()
     first_day_of_month = today.replace(day=1)
     
@@ -168,13 +205,33 @@ def index(request):
             total=Sum('payment_totalamount'))['total'] or 0,
     }
     
-    ctx = {
+    bookings = Booking.objects.filter(hospital=hospital)
+
+    # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
+    if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
+        import json
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        result = delete_notification(notification_id, user)
+        return JsonResponse(result)
+
+    # جلب الإشعارات
+    notifications = get_notifications_for_user(user)
+    hospital_notifications_sended = get_notifications_sended_from(user)
+
+    # حساب عدد الإشعارات غير المقروءة
+    unread_notifications_count = notifications.filter(status='0').count()
+
+    context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
+        'users': User.objects.all(),
         'bookings': bookings,
         'city':city,
         'doctors': doctors,
+        'patients':patients,
+        'speciality':Specialty.objects.filter(status=True),
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,
         'invoices': invoices,
@@ -189,11 +246,142 @@ def index(request):
         'latest_doctors': latest_doctors,
         'latest_payments': latest_payments,
         'current_month_name': current_month_name,
+        'total_doctors': doctors.count(),
+        'active_doctors': doctors.filter(status=True).count(),
+        'specialties_count': Specialty.objects.filter(
+            doctor__hospitals=hospital
+        ).distinct().count(),
+        'hospitals_count': hospital.count() if isinstance(hospital, models.QuerySet) else 1,
         **payment_stats,
         **bookings_stats,
+        'hospital': hospital,
+        'speciality': speciality,
+        'bookings': bookings,
+        'notifications': notifications,
+        'hospital_notifications_sended':hospital_notifications_sended,
+        'unread_notifications_count': unread_notifications_count,
     }
     
-    return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+
+@login_required
+def blog_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
+
+@login_required
+def blog_pending_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_pending_blog.html', context)
+
+
+
+@login_required
+def add_blog(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_blog = form.save(commit=False)
+            new_blog.author = hospital
+            new_blog.save()
+            form.save_m2m() 
+            messages.success(request, 'Blog added successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm()
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-add-blog.html', context)
+
+@login_required
+def edit_blog(request, blog_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    blog = get_object_or_404(Post, id=blog_id, author=hospital)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=blog)
+        if form.is_valid():
+            updated_blog = form.save(commit=False)  
+            updated_blog.save()  
+            form.save_m2m()  
+            messages.success(request, 'Blog updated successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm(instance=blog)
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+        'blog': blog,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-edit-blog.html', context)
+
+
+
+
+#الاشعارات
+def get_notifications_for_user(user):
+    """
+    دالة لجلب الإشعارات الخاصة بالمستخدم.
+    """
+    notifications = Notifications.objects.filter(user=user, is_active=True).order_by('-send_time')
+    return notifications
+
+def get_notifications_sended_from(user):
+    """
+        get all notifications that hospital sended
+    """
+    notifications = Notifications.objects.filter(sender=user, is_active=True).order_by('-send_time')
+    return notifications
+
+
+def delete_notification(notification_id, user):
+    """
+    دالة لحذف الإشعار بناءً على معرف الإشعار والمستخدم.
+    """
+    try:
+        # الحصول على الإشعار والتأكد من أنه مرتبط بالمستخدم
+        notification = Notifications.objects.get(id=notification_id, user=user, is_active=True)
+        notification.delete()
+        return {"success": True}
+    except Notifications.DoesNotExist:
+        return {"success": False, "error": "Notification not found."}
+
+
 
 
 @login_required
@@ -367,6 +555,72 @@ def hospital_request_status(request, request_id):
     })
 
 
+
+
+@login_required
+def filter_doctors(request):
+    hospital = request.user.hospital
+    doctors = Doctor.objects.filter(hospitals=hospital)
+    
+    context = {
+        'total_doctors': doctors.count(),
+        'active_doctors': doctors.filter(status=True).count(),
+        'specialties_count': Specialty.objects.filter(
+            doctor__hospitals=hospital
+        ).distinct().count(),
+        'hospitals_count': hospital.count() if isinstance(hospital, models.QuerySet) else 1
+    }
+    
+    specialty = request.GET.get('specialty')
+    if specialty:
+        doctors = doctors.filter(specialty_id=specialty)
+        
+    gender = request.GET.get('gender')
+    if gender:
+        doctors = doctors.filter(gender=gender)
+        
+    status = request.GET.get('status')
+    if status:
+        doctors = doctors.filter(status=status == '1')
+        
+    search = request.GET.get('search')
+    if search:
+        doctors = doctors.filter(
+            Q(full_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(phone_number__icontains=search)
+        )
+
+    experience_min = request.GET.get('experience_min')
+    if experience_min:
+        doctors = doctors.filter(experience_years__gte=experience_min)
+        
+    experience_max = request.GET.get('experience_max')
+    if experience_max:
+        doctors = doctors.filter(experience_years__lte=experience_max)
+
+    page = request.GET.get('page', 1)
+    paginator = Paginator(doctors.order_by('-created_at'), 10) 
+    
+    try:
+        doctors = paginator.page(page)
+    except PageNotAnInteger:
+        doctors = paginator.page(1)
+    except EmptyPage:
+        doctors = paginator.page(paginator.num_pages)
+
+    context.update({
+        'doctors': doctors,
+        'specialties': Specialty.objects.all(),
+        'request': request, 
+    })
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'frontend/dashboard/hospitals/sections/doctor_table.html', context)
+    
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+
 def add_doctor(request):
     if request.method == "POST":
         full_name = request.POST.get("full_name")
@@ -376,6 +630,8 @@ def add_doctor(request):
         gender = request.POST.get("gender")
         specialty_id = request.POST.get("specialty")
         hospital_id = request.user.id
+        specialty_id = request.POST.get("specialty")
+        hospital_id = request.user.id
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -383,6 +639,7 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
+        price = request.POST.get("price")
         price = request.POST.get("price")
 
         if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
@@ -414,8 +671,14 @@ def add_doctor(request):
             hospital = get_object_or_404(Hospital,id=hospital_id),
             amount = price,
         )
+        priceCreate = DoctorPricing.objects.create(
+            doctor = get_object_or_404(Doctor,id=doctor.id),
+            hospital = get_object_or_404(Hospital,id=hospital_id),
+            amount = price,
+        )
         doctor.hospitals.set([hospital])  
         doctor.save()
+        
         
         return render(request, "frontend/dashboard/hospitals/index.html")
 
@@ -424,6 +687,9 @@ def add_doctor(request):
         "specialties": Specialty.objects.all(),  
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+
 
 
 
@@ -466,6 +732,56 @@ def add_payment_method(request):
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
 
+
+
+def update_payment_method(request):
+    if request.method == "POST":
+        method_id = request.POST.get("method_id")
+        account_name = request.POST.get("account_name")
+        account_number = request.POST.get("account_number")
+        iban = request.POST.get("iban")
+        description = request.POST.get("description")
+        is_active = request.POST.get("is_active") == "1"
+
+        if not all([method_id, account_name, account_number, iban, description]):
+            return HttpResponseBadRequest("Missing required fields")
+
+        try:
+            payment_method = HospitalPaymentMethod.objects.get(id=method_id)
+        except HospitalPaymentMethod.DoesNotExist:
+            return HttpResponseBadRequest("Payment method not found")
+
+        payment_method.account_name = account_name
+        payment_method.account_number = account_number
+        payment_method.iban = iban
+        payment_method.description = description
+        payment_method.is_active = is_active
+        payment_method.save()
+
+        return redirect("hospitals:index")
+
+    return HttpResponseBadRequest("Invalid request method")
+
+
+
+@csrf_exempt
+def delete_payment_method(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            hospital_id = data.get("hospital_id")
+            payment_method_id = data.get("payment_method_id")
+            
+            payment_method = HospitalPaymentMethod.objects.filter(hospital_id=hospital_id, id=payment_method_id).first()
+            
+            if payment_method:
+                payment_method.delete()  
+                return JsonResponse({"status": "success"})
+            else:
+                return JsonResponse({"status": "error", "message": "Payment method not found."}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
 
 
 @csrf_exempt
@@ -1092,6 +1408,7 @@ def hospital_dashboard(request):
     }
     
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
+
 def profile_update_request(request, pk):
     hospital = get_object_or_404(Hospital, pk=pk)
     hospitalDetail = get_object_or_404(HospitalDetail, hospital=hospital)
@@ -1118,3 +1435,4 @@ def profile_update_request(request, pk):
         return redirect('hospitals:index')
 
     return redirect('hospitals:index')
+

@@ -1,6 +1,6 @@
     <div class="col-md-7 col-lg-8 col-xl-9 add_doctor_page section d-none">
         <div class="col-md-4 mb-3">
-            <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
+            <a href="javascript:;" id="cancelEditBtn"  class="btn btn-primary btn-block">
                 <i class="fas fa-md"></i> الرجوع  
             </a>
         </div>
@@ -41,6 +41,7 @@
                             <select id="specialty" name="specialty" class="form-select">
                                 <!-- Add specialty options dynamically -->
                                 <option value="" selected>اختر التخصص</option>
+                                
                                 {% for speciality in speciality %}
                                 <option value="{{speciality.id}}">{{speciality.name}}</option>
                                 {% endfor %}
@@ -102,10 +103,35 @@
                             </div>
                         </div>
                     </div>
+                     <!-- Doctor Price -->
+                    <div class="card ">
+                        <div class="card-body">
+                            <h4 class="card-title">Doctor Price</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label  class="mb-2">Price per patients</label>
+                                        <input name="price"  type="number" class="form-control">
+                                    </div>
+                                </div>
+                               
+                            </div>
+                        </div>
+                    </div>
                     <!-- Submit Button -->
                     <div class="text-center">
+                        
                         <button type="submit" class="btn btn-primary">حفظ</button>
                     </div>
                 </form>
                 
     </div>
+
+    <script>
+
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
+cancelEditBtn.addEventListener("click", function () {
+    editPaymentSection.classList.add("d-none");
+    paymentMethodsSection.classList.remove("d-none");
+});
+    </script>
