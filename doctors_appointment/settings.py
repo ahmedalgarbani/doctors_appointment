@@ -84,7 +84,7 @@ DATABASES = {
         'USER': os.environ.get('DB_USER', 'root'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '54322'),
+        'PORT': os.environ.get('DB_PORT', '54321'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'",
             'charset': 'utf8mb4',
@@ -108,12 +108,13 @@ DATABASE_OPTIONS = {
     # }
 
 
-
-
 AUTH_USER_MODEL='users.CustomUser'
 
-    
 
+# Authentication settings
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = 'login'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -155,26 +156,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, '/static')
 
 
 
-
-
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'doctors_appointment/static')]
-
-
-
 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
 
 
 ####################################################################################
@@ -225,7 +217,6 @@ NAV_MENU_TOP = [
         "url": "/blog",
     },
 ]
-
 
 
 FOOTER_MENU_ONE = [

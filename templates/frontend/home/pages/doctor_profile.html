@@ -36,6 +36,7 @@
 								<div class="doc-info-cont">
 									<!-- اسم الدكتور -->
 									<h4 class="doc-name">{{ doctor.full_name }}</h4>
+									<h5 class="doc-name">المستشفيات المتواجد فيها</h5>
 
 									<!-- أسماء المستشفيات المرتبطة -->
 									<p class="doc-speciality">
@@ -59,7 +60,7 @@
 										<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
 										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
 									</div>
-									
+									 
 									<div class="clinic-details">
 
 
@@ -78,7 +79,7 @@
 									<ul>
 										<li><i class="far fa-comment"></i> {{ reviews.count }} تعليق</li>
 										<li><i class="fas fa-map-marker-alt"></i>العنوان: {{ doctor.sub_title }}  </li>
-										<li><i class="far fa-money-bill-alt"></i> {{ pricing.amount }} $ </li>
+										<li><i class="far fa-money-bill-alt"></i> {% for price in doctor_prices %}{{ price.hospital.name }}: {{ price.amount }} $ {% if not forloop.last %} | {% endif %}{% endfor %}</li>
 									</ul>
 								</div>
 								<div class="doctor-action">
@@ -93,8 +94,7 @@
 						</div>
 					</div>
 				</div>
-				<!-- /Doctor Widget -->
-
+				<!-- /Doctor Widget 
 					
 					<!-- Doctor Details Tab -->
 					<div class="card">
@@ -126,7 +126,7 @@
 								<div role="tabpanel" id="doc_overview" class="tab-pane fade show active">
 									<div class="row">
 										<div class="col-md-12 col-lg-9">
-										
+										 
 											<!-- About Details -->
 											<div class="widget about-widget">
 												<h4 class="widget-title">نبذه عن الطبيب</h4>
@@ -135,7 +135,7 @@
 												<p>{{doctor.about|safe}}</p>
 											</div>
 											<!-- /About Details -->
-											
+											 
 											<!-- Specializations List -->
 											<div class="service-list">
 												<h4>Hospitals Where He/SHe Works</h4>
@@ -143,23 +143,22 @@
 													{% for hospital in doctor.hospitals.all %}
 													<li>{{hospital.name}}</li>
 													{% endfor %}
-													
+													 
 												</ul>
 											</div>
 											<!-- /Specializations List -->
-
 										</div>
 									</div>
 								</div>
 								<!-- /Overview Content -->
-								
+							
 								<!-- Locations Content -->
 								<div role="tabpanel" id="doc_locations" class="tab-pane fade">
 								
 									<!-- Location List -->
 									<div class="location-list">
 										<div class="row align-items-start">
-										
+										 
 											<div class="col-md-4">
 												{% for hospital in doctor.hospitals.all %}
 												<div class="clinic-content">
@@ -204,7 +203,6 @@
 												{% endfor %}
 											</div>
 											<!-- /Clinic Content -->
-
 											<div class="col-md-4">
 												<div class="clinic-timing">
 													{% for schedule in doctor.schedules.all %}
@@ -212,7 +210,7 @@
 														<p class="timings-days">
 															<span>{{ schedule.get_day_display }}</span>
 														</p>
-														
+														 
 														<p class="timings-days">
 															<span>مواعيد متاحة</span>:
 															<br>
@@ -221,14 +219,13 @@
 															<br>
 														{% endfor %}
 														</p>
-														
+														 
 													</div>
 													<hr> <!-- خط فاصل بين المواعيد -->
 													{% endfor %}
 												</div>
 											</div>
 											<!-- /Clinic Timing -->
-
 											<div class="col-md-4">
 												<div class="consult-price text-left">
 													<h4>السعر</h4>
@@ -240,10 +237,10 @@
 									</div>
 
 									<!-- /Location List -->
-									
+									 
 								</div>
 								<!-- /Locations Content -->
-								
+							
 								<!-- Reviews Content -->
 								<div role="tabpanel" id="doc_reviews" class="tab-pane fade">
 								
@@ -256,7 +253,7 @@
 										<li>
 											<div class="comment">
 												{% if review.user.profile_picture %}
-												
+												 
 												<img class="avatar avatar-sm rounded-circle" alt="User Image" src="{{review.user.profile_picture.url}}">
 												{% endif %}
 												<div class="comment-body">
@@ -270,35 +267,35 @@
 										<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
 										<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
 										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
-												</div>
+													</div>
 													</div>
 													{% comment %} <p class="recommended"><i class="far fa-thumbs-up"></i> I recommend the doctor</p> {% endcomment %}
 													<p class="comment-content">
 														{{review.review}}
 													</p>
-													
+													 
 												</div>
 											</div>
-											
-											
+											 
+											 
 										</li>
 										<!-- /Comment List -->
 										{% endfor %}
-										
+										 
 										{% endif %}
-											
-											
+											 
+											 
 										</ul>
-										
-										
-										
+										 
+										 
+										 
 									</div>
 									<!-- /Review Listing -->
 								
 									<!-- Write Review -->
 									<div class="write-review">
 										<h4>Write a review for <strong>Dr. {{ doctor.full_name }}</strong></h4>
-										
+										 
 										<!-- Write Review Form -->
 										<form method="post" action='{% url "home:doctor_profile" doctor.id  %}' > 
 											{% csrf_token %}
@@ -327,7 +324,7 @@
 													</label>
 												</div>
 											</div>
-											
+											 
 											<div class="mb-3">
 												<label class="mb-2">Your review</label>
 												<textarea id="review_desc" maxlength="100" name="review" class="form-control"></textarea>
@@ -335,24 +332,24 @@
 											  <div class="d-flex justify-content-between mt-3"><small class="text-muted"><span id="chars">100</span> characters remaining</small></div>
 											</div>
 											<hr>
-											
+											 
 											<div class="submit-section">
 												<button type="submit" class="btn btn-primary submit-btn">Add Review</button>
 											</div>
 										</form>
 										<!-- /Write Review Form -->
-										
+										 
 									</div>
 									<!-- /Write Review -->
 						
 								</div>
 								<!-- /Reviews Content -->
-								
+							
 								<!-- Business Hours Content -->
 								<div role="tabpanel" id="doc_business_hours" class="tab-pane fade">
 									<div class="row">
 										<div class="col-md-6 offset-md-3">
-										
+										 
 											<!-- Business Hours Widget -->
 											<div class="widget business-widget">
 												<div class="widget-content">
@@ -369,9 +366,7 @@
 															</div>
 														</div>
 														{% endif %}
-
 														{% endfor %}
-
 
 														{% for schedule in doctor.schedules.all %}
 														{% if  day_name != schedule.get_day_display  %}
@@ -385,7 +380,6 @@
 															</div>
 														</div>
 														{% endif %}
-
 														{% endfor %}
 														{% comment %} <div class="listing-day closed">
 															<div class="day">Sunday</div>
@@ -397,17 +391,17 @@
 												</div>
 											</div>
 											<!-- /Business Hours Widget -->
-									
+									 
 										</div>
 									</div>
 								</div>
 								<!-- /Business Hours Content -->
-								
+							
 							</div>
 						</div>
 					</div>
 					<!-- /Doctor Details Tab -->
-
+					
 				</div>
 			</div>		
 			<!-- /Page Content -->
@@ -454,5 +448,5 @@
 					});
 				});
 			</script>
-									
+									 
             {% endblock %}

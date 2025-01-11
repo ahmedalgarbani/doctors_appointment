@@ -138,11 +138,11 @@ def profile(request):
 
 from math import floor
 def doctor_profile(request, doctor_id):
-    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
+    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals', 'pricing'), id=doctor_id)
     reviews = Review.objects.filter(doctor=doctor, status=True)
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     average_rating =  int(floor(average_rating))
-    pricing = doctor.pricing.first() 
+    doctor_prices = doctor.pricing.all().select_related('hospital')
     if request.method == 'POST':
          Review.objects.create(
             doctor_id = doctor_id,
@@ -160,7 +160,7 @@ def doctor_profile(request, doctor_id):
         'doctor': doctor,
         'reviews': reviews,
         'average_rating': round(average_rating, 1),
-        'pricing': pricing,
+        'doctor_prices': doctor_prices,
         'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
         'day_date':day_date,
