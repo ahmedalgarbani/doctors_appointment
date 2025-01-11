@@ -33,15 +33,13 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.shortcuts import render
-
-
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
 from payments.models import Payment
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
 from notifications.models import Notifications
-
+from django.contrib.auth import get_user_model
 from payments.models import (
     HospitalPaymentMethod,
     PaymentOption,
@@ -54,7 +52,7 @@ from doctors.models import (
     Specialty,
 )
 from django.core.paginator import Paginator
-
+User = get_user_model()
 @login_required
 def index(request):
     user = request.user
@@ -65,12 +63,8 @@ def index(request):
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
-    patients = Patients.objects.filter(bookings__hospital_id=1).distinct()
-    print(patients)
-    print(patients)
-    print(patients)
-    print(patients)
-    print(patients)
+    patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
+
 
     today = timezone.now().date()
     first_day_of_month = today.replace(day=1)
@@ -217,6 +211,7 @@ def index(request):
 
     # جلب الإشعارات
     notifications = get_notifications_for_user(user)
+    hospital_notifications_sended = get_notifications_sended_from(user)
 
     # حساب عدد الإشعارات غير المقروءة
     unread_notifications_count = notifications.filter(status='0').count()
@@ -225,6 +220,7 @@ def index(request):
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
+        'users': User.objects.all(),
         'bookings': bookings,
         'doctors': doctors,
         'patients':patients,
@@ -255,6 +251,7 @@ def index(request):
         'speciality': speciality,
         'bookings': bookings,
         'notifications': notifications,
+        'hospital_notifications_sended':hospital_notifications_sended,
         'unread_notifications_count': unread_notifications_count,
     }
     
@@ -357,6 +354,13 @@ def get_notifications_for_user(user):
     دالة لجلب الإشعارات الخاصة بالمستخدم.
     """
     notifications = Notifications.objects.filter(user=user, is_active=True).order_by('-send_time')
+    return notifications
+
+def get_notifications_sended_from(user):
+    """
+        get all notifications that hospital sended
+    """
+    notifications = Notifications.objects.filter(sender=user, is_active=True).order_by('-send_time')
     return notifications
 
 
