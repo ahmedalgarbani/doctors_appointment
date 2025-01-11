@@ -15,7 +15,7 @@ from payments.models import (
     PaymentOption,
     Payment,
 )
-from hospitals.models import Hospital, HospitalAccountRequest
+from hospitals.models import City, Hospital, HospitalAccountRequest, HospitalDetail
 from doctors.models import (
     Doctor,
     DoctorPricing,
@@ -32,6 +32,7 @@ def index(request):
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
+    city = City.objects.filter( status=True)
     
     # Get current date and first day of month
     today = timezone.now().date()
@@ -172,6 +173,7 @@ def index(request):
         "payment_methods": payment_method,
         'hospital': hospital,
         'bookings': bookings,
+        'city':city,
         'doctors': doctors,
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,

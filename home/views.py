@@ -359,10 +359,7 @@ def booking_view(request, doctor_id):
         'doctor': selected_doctor,
         'dayes': dayes,
         'schedules': grouped_slots,
-        'selected_day':sched.id,
-
-
-        
+        'selected_day':sched.id, 
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)

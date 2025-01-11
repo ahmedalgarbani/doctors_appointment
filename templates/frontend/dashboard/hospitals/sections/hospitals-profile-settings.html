@@ -76,7 +76,7 @@
                         <div class="mb-3">
                             <label class="mb-2">Specialty <span class="text-danger">*</span></label>
                             <select name="specialty" class="form-select" required>
-                                {% for specialty in specialty %}
+                                {% for specialty in specialties %}
                                 <option value="{{ specialty.id }}" {% if hospitalDetail.specialty.id == specialty.id %}selected{% endif %}>{{ specialty.name }}</option>
                                 {% endfor %}
                             </select>
