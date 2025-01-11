@@ -48,11 +48,65 @@
                     <div id="error-message" class="alert alert-danger mt-3" style="display:none;">
                         حدث خطأ أثناء إرسال الإشعار!
                     </div>
+                    <!-- رسائل التأكيد أو الأخطاء ستظهر هنا -->
+                    <div id="notification-result" class="mt-3"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- تضمين jQuery إذا لم يكن موجودًا -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#send-notification-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        // إذا تم تحديد "إرسال لجميع المستخدمين"
+        if ($('#send_to_all').is(':checked')) {
+            formData.append('send_to_all', 'true');
+        } else {
+            // جمع الـ recipients
+            var selectedRecipients = [];
+            $('#recipients input[type="checkbox"]:checked').each(function() {
+                selectedRecipients.push($(this).val()); // إضافة قيمة ID للمستخدم
+            });
+
+            // التأكد من أن المستلمين تم تحديدهم
+            if (selectedRecipients.length > 0) {
+                formData.append('recipients', selectedRecipients.join(',')); // إرسالهم كـ string مفصول بفواصل
+            } else {
+                $('#notification-result').html(
+                    '<div class="alert alert-warning">يرجى تحديد مستلمين للإشعار.</div>'
+                );
+                return;
+            }
+        }
+
+        $.ajax({
+            url: '{% url "hospitals:add_notification" %}', // تأكد من صحة الـ URL
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#notification-result').html(
+                    '<div class="alert alert-' + response.alert_type + '">' + response.message + '</div>'
+                );
+                $('#send-notification-form')[0].reset();
+            },
+            error: function(xhr, status, error) {
+                $('#notification-result').html(
+                    '<div class="alert alert-danger">حدث خطأ أثناء إرسال الإشعار. يرجى المحاولة لاحقاً.</div>'
+                );
+            }
+        });
+    });
+});
+</script>
 
 <!-- CSS مدمج داخل الصفحة -->
 <style>
@@ -101,6 +155,11 @@
         padding: 15px;
         font-size: 16px;
         margin-top: 15px;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
     }
 
     .alert-success {

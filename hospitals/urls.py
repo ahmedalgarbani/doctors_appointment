@@ -31,4 +31,6 @@ urlpatterns = [
     path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
     
 
+    path('send-notification/', views.add_notification, name='add_notification'),
+
 ]
