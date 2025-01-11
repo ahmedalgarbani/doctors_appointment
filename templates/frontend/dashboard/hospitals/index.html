@@ -77,6 +77,7 @@
                   <a href="javascript:;" data-method="invoices" data-section="invoices">
                     <i class="fas fa-file-invoice"></i>
                     <span>الفواتير</span>
+                    <span>الفواتير</span>
                   </a>
                 </li>
                
@@ -96,6 +97,7 @@
                   <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
                     <i class="fas fa-user-cog"></i>
                     <span>إعدادات الملف الشخصي</span>
+                    <span>إعدادات الملف الشخصي</span>
                   </a>
                 </li>
                
@@ -103,11 +105,13 @@
                   <a href="javascript:;" data-method="doctor_change_password" data-section="doctor_change_password">
                     <i class="fas fa-lock"></i>
                     <span>تغيير كلمة المرور</span>
+                    <span>تغيير كلمة المرور</span>
                   </a>
                 </li>
                 <li>
                   <a href="javascript:;" data-section="logout">
                     <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
                     <span>تسجيل الخروج</span>
                   </a>
                 </li>
@@ -133,6 +137,8 @@
       {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
     
@@ -141,6 +147,7 @@
 </div>
 <!-- /Page Content -->
 {% endblock %}
+
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

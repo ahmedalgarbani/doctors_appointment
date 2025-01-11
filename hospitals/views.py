@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.db import models
@@ -33,9 +35,33 @@ from django.db.models import Q
 from django.shortcuts import render
 
 
+from blog.forms import PostForm
+from blog.models import Post, Tag,Category
+from payments.models import Payment
+from bookings.models import BookingStatusHistory
+from bookings.models import Booking
+from notifications.models import Notifications
+
+from payments.models import (
+    HospitalPaymentMethod,
+    PaymentOption,
+    Payment,
+)
+from hospitals.models import Hospital, HospitalAccountRequest
+from doctors.models import (
+    Doctor,
+    DoctorPricing,
+    Specialty,
+)
+from django.core.paginator import Paginator
+
+@login_required
 def index(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    speciality = Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
@@ -179,7 +205,23 @@ def index(request):
             total=Sum('payment_totalamount'))['total'] or 0,
     }
     
-    ctx = {
+    bookings = Booking.objects.filter(hospital=hospital)
+
+    # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
+    if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
+        import json
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        result = delete_notification(notification_id, user)
+        return JsonResponse(result)
+
+    # جلب الإشعارات
+    notifications = get_notifications_for_user(user)
+
+    # حساب عدد الإشعارات غير المقروءة
+    unread_notifications_count = notifications.filter(status='0').count()
+
+    context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
@@ -209,9 +251,129 @@ def index(request):
         'hospitals_count': hospital.count() if isinstance(hospital, models.QuerySet) else 1,
         **payment_stats,
         **bookings_stats,
+        'hospital': hospital,
+        'speciality': speciality,
+        'bookings': bookings,
+        'notifications': notifications,
+        'unread_notifications_count': unread_notifications_count,
     }
     
     return render(request, 'frontend/dashboard/hospitals/index.html', ctx)
+
+
+@login_required
+def blog_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
+
+@login_required
+def blog_pending_list(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    posts = Post.objects.filter(author=hospital)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'allBlogs': page_obj,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospital_pending_blog.html', context)
+
+
+
+@login_required
+def add_blog(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_blog = form.save(commit=False)
+            new_blog.author = hospital
+            new_blog.save()
+            form.save_m2m() 
+            messages.success(request, 'Blog added successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm()
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-add-blog.html', context)
+
+@login_required
+def edit_blog(request, blog_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    blog = get_object_or_404(Post, id=blog_id, author=hospital)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=blog)
+        if form.is_valid():
+            updated_blog = form.save(commit=False)  
+            updated_blog.save()  
+            form.save_m2m()  
+            messages.success(request, 'Blog updated successfully!')
+            return redirect('hospitals:blog_list') 
+    else:
+        form = PostForm(instance=blog)
+
+    tags = Tag.objects.filter(status=True)
+    categories = Category.objects.filter(status=True)
+
+    context = {
+        'form': form,
+        'tags': tags,
+        'categories': categories,
+        'blog': blog,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-edit-blog.html', context)
+
+
+
+    return render(request, 'frontend/dashboard/hospitals/index.html', context)
+
+
+
+#الاشعارات
+def get_notifications_for_user(user):
+    """
+    دالة لجلب الإشعارات الخاصة بالمستخدم.
+    """
+    notifications = Notifications.objects.filter(user=user, is_active=True).order_by('-send_time')
+    return notifications
+
+
+def delete_notification(notification_id, user):
+    """
+    دالة لحذف الإشعار بناءً على معرف الإشعار والمستخدم.
+    """
+    try:
+        # الحصول على الإشعار والتأكد من أنه مرتبط بالمستخدم
+        notification = Notifications.objects.get(id=notification_id, user=user, is_active=True)
+        notification.delete()
+        return {"success": True}
+    except Notifications.DoesNotExist:
+        return {"success": False, "error": "Notification not found."}
+
+
 
 
 @login_required
@@ -460,6 +622,8 @@ def add_doctor(request):
         gender = request.POST.get("gender")
         specialty_id = request.POST.get("specialty")
         hospital_id = request.user.id
+        specialty_id = request.POST.get("specialty")
+        hospital_id = request.user.id
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -467,6 +631,7 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
+        price = request.POST.get("price")
         price = request.POST.get("price")
 
         if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
@@ -498,8 +663,14 @@ def add_doctor(request):
             hospital = get_object_or_404(Hospital,id=hospital_id),
             amount = price,
         )
+        priceCreate = DoctorPricing.objects.create(
+            doctor = get_object_or_404(Doctor,id=doctor.id),
+            hospital = get_object_or_404(Hospital,id=hospital_id),
+            amount = price,
+        )
         doctor.hospitals.set([hospital])  
         doctor.save()
+        
         
         return render(request, "frontend/dashboard/hospitals/index.html")
 
@@ -508,6 +679,9 @@ def add_doctor(request):
         "specialties": Specialty.objects.all(),  
     }
     return render(request, "frontend/dashboard/hospitals/index.html", context)
+
+
+
 
 
 
@@ -1226,3 +1400,288 @@ def hospital_dashboard(request):
     }
     
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
+
+
+    
+
+def accept_appointment(request, booking_id):
+    """قبول الحجز """
+    # التحقق من أن المستخدم هو مسؤول في المستشفى
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        payment = get_object_or_404(Payment, booking=booking)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+         
+        # تحديث عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots += 1
+            doctor_shifts.save()
+
+        booking.status = 'confirmed'
+        # تحديث حالة التحقق من الدفع
+        booking.payment_verified = True
+        booking.payment_verified_at = timezone.now()
+        booking.payment_verified_by = request.user
+        booking.save()
+        
+        # إنشاء سجل جديد لحالة الحجز
+        BookingStatusHistory.objects.create(
+            booking=booking,
+            status='confirmed',
+            created_by=request.user,
+            notes='تم قبول الحجز من قبل المستشفى'
+        )
+        
+        # تحديث حالة الدفع
+        payment.status = 'confirmed'
+        payment.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم قبول الحجز بنجاح'
+        })
+        
+    except (Booking.DoesNotExist, Payment.DoesNotExist):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def completed_appointment(request, booking_id):
+    """تأكيد اكتمال الحجز بعد الكشف"""
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+        
+         # تحديث حالة الحجز إلى مكتمل
+        booking.status = 'completed'
+        booking.save()
+        
+        # تنقيص عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots -= 1
+            doctor_shifts.save()
+        # إنشاء سجل جديد لحالة الحجز
+        BookingStatusHistory.objects.create(
+            booking=booking,
+            status='completed',
+            created_by=request.user,
+            notes='تم تأكيد اكتمال الكشف'
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم تأكيد اكتمال الكشف بنجاح'
+        })
+        
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def booking_history(request, booking_id):
+    """عرض تاريخ حالات الحجز"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'يجب تسجيل الدخول أولاً'
+        }, status=401)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من الصلاحيات - يجب أن يكون المستخدم إما صاحب الحجز أو من المستشفى
+        if not (hasattr(request.user, 'hospital') and booking.hospital == request.user.hospital) and \
+           not (hasattr(request.user, 'patients') and booking.patient.user == request.user):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للوصول إلى هذه المعلومات'
+            }, status=403)
+
+        # جلب تاريخ الحالات مرتباً من الأحدث إلى الأقدم
+        history = booking.status_history.all().select_related('created_by').order_by('-created_at')
+        
+        # تحويل البيانات إلى تنسيق JSON
+        history_data = [{
+            'status': item.status,
+            'notes': item.notes,
+            'created_by': item.created_by.get_full_name() if item.created_by else 'غير معروف',
+            'created_at': item.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        } for item in history]
+
+        return JsonResponse({
+            'status': 'success',
+            'booking_id': booking_id,
+            'patient_name': booking.patient.full_name,
+            'doctor_name': booking.doctor.full_name,
+            'history': history_data
+        })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def delete_booking(request, booking_id):
+    """حذف الحجز"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'يجب تسجيل الدخول أولاً'
+        }, status=401)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من الصلاحيات
+        if not hasattr(request.user, 'hospital') or booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # إنشاء سجل جديد لحالة الحجز قبل الحذف
+        BookingStatusHistory.objects.create(
+            booking=booking,
+            status='cancelled',
+            created_by=request.user,
+            notes='تم حذف الحجز'
+        )
+        
+        # تحديث حالة الحجز إلى ملغي بدلاً من حذفه فعلياً
+        booking.status = 'cancelled'
+        booking.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم إلغاء الحجز بنجاح'
+        })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def edit_booking(request, booking_id):
+    """تعديل الحجز"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'يجب تسجيل الدخول أولاً'
+        }, status=401)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من الصلاحيات
+        if not hasattr(request.user, 'hospital') or booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            
+            # تحديث البيانات القابلة للتعديل
+            if 'amount' in data:
+                booking.amount = data['amount']
+            if 'is_online' in data:
+                booking.is_online = data['is_online']
+            if 'payment_notes' in data:
+                booking.payment_notes = data['payment_notes']
+            
+            booking.save()
+
+            # إنشاء سجل جديد لحالة الحجز
+            BookingStatusHistory.objects.create(
+                booking=booking,
+                status=booking.status,
+                created_by=request.user,
+                notes='تم تعديل بيانات الحجز'
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم تعديل الحجز بنجاح'
+            })
+        else:
+            # إرجاع بيانات الحجز للعرض في نموذج التعديل
+            schedule = booking.appointment_date
+            shift = booking.appointment_time
+            
+            return JsonResponse({
+                'status': 'success',
+                'booking': {
+                    'id': booking.id,
+                    'amount': str(booking.amount),
+                    'is_online': booking.is_online,
+                    'payment_notes': booking.payment_notes or '',
+                    'patient_name': booking.patient.full_name,
+                    'doctor_name': booking.doctor.full_name,
+                    'appointment_date': schedule.get_day_display(),
+                    'appointment_time': f"{shift.start_time} - {shift.end_time}"
+                }
+            })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
