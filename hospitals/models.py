@@ -255,8 +255,7 @@ class HospitalUpdateRequest(BaseModel):
         hospital.location = self.location
       if self.description:
         hospital.description = self.description
-      if self.specialty:
-        hospital.specialty = self.specialty
+      
       if self.photo:
         hospital.photo = self.photo
       if self.sub_title:
