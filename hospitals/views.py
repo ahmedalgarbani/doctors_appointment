@@ -55,7 +55,8 @@ from doctors.models import (
 )
 from django.core.paginator import Paginator
 User = get_user_model()
-@login_required
+@login_required(login_url='/user/login')
+
 def index(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -265,7 +266,8 @@ def index(request):
     return render(request, 'frontend/dashboard/hospitals/index.html', context)
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def blog_list(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -279,7 +281,8 @@ def blog_list(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def blog_pending_list(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -295,7 +298,8 @@ def blog_pending_list(request):
 
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def add_blog(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -322,7 +326,8 @@ def add_blog(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-add-blog.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def edit_blog(request, blog_id):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -384,7 +389,8 @@ def delete_notification(notification_id, user):
 
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def blog_list(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -398,7 +404,8 @@ def blog_list(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def blog_pending_list(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -414,7 +421,8 @@ def blog_pending_list(request):
 
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def add_blog(request):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -441,7 +449,8 @@ def add_blog(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-add-blog.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def edit_blog(request, blog_id):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -557,7 +566,8 @@ def hospital_request_status(request, request_id):
 
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def filter_doctors(request):
     hospital = request.user.hospital
     doctors = Doctor.objects.filter(hospitals=hospital)
@@ -1092,7 +1102,8 @@ def edit_booking(request, booking_id):
         }, status=500)
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def schedule_timings(request):
     try:
         hospital = Hospital.objects.get(hospital_manager=request.user)
@@ -1210,7 +1221,8 @@ def schedule_timings(request):
         messages.error(request, 'حدث خطأ أثناء معالجة الطلب')
         return redirect('home')
 
-@login_required
+@login_required(login_url='/user/login')
+
 def delete_shift(request, shift_id):
     if request.method == 'POST':
         try:
@@ -1241,7 +1253,8 @@ def delete_shift(request, shift_id):
         'message': 'طريقة الطلب غير صحيحة'
     }, status=405)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def filter_invoices(request):
     """تصفية الفواتير"""
     hospital = request.user.hospital
@@ -1281,7 +1294,8 @@ def filter_invoices(request):
     
     return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def invoice_detail(request, invoice_id):
     user = request.user
     hospital = get_object_or_404(Hospital, hospital_manager=user)
@@ -1312,7 +1326,8 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
-@login_required
+@login_required(login_url='/user/login')
+
 def hospital_dashboard(request):
     """عرض لوحة تحكم المستشفى"""
     

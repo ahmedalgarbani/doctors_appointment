@@ -8,7 +8,8 @@ from django.http import HttpResponseBadRequest
 from patients.models import Patients
 
 # Create your views here.
-@login_required
+@login_required(login_url='/user/login')
+
 def payment_process(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     

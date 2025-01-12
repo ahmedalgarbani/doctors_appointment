@@ -10,7 +10,8 @@ import json
 # عرض حجز الطبيب
 # Create your views here.
 
-@login_required
+@login_required(login_url='/user/login')
+
 def booking_view(request, doctor_id):
   
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
@@ -32,10 +33,12 @@ def booking_view(request, doctor_id):
     return render(request, 'frontend/home/pages/booking.html', context)
 
 # الحصول على الوقت المتاح للطبيب في يوم محدد
-@login_required
+@login_required(login_url='/user/login')
+
 def get_available_slots(request, doctor_id):
     """نقطة النهاية API للحصول على الفترات المتاحة لليوم المحدد"""
-@login_required
+@login_required(login_url='/user/login')
+
 def get_available_slots(request, doctor_id):
     """API endpoint to get available slots for a specific date"""
     if request.method == 'GET':
@@ -74,7 +77,8 @@ def get_available_slots(request, doctor_id):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 # إنشاء حجز جديد
-@login_required
+@login_required(login_url='/user/login')
+
 def create_booking(request, doctor_id):
     if request.method == 'POST':
         try:
@@ -139,7 +143,8 @@ def create_booking(request, doctor_id):
     }, status=405)
 
 # عرض صفحة الدفع
-@login_required
+@login_required(login_url='/user/login')
+
 def payment_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     selected_date = request.GET.get('date')
@@ -156,7 +161,8 @@ def payment_view(request, doctor_id):
     return render(request, 'frontend/home/pages/payment.html', context)
 
 # إلغاء الحجز
-@login_required
+@login_required(login_url='/user/login')
+
 def cancel_booking(request, booking_id):
     if request.method == 'POST':
         booking = get_object_or_404(Booking, id=booking_id, patient=request.user)
@@ -192,7 +198,8 @@ def cancel_booking(request, booking_id):
     }, status=405)
 
 # عرض صفحة نجاح الحجز
-@login_required
+@login_required(login_url='/user/login')
+
 def booking_success(request, booking_id):
     """عرض صفحة نجاح الحجز"""
     booking = get_object_or_404(Booking, id=booking_id, patient__user=request.user)
