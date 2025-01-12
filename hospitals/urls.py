@@ -43,7 +43,6 @@ urlpatterns = [
     path('update-hospital-profile/', views.update_hospital_profile, name='update_hospital_profile'),
     path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
    
-    path('admin-review-profile-update/<int:pk>/', views.profile_update_request, name='profile_update_request'),
     
 
 

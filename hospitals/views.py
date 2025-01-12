@@ -28,7 +28,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from .models import HospitalAccountRequest, HospitalUpdateRequest, PhoneNumber
 from django.conf import settings
-from hospitals.models import City, Hospital, HospitalAccountRequest, HospitalDetail
+from hospitals.models import City, Hospital, HospitalAccountRequest
 from doctors.models import (
     Doctor,
     DoctorPricing,
