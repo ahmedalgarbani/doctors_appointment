@@ -142,7 +142,7 @@
 		</div>
 	</div>
 		
-</div>
+
 
 <!-- Add Time Slot Modal -->
 <div class="modal fade" id="add_time_slot">
@@ -232,8 +232,108 @@
 	</div>
 </div>
 
+<style>
+    #alert-messages {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+    }
+
+    .alert {
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 4px;
+        opacity: 0.9;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .alert:hover {
+        opacity: 1;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .alert .btn-close {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+</style>
+
+
+
+<style>
+#messages-container {
+    margin-bottom: 20px;
+}
+
+.alert {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.alert-success {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}
+
+.alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.alert-dismissible {
+    padding-right: 3rem;
+}
+
+.alert-dismissible .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1.25rem 1rem;
+}
+</style>
+
 {% block extra_js %}
 <script>
+// دالة لعرض الرسائل
+function showMessage(message, type = 'danger') {
+    const messagesContainer = document.getElementById('messages-container');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    messagesContainer.appendChild(alertDiv);
+    
+    // إخفاء الرسالة تلقائياً بعد 5 ثواني
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
 $(document).ready(function() {
     var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
     console.log("Initial doctor schedules:", doctorSchedules);
@@ -253,73 +353,129 @@ $(document).ready(function() {
         }
     });
 
-    // إضافة موعد جديد
+    // معالجة إضافة موعد جديد
     $('.add-time-slot-form').on('submit', function(e) {
         e.preventDefault();
-        console.log("Form submitted");
-        
-        var form = $(this);
-        var doctorId = $('#doctor_select').val();
+        const form = $(this);
+        const doctorId = $('#doctor_select').val();
         
         if (!doctorId) {
-            toastr.error('الرجاء اختيار طبيب أولاً');
+            showMessage('الرجاء اختيار الطبيب أولاً');
             return;
         }
 
         // تجميع البيانات
-        var formData = {
-            'doctor_id': doctorId,
-            'day': form.data('day'),
-            'start_time': form.find('[name="start_hour"]').val() + ':' + form.find('[name="start_minute"]').val(),
-            'end_time': form.find('[name="end_hour"]').val() + ':' + form.find('[name="end_minute"]').val(),
-            'max_appointments': form.find('[name="max_appointments"]').val(),
-            'csrfmiddlewaretoken': '{{ csrf_token }}'
-        };
+        const formData = new FormData();
+        formData.append('doctor_id', doctorId);
+        formData.append('day', form.data('day'));
+        formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
+        
+        // تجميع وقت البداية والنهاية
+        const startHour = form.find('[name="start_hour"]').val();
+        const startMinute = form.find('[name="start_minute"]').val();
+        const endHour = form.find('[name="end_hour"]').val();
+        const endMinute = form.find('[name="end_minute"]').val();
+        
+        formData.append('start_time', `${startHour}:${startMinute}`);
+        formData.append('end_time', `${endHour}:${endMinute}`);
+        formData.append('max_appointments', form.find('[name="max_appointments"]').val());
 
-        console.log("Sending data:", formData);
-
-        // تعطيل الزر أثناء الإرسال
-        var submitButton = form.find('button[type="submit"]');
+        // تعطيل زر الإرسال
+        const submitButton = form.find('button[type="submit"]');
         submitButton.prop('disabled', true);
         
+        // طباعة البيانات للتأكد منها
+        console.log('Sending data:', {
+            doctor_id: doctorId,
+            day: form.data('day'),
+            start_time: `${startHour}:${startMinute}`,
+            end_time: `${endHour}:${endMinute}`,
+            max_appointments: form.find('[name="max_appointments"]').val()
+        });
+
         $.ajax({
             url: '{% url "hospitals:schedule_timings" %}',
-            method: 'POST',
+            type: 'POST',
             data: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
+            processData: false,
+            contentType: false,
             success: function(response) {
-                console.log("Success response:", response);
+                console.log('Response:', response);
                 if (response.status === 'success') {
-                    if (!doctorSchedules[doctorId]) {
-                        doctorSchedules[doctorId] = {};
+                    showMessage(response.message, 'success');
+                    // تحديث عرض المواعيد
+                    if (response.shift) {
+                        const schedules = {};
+                        schedules[doctorId] = {};
+                        schedules[doctorId][form.data('day')] = [response.shift];
+                        updateScheduleDisplay(schedules);
                     }
-                    var day = form.data('day');
-                    if (!doctorSchedules[doctorId][day]) {
-                        doctorSchedules[doctorId][day] = [];
-                    }
-                    doctorSchedules[doctorId][day].push(response.shift);
-                    updateScheduleDisplay(doctorSchedules[doctorId]);
-                    toastr.success(response.message);
+                    // إعادة تعيين النموذج
                     form[0].reset();
                 } else {
-                    toastr.error(response.message || 'حدث خطأ أثناء إضافة الموعد');
+                    showMessage(response.message || 'حدث خطأ أثناء حفظ الموعد');
                 }
             },
             error: function(xhr, status, error) {
-                console.error("Error:", {xhr: xhr, status: status, error: error});
-                var errorMessage = 'حدث خطأ أثناء إضافة الموعد';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
+                console.error('Error:', xhr.responseText);
+                let errorMessage = 'حدث خطأ أثناء معالجة الطلب';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {
+                    console.error('Error parsing response:', e);
                 }
-                toastr.error(errorMessage);
+                showMessage(errorMessage);
             },
             complete: function() {
-                // إعادة تفعيل الزر بعد انتهاء الطلب
+                // إعادة تفعيل زر الإرسال
                 submitButton.prop('disabled', false);
             }
         });
+    });
+
+    // معالجة حذف موعد
+    $(document).on('click', '.delete-time-slot', function(e) {
+        e.preventDefault();
+        const shiftId = $(this).data('shift-id');
+        
+        if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+            $.ajax({
+                url: "{% url 'hospitals:delete_shift' '0' %}".replace('0', shiftId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showMessage(response.message, 'success');
+                        // تحديث عرض المواعيد
+                        const doctorId = $('#doctor_select').val();
+                        if (doctorSchedules[doctorId]) {
+                            Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
+                                doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
+                                    shift => shift.id !== shiftId
+                                );
+                            });
+                            updateScheduleDisplay(doctorSchedules[doctorId]);
+                        }
+                    } else {
+                        showMessage(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', xhr.responseText);
+                    let errorMessage = 'حدث خطأ أثناء حذف الموعد';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+                    showMessage(errorMessage);
+                }
+            });
+        }
     });
 
     // تحديث عرض الجدول
@@ -351,7 +507,7 @@ $(document).ready(function() {
                                             <span class="badge bg-warning">${shift.booked_slots} محجوز</span>
                                         </div>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-danger delete-shift" data-shift-id="${shift.id}">
+                                            <button class="btn btn-danger delete-time-slot" data-shift-id="${shift.id}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -365,57 +521,6 @@ $(document).ready(function() {
             }
         });
     }
-
-    // حذف موعد
-    $(document).on('click', '.delete-shift', function(e) {
-        e.preventDefault();
-        console.log("Delete button clicked");
-        
-        var button = $(this);
-        var shiftId = button.data('shift-id');
-        var doctorId = $('#doctor_select').val();
-        
-        if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
-            button.prop('disabled', true);
-            
-            $.ajax({
-                url: "{% url 'hospitals:delete_shift' 0 %}".replace('0', shiftId),
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    console.log("Delete success:", response);
-                    if (response.status === 'success') {
-                        Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
-                            doctorSchedules[doctorId][day] = doctorSchedules[doctorId][day].filter(
-                                shift => shift.id !== shiftId
-                            );
-                        });
-                        updateScheduleDisplay(doctorSchedules[doctorId]);
-                        toastr.success(response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Delete error:", {xhr: xhr, status: status, error: error});
-                    button.prop('disabled', false);
-                    var errorMessage = 'حدث خطأ أثناء حذف الموعد';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    toastr.error(errorMessage);
-                }
-            });
-        }
-    });
-
-    // تفعيل toastr
-    toastr.options = {
-        "closeButton": true,
-        "progressBar": true,
-        "positionClass": "toast-top-right",
-        "timeOut": "3000"
-    };
 });
 </script>
 {% endblock %}

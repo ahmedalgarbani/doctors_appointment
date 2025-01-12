@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from datetime import datetime, date, time
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts
+from hospitals.models import Hospital
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +22,13 @@ from payments.models import (
     PaymentOption,
     Payment,
 )
-from hospitals.models import City, Hospital, HospitalAccountRequest, HospitalDetail
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from .models import HospitalAccountRequest, HospitalUpdateRequest, PhoneNumber
+from django.conf import settings
+from hospitals.models import City, Hospital, HospitalAccountRequest
 from doctors.models import (
     Doctor,
     DoctorPricing,
@@ -54,6 +63,7 @@ from doctors.models import (
     Specialty,
 )
 from django.core.paginator import Paginator
+from django.db.models import Sum, Count
 User = get_user_model()
 @login_required(login_url='/user/login')
 
@@ -66,6 +76,7 @@ def index(request):
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
+    phoneNumber = PhoneNumber.objects.filter(hospital=hospital)
     city = City.objects.filter( status=True)
     patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
 
@@ -107,15 +118,22 @@ def index(request):
         'doctor', 'doctor__specialty', 'patient'
     ).order_by('-created_at')[:10]
     
-    # Get latest doctors with ratings
-    latest_doctors = doctors.select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
+    # Get latest doctors with ratings and today's appointments
+    latest_doctors = list(doctors.select_related('specialty').prefetch_related('reviews')[:10])
+    doctor_ids = [doctor.id for doctor in latest_doctors]
     
-    # Calculate today's appointments for each doctor
+    # Get today's appointments count for each doctor using a single query
+    today_appointments = bookings.filter(
+        doctor_id__in=doctor_ids,
+        booking_date=today
+    ).values('doctor').annotate(count=Count('id'))
+    
+    # Create a dictionary of doctor_id: appointment_count
+    appointments_dict = {item['doctor']: item['count'] for item in today_appointments}
+    
+    # Assign the count to each doctor
     for doctor in latest_doctors:
-        doctor.today_appointments_count = bookings.filter(
-            doctor=doctor,
-            booking_date=today
-        ).count()
+        doctor.today_appointments_count = appointments_dict.get(doctor.id, 0)
         
         # Calculate average rating
         reviews = doctor.reviews.all()
@@ -511,47 +529,83 @@ def hospital_delete(request, pk):
         return redirect('hospital_list')
     return render(request, 'hospital_confirm_delete.html', {'hospital': hospital})
 
+
 def hospital_account_request(request):
     """معالجة طلب فتح حساب مستشفى جديد"""
     if request.method == 'POST':
         try:
-            # التحقق من تطابق كلمتي المرور
-            password = request.POST['password']
-            confirm_password = request.POST['confirm_password']
+            # استخلاص البيانات من الطلب
+            hospital_name = request.POST.get('hospital_name')
+            manager_full_name = request.POST.get('manager_full_name')
+            manager_email = request.POST.get('manager_email')
+            manager_phone = request.POST.get('manager_phone')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+            hospital_location = request.POST.get('hospital_location')
+            notes = request.POST.get('notes', '')
+            commercial_record = request.FILES.get('commercial_record')
+            medical_license = request.FILES.get('medical_license')
             
+            # 1. التحقق من الحقول المطلوبة
+            if not all([hospital_name, manager_full_name, manager_email, manager_phone, password, confirm_password, hospital_location]):
+                messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 2. التحقق من صحة البريد الإلكتروني
+            try:
+              validate_email(manager_email)
+            except ValidationError:
+                messages.error(request, 'البريد الإلكتروني غير صالح.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 3. التحقق من تطابق كلمتي المرور
             if password != confirm_password:
-                messages.error(request, 'كلمتا المرور غير متطابقتين')
-                return render(request, 'frontend/auth/hospital-manager-register.html')
+                messages.error(request, 'كلمتا المرور غير متطابقتين.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            # # 4. التحقق من صحة رقم الهاتف (يمكنك إضافة شروط أكثر تعقيدًا إذا لزم الأمر)
+            # if not manager_phone.isdigit() or len(manager_phone) < 9:
+            #      messages.error(request, 'رقم الهاتف غير صالح.')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            #  # 5. التحقق من حجم الملفات (يمكنك تعديل الحجم الأقصى حسب الحاجة)
+            # max_file_size = settings.MAX_UPLOAD_SIZE
+            # if commercial_record and commercial_record.size > max_file_size:
+            #       messages.error(request, f'حجم السجل التجاري كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #       return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+           
+            # if medical_license and medical_license.size > max_file_size:
+            #      messages.error(request, f'حجم الترخيص الطبي كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
             # إنشاء طلب جديد
             hospital_request = HospitalAccountRequest(
-                hospital_name=request.POST['hospital_name'],
-                manager_full_name=request.POST['manager_full_name'],
-                manager_email=request.POST['manager_email'],
-                manager_phone=request.POST['manager_phone'],
-                manager_password=password,  # تخزين كلمة المرور
-                hospital_location=request.POST['hospital_location'],
-                notes=request.POST.get('notes', ''),
+                hospital_name=hospital_name,
+                manager_full_name=manager_full_name,
+                manager_email=manager_email,
+                manager_phone=manager_phone,
+                manager_password=password,
+                hospital_location=hospital_location,
+                notes=notes,
                 created_by=request.user if request.user.is_authenticated else None
             )
-
+            
             # معالجة الملفات المرفقة
-            if 'commercial_record' in request.FILES:
-                hospital_request.commercial_record = request.FILES['commercial_record']
-            if 'medical_license' in request.FILES:
-                hospital_request.medical_license = request.FILES['medical_license']
+            if commercial_record:
+                hospital_request.commercial_record = commercial_record
+            if medical_license:
+                hospital_request.medical_license = medical_license
 
             hospital_request.save()
 
-            messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً')
+            messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً.')
             return redirect('hospitals:hospital_request_success')
 
         except Exception as e:
-            messages.error(request, 'حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى')
-            return render(request, 'frontend/auth/hospital-manager-register.html')
+            messages.error(request, f'حدث خطأ أثناء معالجة طلبك: {e}. يرجى المحاولة مرة أخرى.')
+            return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
     return render(request, 'frontend/auth/hospital-manager-register.html')
-
 def hospital_request_success(request):
     """صفحة نجاح تقديم الطلب"""
     return render(request, 'frontend/auth/hospital-request-success.html')
@@ -700,11 +754,6 @@ def add_doctor(request):
 
 
 
-
-
-
-
-
 def add_payment_method(request):
     if request.method == "POST":
         hospital_id = 1
@@ -840,7 +889,6 @@ def accept_appointment(request, booking_id):
                 'status': 'error',
                 'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
             }, status=403)
-         
         # تحديث عدد الحجوزات في الفترة المحددة
         doctor_shifts = booking.appointment_time
         if doctor_shifts:
@@ -1115,111 +1163,101 @@ def schedule_timings(request):
             end_time = request.POST.get('end_time')
             max_appointments = int(request.POST.get('max_appointments', 1))
 
-            doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
-            
-            # إنشاء أو الحصول على جدول الطبيب
-            schedule, created = DoctorSchedules.objects.get_or_create(
-                doctor=doctor,
-                hospital=hospital,
-                day=day
-            )
-            
-            # إنشاء الفترة الزمنية
-            shift = DoctorShifts.objects.create(
-                doctor_schedule=schedule,
-                start_time=start_time,
-                end_time=end_time,
-                available_slots=max_appointments,
-                booked_slots=0
-            )
+            # التحقق من صحة البيانات
+            if not all([doctor_id, day, start_time, end_time]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'جميع الحقول مطلوبة'
+                })
 
-            return JsonResponse({
-                'status': 'success',
-                'message': 'تم إضافة الموعد بنجاح',
-                'shift': {
-                    'id': shift.id,
-                    'start_time': shift.start_time.strftime('%H:%M'),
-                    'end_time': shift.end_time.strftime('%H:%M'),
-                    'available_slots': shift.available_slots,
-                    'booked_slots': shift.booked_slots
-                }
-            })
-
-        # GET request
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            doctor_id = request.GET.get('doctor_id')
-            if doctor_id:
+            try:
+                # التحقق من وجود الطبيب وارتباطه بالمستشفى
                 doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
-                schedules = DoctorShifts.objects.filter(
-                    doctor_schedule__doctor=doctor,
-                    doctor_schedule__hospital=hospital
-                ).select_related('doctor_schedule')
                 
-                # تنظيم المواعيد حسب اليوم
-                doctor_schedules = {}
-                for shift in schedules:
-                    day = shift.doctor_schedule.day
-                    if day not in doctor_schedules:
-                        doctor_schedules[day] = []
-                    
-                    doctor_schedules[day].append({
+                # التحقق من صحة التوقيت
+                start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+                end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+                
+                if start_time_obj >= end_time_obj:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
+                    })
+
+                # التحقق من تداخل المواعيد
+                existing_shifts = DoctorShifts.objects.filter(
+                    doctor_schedule__doctor=doctor,
+                    doctor_schedule__day=day,
+                    doctor_schedule__hospital=hospital
+                )
+                
+                for shift in existing_shifts:
+                    if (start_time_obj <= shift.end_time and end_time_obj >= shift.start_time):
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'يوجد تداخل مع موعد آخر'
+                        })
+
+                # إنشاء أو الحصول على جدول الطبيب
+                schedule, created = DoctorSchedules.objects.get_or_create(
+                    doctor=doctor,
+                    hospital=hospital,
+                    day=day
+                )
+                
+                # إنشاء الفترة الزمنية
+                shift = DoctorShifts.objects.create(
+                    doctor_schedule=schedule,
+                    start_time=start_time_obj,
+                    end_time=end_time_obj,
+                    available_slots=max_appointments,
+                    booked_slots=0
+                )
+
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'تم إضافة الموعد بنجاح',
+                    'shift': {
                         'id': shift.id,
                         'start_time': shift.start_time.strftime('%H:%M'),
                         'end_time': shift.end_time.strftime('%H:%M'),
                         'available_slots': shift.available_slots,
                         'booked_slots': shift.booked_slots
-                    })
-                
-                return JsonResponse({
-                    'status': 'success',
-                    'schedules': {
-                        str(doctor_id): doctor_schedules
                     }
                 })
-            return JsonResponse({'status': 'error', 'message': 'معرف الطبيب مطلوب'})
+                
+            except (ValueError, Doctor.DoesNotExist) as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                })
 
-        # عرض الصفحة
+        # GET request
         doctors = Doctor.objects.filter(hospitals=hospital)
         schedules = DoctorShifts.objects.filter(
             doctor_schedule__hospital=hospital
         ).select_related('doctor_schedule__doctor')
         
-        # تنظيم المواعيد حسب الطبيب واليوم
-        doctor_schedules = {}
-        for shift in schedules:
-            doctor_id = shift.doctor_schedule.doctor.id
-            day = shift.doctor_schedule.day
-            
-            if doctor_id not in doctor_schedules:
-                doctor_schedules[doctor_id] = {}
-            
-            if day not in doctor_schedules[doctor_id]:
-                doctor_schedules[doctor_id][day] = []
-            
-            doctor_schedules[doctor_id][day].append({
-                'id': shift.id,
-                'start_time': shift.start_time.strftime('%H:%M'),
-                'end_time': shift.end_time.strftime('%H:%M'),
-                'available_slots': shift.available_slots,
-                'booked_slots': shift.booked_slots
-            })
-
         context = {
             'doctors': doctors,
-            'doctor_schedules': doctor_schedules,
+            'doctor_schedules': {},
             'days': DoctorSchedules.DAY_CHOICES,
             'section': 'schedule_timings'
         }
         
-        return render(request, 'frontend/dashboard/hospitals/index.html', context)
+        return render(request, 'frontend/dashboard/hospitals/sections/schedule-timings.html', context)
 
     except Hospital.DoesNotExist:
-        messages.error(request, 'لا يمكنك الوصول إلى هذه الصفحة')
-        return redirect('home')
+        return JsonResponse({
+            'status': 'error',
+            'message': 'لا يمكنك الوصول إلى هذه الصفحة'
+        })
     except Exception as e:
-        print(f"Error: {str(e)}")  # للتصحيح
-        messages.error(request, 'حدث خطأ أثناء معالجة الطلب')
-        return redirect('home')
+        print(f"Error in schedule_timings: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'حدث خطأ أثناء معالجة الطلب'
+        })
 
 @login_required(login_url='/user/login')
 
@@ -1277,7 +1315,13 @@ def filter_invoices(request):
     payment_status = request.GET.get('payment_status')
     if payment_status:
         invoices = invoices.filter(payment_status__id=payment_status)
+    payment_method= request.GET.get('payment_method')
+    if payment_method:
+        invoices= invoices.filter(payment_method__id=payment_method)
         
+    patient_name = request.GET.get('patient_name')
+    if patient_name:
+        invoices = invoices.filter(booking__patient__full_name__icontains=patient_name)
     amount_min = request.GET.get('amount_min')
     if amount_min:
         invoices = invoices.filter(payment_totalamount__gte=amount_min)
@@ -1326,128 +1370,38 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
-@login_required(login_url='/user/login')
-
-def hospital_dashboard(request):
-    """عرض لوحة تحكم المستشفى"""
-    
-    # Get the current hospital
-    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-    
-    # Get current date and first day of month
-    today = timezone.now().date()
-    first_day_of_month = today.replace(day=1)
-    
-    # Get all specialties in the hospital
-    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
-    total_specialties = specialties.count()
-    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target number of specialties
-    
-    # Get monthly revenue
-    monthly_revenue = Payment.objects.filter(
-        booking__hospital=hospital,
-        payment_date__year=today.year,
-        payment_date__month=today.month,
-        payment_status__status_code=2
-    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
-    
-    # Calculate revenue percentage (compared to target)
-    monthly_target = 50000  # Example target
-    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
-    
-    # Get appointments statistics
-    total_appointments = Booking.objects.filter(
-        hospital=hospital,
-        created_at__year=today.year,
-        created_at__month=today.month
-    ).count()
-    
-    appointments_target = 100  # Example target
-    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
-    
-    # Get latest appointments
-    latest_appointments = Booking.objects.filter(
-        hospital=hospital
-    ).select_related(
-        'doctor', 'doctor__specialty', 'patient'
-    ).order_by('-created_at')[:10]
-    
-    # Get latest doctors
-    latest_doctors = Doctor.objects.filter(
-        hospitals=hospital
-    ).select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
-    
-    # Calculate today's appointments for each doctor
-    for doctor in latest_doctors:
-        doctor.today_appointments_count = Booking.objects.filter(
-            doctor=doctor,
-            booking_date=today
-        ).count()
-        
-        # Calculate average rating
-        reviews = doctor.reviews.all()
-        if reviews:
-            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
-        else:
-            doctor.average_rating = 0
-    
-    # Get latest payments
-    latest_payments = Payment.objects.filter(
-        booking__hospital=hospital
-    ).select_related(
-        'booking__doctor', 
-        'booking__patient',
-        'payment_method'
-    ).order_by('-payment_date')[:10]
-    
-    # Get Arabic month name
-    ARABIC_MONTHS = {
-        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
-        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
-        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
-    }
-    current_month_name = ARABIC_MONTHS[today.month]
-    
-    context = {
-        'hospital': hospital,
-        'specialties': specialties,
-        'specialties_count_percentage': specialties_count_percentage,
-        'total_revenue': monthly_revenue,
-        'revenue_percentage': revenue_percentage,
-        'total_appointments': total_appointments,
-        'appointments_percentage': appointments_percentage,
-        'latest_appointments': latest_appointments,
-        'latest_doctors': latest_doctors,
-        'latest_payments': latest_payments,
-        'current_month_name': current_month_name,
-    }
-    
-    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
-
-def profile_update_request(request, pk):
-    hospital = get_object_or_404(Hospital, pk=pk)
-    hospitalDetail = get_object_or_404(HospitalDetail, hospital=hospital)
-
+@login_required
+def update_hospital_profile(request):
+    """معالجة طلب تعديل بيانات ملف المستشفى الشخصي"""
     if request.method == 'POST':
-        hospital.name = request.POST.get('name')
-        hospital.location = request.POST.get('location')
-        city_id = request.POST.get('city')
-        hospital.city = get_object_or_404(City, id=city_id)
-        
-        
-        hospital.save()
+        try:
+            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+            print(request.POST)  
+            # Collect the updated data from the form
+            name = request.POST.get('hospital_name')
+            location = request.POST.get('hospital_location')
+            description = request.POST.get('description')
+            about = request.POST.get('about')
+            photo = request.FILES.get('photo')
+            
+            # Create the update request object
+            update_request = HospitalUpdateRequest(
+                hospital=hospital,
+                name=name if name != hospital.name else None,
+                location=location if location != hospital.location else None,
+                description=description if description != hospital.description else None,
+                about=about if about != hospital.about else None,
+                photo=photo if photo else None,
+                created_by=request.user
+            )
+            update_request.save()
 
-        hospitalDetail.description = request.POST.get('description')
-        specialty_id = request.POST.get('specialty')
-        hospitalDetail.specialty = get_object_or_404(Specialty, id=specialty_id)
-        hospitalDetail.about=request.POST.get('about')
-        if 'photo' in request.FILES:
-            hospitalDetail.photo = request.FILES['photo']
+            messages.success(request, 'تم إرسال طلب تعديل البيانات بنجاح. سيتم مراجعته من قبل المسؤول.')
+            return redirect('hospitals:index')
+           
 
-        hospitalDetail.save()
-
-        messages.success(request, 'Profile updated successfully')
-        return redirect('hospitals:index')
+        except Exception as e:
+            messages.error(request, f'حدث خطأ أثناء معالجة طلب التعديل: {e}.')
+            return redirect('hospitals:index')
 
     return redirect('hospitals:index')
-

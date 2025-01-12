@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from .models import Hospital, HospitalAccountRequest, City, PhoneNumber,HospitalDetail
+from .models import Hospital, HospitalAccountRequest, City, PhoneNumber,HospitalUpdateRequest
 
 User = get_user_model()
+
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'status') 
@@ -18,7 +19,7 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
     search_fields = ['hospital_name', 'manager_full_name', 'manager_email']
     readonly_fields = ['created_at', 'created_by']
     actions = ['approve_requests', 'reject_requests']
-    repopulated_fields = {'slug': ('hospital_name',)} 
+    # prepopulated_fields = {'slug': ('hospital_name',)} 
 
     def view_documents(self, obj):
         links = []
@@ -73,8 +74,29 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
                 self.message_user(request, f"تم إنشاء الحساب ولكن فشل إرسال البريد الإلكتروني: {str(e)}")
 
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
+    approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
+    def reject_requests(self, request, queryset):
+        queryset.filter(status='pending').update(
+            status='rejected',
+            reviewed_by=request.user
+        )
+        self.message_user(request, f"تم رفض {queryset.count()} طلب/طلبات")
+    reject_requests.short_description = "رفض الطلبات المحددة"
 
+@admin.register(HospitalUpdateRequest)
+class HospitalUpdateRequestAdmin(admin.ModelAdmin):
+    list_display = ['hospital', 'name','location', 'status', 'created_at',]
+    list_filter = ['status', 'created_at']
+    search_fields = ['hospital__name','name', 'location']
+    readonly_fields = ['created_at', 'created_by','hospital']
+    actions = ['approve_requests', 'reject_requests']
+
+    def approve_requests(self, request, queryset):
+        for update_request in queryset.filter(status='pending'):
+             update_request.approve_request(request.user)
+           
+        self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
         
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
@@ -86,23 +108,9 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
         self.message_user(request, f"تم رفض {queryset.count()} طلب/طلبات")
     reject_requests.short_description = "رفض الطلبات المحددة"
 
-# @admin.register(Hospital)
-# class HospitalAdmin(admin.ModelAdmin):
-#     list_display = ['name', 'location']
-#     search_fields = ['name', 'location']
-
-#     def hospital_manager_link(self, obj):
-#         if obj.hospital_manager_id:
-#             user = User.objects.filter(id=obj.hospital_manager_id).first()
-#             if user:
-#                 return format_html('<a href="/admin/users/customuser/{}/change/">{}</a>', user.id, user.get_full_name())
-#         return '-'
-#     hospital_manager_link.short_description = 'مدير المستشفى'
-
-
 
 
 
 admin.site.register(Hospital)
-admin.site.register(HospitalDetail)
+
 admin.site.register(PhoneNumber)

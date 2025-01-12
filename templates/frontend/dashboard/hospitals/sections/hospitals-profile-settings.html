@@ -1,97 +1,174 @@
-<div class="col-md-7 col-lg-8 col-xl-9 doctor_profile_settings section d-none" >
-						
-	<!-- Basic Information -->
-	<!-- filepath: /c:/Users/DELL/Desktop/doctor_progect/doctors_appointment/templates/frontend/dashboard/hospitals/sections/hospitals-profile-settings.html -->
-<form method="post" enctype="multipart/form-data" action="{% url 'hospitals:profile_update_request' hospital.id %}">
-    {% csrf_token %}
-    <div class="col-md-7 col-lg-8 col-xl-9 doctor_profile_settings section d-none">
+{% load static %}
+<div class="col-md-7 col-lg-8 col-xl-9 doctor_profile_settings section d-none">
+    <form method="POST" enctype="multipart/form-data" action="{% url 'hospitals:update_hospital_profile' %}">
+        {% csrf_token %}
         <!-- Basic Information -->
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Basic Information</h4>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-3">
-                            <div class="change-avatar">
-                                <div class="profile-img">
-                                    <img src="{{hospitalDetail.photo.url}}" alt="User Image">
-                                </div>
-                                <div class="upload-img">
-                                    <div class="change-photo-btn">
-                                        <span><i class="fa fa-upload"></i> Upload Photo</span>
-                                        <input type="file" class="upload" name="photo">
+        <div>
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Basic Information</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <div class="change-avatar">
+                                    <div class="profile-img">
+                                        {% if request.user.profile_picture %}
+                                            <img src="{{ request.user.profile_picture.url }}" alt="User Image">
+                                        {% else %}
+                                            <img src="{% static 'assets/img/doctors/doctor-thumb-02.jpg' %}" alt="User Image">
+                                        {% endif %}
                                     </div>
-                                    <small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of 2MB</small>
+                                    <div class="upload-img">
+                                        <div class="change-photo-btn">
+                                            <span><i class="fa fa-upload"></i> Upload Photo</span>
+                                            <input type="file" class="upload" name="photo">
+                                        </div>
+                                        <small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of 2MB</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Username Hospital <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="name" value="{{ hospital.name }}">
+                        {% if request.user.user_type == 'admin' or request.user.user_type == 'hospital_manager' %}
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="mb-2">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" value="{{ request.user.username }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="mb-2">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="mb-2">Phone Number</label>
+                                <input type="text" class="form-control" name="mobile_number" value="{{ request.user.mobile_number }}">
+                            </div>
                         </div>
+                        
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Hospital manager <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" value="{{ hospital.hospital_manager }}" readonly>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Location Hospital <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="location" value="{{ hospital.location }}">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">City Hospital <span class="text-danger">*</span></label>
-                            <select name="city" class="form-select" required>
-                                {% for city in city %}
-                                <option value="{{ city.id }}" {% if hospital.city.id == city.id %}selected{% endif %}>{{ city.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" value="{{ hospital.hospital_manager.email }}" readonly>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Hospital Detail <span class="text-danger">*</span></label>
-                            <textarea type="textarea" class="form-control" name="description" value="{{ hospitalDetail.description }}">{{ hospitalDetail.description }}</textarea>
-                        </div>
-                    </div>
-					<div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Hospital about <span class="text-danger">*</span></label>
-                            <textarea type="textarea" class="form-control" name="about" value="{{ hospitalDetail.about }}">{{ hospitalDetail.about }}</textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Specialty <span class="text-danger">*</span></label>
-                            <select name="specialty" class="form-select" required>
-                                {% for specialty in specialties %}
-                                <option value="{{ specialty.id }}" {% if hospitalDetail.specialty.id == specialty.id %}selected{% endif %}>{{ specialty.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Add other fields as needed -->
                 </div>
             </div>
         </div>
         <!-- /Basic Information -->
+        
+        <!-- About Me -->
+        {% if request.user.user_type == 'hospital_manager' or request.user.user_type == 'patients' %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">About Me</h4>
+                    <div class="mb-0">
+                        <label class="mb-2">Biography</label>
+                        <textarea class="form-control" rows="5" name="about">{{hospital.about}}</textarea>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <!-- /About Me -->
+        
+        <!-- Clinic Info -->
+        {% if request.user.user_type == 'hospital_manager' %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Clinic Info</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="mb-2">Hospital Name</label>
+                                <input type="text" class="form-control" name="hospital_name" value="{{ hospital.name }}" >
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="mb-2">Hospital Address</label>
+                                <input type="text" class="form-control" name="hospital_location" value="{{ hospital.location }}" >
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="mb-2">Hospital Images</label>
+                                <input type="file" class="form-control" name="photo" accept="image/*">
+                            </div>
+                            <div class="upload-wrap">
+                                <div class="upload-images">
+                                    {% if hospital.photo %}
+                                        <img src="{{ hospital.photo.url }}" alt="Upload Image">
+                                    {% else %}
+                                        <img src="{% static 'assets/img/features/feature-01.jpg' %}" alt="Upload Image">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="mb-2">Description</label>
+                                <textarea class="form-control" rows="5" name="description">{{hospital.description}}</textarea>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <!-- Phone Numbers -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Phone Numbers</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            {% if hospital.phone_numbers.all %}
+                                {% for phone in hospital.phone_numbers.all %}
+                                    <div class="mb-3">
+                                        <label class="mb-2">Number {{forloop.counter}} : {{ phone.get_phone_type_display }}</label>
+                                        <input type="text" class="form-control" value="{{ phone.number }}" readonly>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No phone numbers available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <!-- /Clinic Info -->
+        
+        <!-- Contact Details -->
+        {% if request.user.user_type == 'hospital_manager' or request.user.user_type == 'patients'  %}
+        
+            <div class="card ">
+                <div class="card-body">
+                    <h4 class="card-title">Contact Details</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="control-label">City</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                            </div>
 
-        <!-- Submit Button -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="control-label">State / Province</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <!-- /Contact Details -->
+        
         <div class="submit-section submit-btn-bottom">
             <button type="submit" class="btn btn-primary prime-btn">Save Changes</button>
         </div>
-    </div>
-</form>
+    </form>
 </div>
