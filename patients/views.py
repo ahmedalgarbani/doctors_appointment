@@ -7,14 +7,17 @@ from notifications.models import Notifications
 from django.db.models import Avg, Prefetch
 from datetime import datetime
 from django.http import JsonResponse
+import json
+from django.contrib.auth.decorators import login_required
 
+
+@login_required(login_url='/user/login')
 def patient_dashboard(request):
-    user_id = 1
-    patient = get_object_or_404(Patients, user_id=user_id)
+    user_id = request.user
+    patient = get_object_or_404(Patients, user=user_id)
 
         # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
     if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
-        import json
         data = json.loads(request.body)
         notification_id = data.get('notification_id')
         result = delete_notification(notification_id, user_id)
