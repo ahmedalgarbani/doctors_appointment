@@ -942,7 +942,13 @@ def filter_invoices(request):
     payment_status = request.GET.get('payment_status')
     if payment_status:
         invoices = invoices.filter(payment_status__id=payment_status)
+    payment_method= request.GET.get('payment_method')
+    if payment_method:
+        invoices= invoices.filter(payment_method__id=payment_method)
         
+    patient_name = request.GET.get('patient_name')
+    if patient_name:
+        invoices = invoices.filter(booking__patient__full_name__icontains=patient_name)
     amount_min = request.GET.get('amount_min')
     if amount_min:
         invoices = invoices.filter(payment_totalamount__gte=amount_min)

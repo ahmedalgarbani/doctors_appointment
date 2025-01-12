@@ -73,6 +73,9 @@ admin/
 rest_framework/
 local_settings.py
 production_settings.py
+# doctors/management/commands/generate_dummy_data.py
+
+# Ignore generate_dummy_data script
 doctors/management/commands/generate_dummy_data.py
 
 # Temporary files
