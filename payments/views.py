@@ -16,11 +16,20 @@ def payment_process(request, doctor_id):
     day_id = request.GET.get('day')
     date_id = request.GET.get('date')
     booking_date = request.GET.get('booking_date')
+    hospital_id = request.GET.get('hospital_id')
     
-    if not all([day_id, date_id, booking_date]):
-        return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز')
+    if not all([day_id, date_id, booking_date, hospital_id]):
+        return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز والمستشفى')
     
     try:
+        # Get hospital and validate it's associated with the doctor
+        selected_hospital = get_object_or_404(Hospital, id=hospital_id)
+        if not doctor.hospitals.filter(id=hospital_id).exists():
+            return HttpResponseBadRequest('المستشفى المختار غير مرتبط بالطبيب')
+            
+        # Get doctor's price for this hospital
+        doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
+        
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
         selected_shift = get_object_or_404(DoctorShifts, id=date_id, doctor_schedule=selected_schedule)
@@ -34,22 +43,8 @@ def payment_process(request, doctor_id):
     
     is_online = request.GET.get('type') == 'online'
     
-    # Get the hospital
-    hospital = doctor.hospitals.first()
-    if not hospital:
-        return HttpResponseBadRequest('عذراً، لا يوجد مستشفى مسجل لهذا الطبيب')
-    
-    # Fetch active payment methods for the hospital
-    payment_methods = HospitalPaymentMethod.objects.filter(hospital=hospital, is_active=True)
-    if not payment_methods:
-        return HttpResponseBadRequest('عذراً، لا توجد طرق دفع متاحة لهذا المستشفى')
-    
-    # Get doctor pricing
-    try:
-        pricing = DoctorPricing.objects.get(doctor=doctor, hospital=hospital)
-        amount = pricing.amount
-    except DoctorPricing.DoesNotExist:
-        return HttpResponseBadRequest('عذراً، لم يتم تحديد سعر الكشف لهذا الطبيب')
+    # Get payment methods
+    payment_methods = HospitalPaymentMethod.objects.filter(hospital=selected_hospital, is_active=True)
     
     if request.method == 'POST':
         payment_method_id = request.POST.get('payment_method')
@@ -82,19 +77,19 @@ def payment_process(request, doctor_id):
         booking = Booking.objects.create(
             doctor=doctor,
             patient=patient,
-            hospital=hospital,
+            hospital=selected_hospital,
             appointment_date=selected_schedule,
             appointment_time=selected_shift,
             booking_date=booking_date,
             is_online=is_online,
-            amount=amount,
+            amount=doctor_price.amount,
             status='pending',  # Pending until transfer verification
             transfer_number=transfer_number,
             payment_method=payment_method
         )
         
         # Create the payment
-        subtotal = float(request.POST.get('subtotal', amount))
+        subtotal = float(request.POST.get('subtotal', doctor_price.amount))
         discount = float(request.POST.get('discount', 0))
         total = subtotal - discount
         
@@ -117,14 +112,13 @@ def payment_process(request, doctor_id):
         # Redirect to booking success page
         return redirect('bookings:booking_success', booking_id=booking.id,)
     
-    # Render payment page
     context = {
         'doctor': doctor,
-        'hospital': hospital,
-        'schedule': selected_schedule,
-        'shift': selected_shift,
+        'selected_hospital': selected_hospital,
+        'doctor_price': doctor_price,
+        'selected_schedule': selected_schedule,
+        'selected_shift': selected_shift,
         'booking_date': booking_date,
-        'amount': amount,
         'is_online': is_online,
         'payment_methods': payment_methods
     }
