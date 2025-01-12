@@ -1,31 +1,52 @@
 from django.contrib.auth import views as auth_views
-from django.urls import reverse_lazy
 from django.shortcuts import render, redirect
 from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib.auth import login
 from .models import CustomUser
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate
 from django.urls import reverse
 from django.contrib import messages
+from django.shortcuts import redirect, reverse
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+
+
+
+
 
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
         user = authenticate(request, email=email, password=password)
-
+        print("user")
+        print(user)
+        print(user)
+        print(user)
+        print("user")
+      
         if user is not None:
             login(request, user)
 
-            if user.user_type == 'admin':
-                return redirect(reverse('users :admin_dashboard'))
-            elif user.user_type == 'doctor':
-                return redirect(reverse('users : doctor_dashboard'))
+            next_url = request.GET.get('next', None)
+            print(next_url)
+            print(next_url)
+            print(next_url)
+            print(next_url)
+            print(next_url)
+            print(next_url)
+            print('user type')
+            print(user.user_type)
+            print('user type')
+            if next_url:
+                return redirect(next_url)
+            elif user.user_type == 'admin':
+                return redirect(reverse('users:admin_dashboard'))
+            elif user.user_type == 'hospital_manager':
+                return redirect(reverse('hospitals:index'))
             elif user.user_type == 'patient':
-                return redirect(reverse('users:patient_dashboard'))
+                return redirect(reverse('patients:patient_dashboard'))
             else:
                 messages.error(request, "User type is not recognized.")
                 return redirect(reverse('users:login'))
@@ -34,6 +55,7 @@ def login_view(request):
             return redirect(reverse('users:login'))
 
     return render(request, 'frontend/auth/login.html')
+
 
 
 
@@ -151,6 +173,7 @@ def patient_dashboard(request):
 def admin_dashboard(request):
     return render(request, 'frontend/dashboard/admin/index.html')
 
-# @login_required
+# @login_required(login_url='/user/login')
+
 # def doctor_dashboard(request):
 #     return render(request, 'frontend/dashboard/doctor/index.html')

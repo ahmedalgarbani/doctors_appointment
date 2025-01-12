@@ -6,10 +6,22 @@ from reviews.models import Review
 from notifications.models import Notifications
 from django.db.models import Avg, Prefetch
 from datetime import datetime
+from django.http import JsonResponse
+import json
+from django.contrib.auth.decorators import login_required
 
+
+@login_required(login_url='/user/login')
 def patient_dashboard(request):
-    user_id = 1
-    patient = get_object_or_404(Patients, user_id=user_id)
+    user_id = request.user
+    patient = get_object_or_404(Patients, user=user_id)
+
+        # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
+    if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        result = delete_notification(notification_id, user_id)
+        return JsonResponse(result)
 
     notifications = get_notifications_for_user(user_id=user_id)
 
@@ -91,3 +103,15 @@ def get_notifications_for_user(user_id):
     """
     notifications = Notifications.objects.filter(user_id=user_id, is_active=True).order_by('-send_time')
     return notifications
+
+def delete_notification(notification_id, user):
+    """
+    دالة لحذف الإشعار بناءً على معرف الإشعار والمستخدم.
+    """
+    try:
+        # الحصول على الإشعار والتأكد من أنه مرتبط بالمستخدم
+        notification = Notifications.objects.get(id=notification_id, user=user, is_active=True)
+        notification.delete()
+        return {"success": True}
+    except Notifications.DoesNotExist:
+        return {"success": False, "error": "Notification not found."}

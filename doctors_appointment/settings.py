@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'menu_generator',
     'ckeditor',
     'widget_tweaks',
+    'rolepermissions',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'users.middleware.RoleBasedAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'doctors_appointment.urls'

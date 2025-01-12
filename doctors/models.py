@@ -89,13 +89,14 @@ class DoctorSchedules(models.Model):
 
 class DoctorShifts(models.Model):
     doctor_schedule = models.ForeignKey('DoctorSchedules', on_delete=models.CASCADE, related_name='shifts', verbose_name="جدول الطبيب")
+    hospital = models.ForeignKey('hospitals.Hospital', on_delete=models.CASCADE, related_name='shifts', verbose_name="المستشفى")
     start_time = models.TimeField(verbose_name="وقت البداية")
     end_time = models.TimeField(verbose_name="وقت النهاية")
     available_slots = models.PositiveIntegerField(default=0, verbose_name="المواعيد المتاحة")
     booked_slots = models.PositiveIntegerField(default=0, verbose_name="المواعيد المحجوزة")
 
     def __str__(self):
-        return f"{self.doctor_schedule} ({self.start_time} - {self.end_time})"
+        return f"{self.doctor_schedule} - {self.hospital.name} ({self.start_time} - {self.end_time})"
     
     @property
     def is_available(self):
@@ -108,16 +109,20 @@ class DoctorShifts(models.Model):
         
         if self.available_slots < self.booked_slots:
             raise ValidationError('عدد المواعيد المتاحة لا يمكن أن يكون أقل من المواعيد المحجوزة')
+        
+        # التحقق من أن المستشفى مرتبط بالطبيب
+        if not self.doctor_schedule.doctor.hospitals.filter(id=self.hospital.id).exists():
+            raise ValidationError('هذا الطبيب لا يعمل في هذا المستشفى')
     
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ['doctor_schedule', 'start_time']
+        ordering = ['doctor_schedule', 'hospital', 'start_time']
         verbose_name = "موعد"
         verbose_name_plural = "المواعيد"
-        unique_together = ['doctor_schedule', 'start_time']  # لا يمكن أن يكون هناك موعدان بنفس وقت البداية لنفس الجدول
+        unique_together = ['doctor_schedule', 'hospital', 'start_time']  # لا يمكن أن يكون هناك موعدان بنفس وقت البداية لنفس الجدول والمستشفى
 
 
 class DoctorPricing(models.Model):

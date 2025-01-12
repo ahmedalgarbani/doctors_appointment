@@ -1,0 +1,177 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section notifications_forms d-none">
+  <div class="container py-5">
+    <!-- Notification Header -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="mb-0">
+            <i class="bi bi-bell-fill text-primary me-2"></i>
+            Notification Center
+          </h2>
+          <button id="toggleNotificationForm" class="btn btn-primary">
+            <i class="bi bi-send-fill me-2"></i>Add Notification
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="addNotificationForm" class="card mb-4 shadow-sm d-none">
+      <div class="card-body">
+        <form
+          method="post"
+          action="{% url 'hospitals:notifications:send_notification' %}"
+        >
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Recipients</label>
+            <select name="recipients" class="form-select" required>
+              <option value="single">Single User</option>
+              <option value="multiple">Multiple Users</option>
+              <option value="all">All Users</option>
+            </select>
+          </div>
+          <div class="mb-3" id="userSelect">
+            <label class="form-label">Select Users</label>
+            <select name="users" class="form-select" multiple>
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notification Type</label>
+            <select name="notification_type" class="form-select" required>
+              <option value="0">Information</option>
+              <option value="1">Warning</option>
+              <option value="2">Success</option>
+              <option value="3">Error</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message</label>
+            <textarea
+              name="message"
+              class="form-control"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button
+              type="button"
+              id="cancelNotificationForm"
+              class="btn btn-secondary me-2"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Send Notification
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for notification in hospital_notifications_sended %}
+          <div
+            class="list-group-item d-flex align-items-start {% if notification.notification_type == '0' %} bg-info text-white {% elif notification.notification_type == '1' %} bg-warning text-dark {% elif notification.notification_type == '2' %} bg-success text-white {% else %} bg-danger text-white {% endif %}"
+          >
+            <div class="me-3">
+              {% if notification.notification_type == '0' %}
+              <i class="bi bi-info-circle-fill fs-4"></i>
+              {% elif notification.notification_type == '1' %}
+              <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+              {% elif notification.notification_type == '2' %}
+              <i class="bi bi-check-circle-fill fs-4"></i>
+              {% else %}
+              <i class="bi bi-x-circle-fill fs-4"></i>
+              {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <h6 class="mb-1">From: {{ notification.sender }}</h6>
+                <small>{{ notification.send_time|timesince }} ago</small>
+              </div>
+              <p class="mb-1">{{ notification.message }}</p>
+              <small>To: {{ notification.user }}</small>
+            </div>
+
+            <div class="ms-3">
+              <div class="dropdown">
+                <button
+                  class="btn btn-light btn-sm"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  {% if notification.status == '0' %}
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{% url 'hospitals:notifications:mark_as_read' notification.id %}"
+                    >
+                      <i class="bi bi-check2 me-2"></i>Mark as Read
+                    </a>
+                  </li>
+                  {% else %}
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{% url 'hospitals:notifications:mark_as_unread' notification.id %}"
+                    >
+                      <i class="bi bi-circle me-2"></i>Mark as Unread
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {% empty %}
+          <div class="text-center py-5">
+            <i class="bi bi-bell-slash fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">No notifications found</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleFormBtn = document.getElementById("toggleNotificationForm");
+    const addNotificationForm = document.getElementById("addNotificationForm");
+    const cancelFormBtn = document.getElementById("cancelNotificationForm");
+    const recipientSelect = document.querySelector('select[name="recipients"]');
+    const userSelect = document.getElementById("userSelect");
+
+    toggleFormBtn.addEventListener("click", function () {
+      addNotificationForm.classList.toggle("d-none");
+    });
+
+    cancelFormBtn.addEventListener("click", function () {
+      addNotificationForm.classList.add("d-none");
+    });
+
+    recipientSelect.addEventListener("change", function () {
+      if (this.value === "all") {
+        userSelect.style.display = "none";
+      } else {
+        userSelect.style.display = "block";
+      }
+    });
+
+    if (recipientSelect.value === "all") {
+      userSelect.style.display = "none";
+    }
+  });
+</script>
