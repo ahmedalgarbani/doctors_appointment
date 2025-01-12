@@ -30,6 +30,7 @@ urlpatterns = [
     path('delete-shift/<int:shift_id>/', views.delete_shift, name='delete_shift'),
     path('filter-invoices/', views.filter_invoices, name='filter_invoices'),
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
+    path('update-hospital-profile/', views.update_hospital_profile, name='update_hospital_profile'),
     
 
 ]

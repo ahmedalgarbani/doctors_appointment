@@ -18,6 +18,12 @@ from payments.models import (
     PaymentOption,
     Payment,
 )
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from .models import HospitalAccountRequest, HospitalUpdateRequest, PhoneNumber
+from django.conf import settings
 from hospitals.models import Hospital, HospitalAccountRequest
 from doctors.models import (
     Doctor,
@@ -34,6 +40,7 @@ def index(request):
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
     doctors = Doctor.objects.filter(hospitals=hospital, status=True)
+    phoneNumber = PhoneNumber.objects.filter(hospital=hospital)
     
     # Get current date and first day of month
     today = timezone.now().date()
@@ -321,47 +328,83 @@ def hospital_delete(request, pk):
         return redirect('hospital_list')
     return render(request, 'hospital_confirm_delete.html', {'hospital': hospital})
 
+
 def hospital_account_request(request):
     """معالجة طلب فتح حساب مستشفى جديد"""
     if request.method == 'POST':
         try:
-            # التحقق من تطابق كلمتي المرور
-            password = request.POST['password']
-            confirm_password = request.POST['confirm_password']
+            # استخلاص البيانات من الطلب
+            hospital_name = request.POST.get('hospital_name')
+            manager_full_name = request.POST.get('manager_full_name')
+            manager_email = request.POST.get('manager_email')
+            manager_phone = request.POST.get('manager_phone')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+            hospital_location = request.POST.get('hospital_location')
+            notes = request.POST.get('notes', '')
+            commercial_record = request.FILES.get('commercial_record')
+            medical_license = request.FILES.get('medical_license')
             
+            # 1. التحقق من الحقول المطلوبة
+            if not all([hospital_name, manager_full_name, manager_email, manager_phone, password, confirm_password, hospital_location]):
+                messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 2. التحقق من صحة البريد الإلكتروني
+            try:
+              validate_email(manager_email)
+            except ValidationError:
+                messages.error(request, 'البريد الإلكتروني غير صالح.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 3. التحقق من تطابق كلمتي المرور
             if password != confirm_password:
-                messages.error(request, 'كلمتا المرور غير متطابقتين')
-                return render(request, 'frontend/auth/hospital-manager-register.html')
+                messages.error(request, 'كلمتا المرور غير متطابقتين.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            # # 4. التحقق من صحة رقم الهاتف (يمكنك إضافة شروط أكثر تعقيدًا إذا لزم الأمر)
+            # if not manager_phone.isdigit() or len(manager_phone) < 9:
+            #      messages.error(request, 'رقم الهاتف غير صالح.')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            #  # 5. التحقق من حجم الملفات (يمكنك تعديل الحجم الأقصى حسب الحاجة)
+            # max_file_size = settings.MAX_UPLOAD_SIZE
+            # if commercial_record and commercial_record.size > max_file_size:
+            #       messages.error(request, f'حجم السجل التجاري كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #       return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+           
+            # if medical_license and medical_license.size > max_file_size:
+            #      messages.error(request, f'حجم الترخيص الطبي كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
             # إنشاء طلب جديد
             hospital_request = HospitalAccountRequest(
-                hospital_name=request.POST['hospital_name'],
-                manager_full_name=request.POST['manager_full_name'],
-                manager_email=request.POST['manager_email'],
-                manager_phone=request.POST['manager_phone'],
-                manager_password=password,  # تخزين كلمة المرور
-                hospital_location=request.POST['hospital_location'],
-                notes=request.POST.get('notes', ''),
+                hospital_name=hospital_name,
+                manager_full_name=manager_full_name,
+                manager_email=manager_email,
+                manager_phone=manager_phone,
+                manager_password=password,
+                hospital_location=hospital_location,
+                notes=notes,
                 created_by=request.user if request.user.is_authenticated else None
             )
-
+            
             # معالجة الملفات المرفقة
-            if 'commercial_record' in request.FILES:
-                hospital_request.commercial_record = request.FILES['commercial_record']
-            if 'medical_license' in request.FILES:
-                hospital_request.medical_license = request.FILES['medical_license']
+            if commercial_record:
+                hospital_request.commercial_record = commercial_record
+            if medical_license:
+                hospital_request.medical_license = medical_license
 
             hospital_request.save()
 
-            messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً')
+            messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً.')
             return redirect('hospitals:hospital_request_success')
 
         except Exception as e:
-            messages.error(request, 'حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى')
-            return render(request, 'frontend/auth/hospital-manager-register.html')
+            messages.error(request, f'حدث خطأ أثناء معالجة طلبك: {e}. يرجى المحاولة مرة أخرى.')
+            return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
     return render(request, 'frontend/auth/hospital-manager-register.html')
-
 def hospital_request_success(request):
     """صفحة نجاح تقديم الطلب"""
     return render(request, 'frontend/auth/hospital-request-success.html')
@@ -996,100 +1039,38 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
-# @login_required
-# def hospital_dashboard(request):
-    """عرض لوحة تحكم المستشفى"""
-    
-    # Get the current hospital
-    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-    
-    # Get current date and first day of month
-    today = timezone.now().date()
-    first_day_of_month = today.replace(day=1)
-    
-    # Get all specialties in the hospital
-    specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
-    total_specialties = specialties.count()
-    specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target number of specialties
-    
-    # Get monthly revenue
-    monthly_revenue = Payment.objects.filter(
-        booking__hospital=hospital,
-        payment_date__year=today.year,
-        payment_date__month=today.month,
-        payment_status__status_code=2
-    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
-    
-    # Calculate revenue percentage (compared to target)
-    monthly_target = 50000  # Example target
-    revenue_percentage = min((monthly_revenue / monthly_target) * 100, 100)
-    
-    # Get appointments statistics
-    total_appointments = Booking.objects.filter(
-        hospital=hospital,
-        created_at__year=today.year,
-        created_at__month=today.month
-    ).count()
-    
-    appointments_target = 100  # Example target
-    appointments_percentage = min((total_appointments / appointments_target) * 100, 100)
-    
-    # Get latest appointments
-    latest_appointments = Booking.objects.filter(
-        hospital=hospital
-    ).select_related(
-        'doctor', 'doctor__specialty', 'patient'
-    ).order_by('-created_at')[:10]
-    
-    # Get latest doctors
-    latest_doctors = Doctor.objects.filter(
-        hospitals=hospital
-    ).select_related('specialty').prefetch_related('reviews').order_by('-created_at')[:10]
-    
-    # Calculate today's appointments for each doctor
-    for doctor in latest_doctors:
-        doctor.today_appointments_count = Booking.objects.filter(
-            doctor=doctor,
-            hospitals=hospital,
-            booking_date=today
-        ).count()
-        
-        # Calculate average rating
-        reviews = doctor.reviews.all()
-        if reviews:
-            doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
-        else:
-            doctor.average_rating = 0
-    
-    # Get latest payments
-    latest_payments = Payment.objects.filter(
-        booking__hospital=hospital
-    ).select_related(
-        'booking__doctor', 
-        'booking__patient',
-        'payment_method'
-    ).order_by('-payment_date')[:10]
-    
-    # Get Arabic month name
-    ARABIC_MONTHS = {
-        1: "يناير", 2: "فبراير", 3: "مارس", 4: "إبريل",
-        5: "مايو", 6: "يونيو", 7: "يوليو", 8: "أغسطس",
-        9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر"
-    }
-    current_month_name = ARABIC_MONTHS[today.month]
-    
-    context = {
-        'hospital': hospital,
-        'specialties': specialties,
-        'specialties_count_percentage': specialties_count_percentage,
-        'total_revenue': monthly_revenue,
-        'revenue_percentage': revenue_percentage,
-        'total_appointments': total_appointments,
-        'appointments_percentage': appointments_percentage,
-        'latest_appointments': latest_appointments,
-        'latest_doctors': latest_doctors,
-        'latest_payments': latest_payments,
-        'current_month_name': current_month_name,
-    }
-    
-    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-dashboard.html', context)
+@login_required
+def update_hospital_profile(request):
+    """معالجة طلب تعديل بيانات ملف المستشفى الشخصي"""
+    if request.method == 'POST':
+        try:
+            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+            print(request.POST)  
+            # Collect the updated data from the form
+            name = request.POST.get('hospital_name')
+            location = request.POST.get('hospital_location')
+            description = request.POST.get('description')
+            about = request.POST.get('about')
+            photo = request.FILES.get('photo')
+            
+            # Create the update request object
+            update_request = HospitalUpdateRequest(
+                hospital=hospital,
+                name=name if name != hospital.name else None,
+                location=location if location != hospital.location else None,
+                description=description if description != hospital.description else None,
+                about=about if about != hospital.about else None,
+                photo=photo if photo else None,
+                created_by=request.user
+            )
+            update_request.save()
+
+            messages.success(request, 'تم إرسال طلب تعديل البيانات بنجاح. سيتم مراجعته من قبل المسؤول.')
+            return redirect('hospitals:index')
+           
+
+        except Exception as e:
+            messages.error(request, f'حدث خطأ أثناء معالجة طلب التعديل: {e}.')
+            return redirect('hospitals:index')
+
+    return redirect('hospitals:index')

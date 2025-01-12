@@ -1,5 +1,6 @@
-{% extends 'frontend\layouts\master.html' %}
+{% extends 'frontend/layouts/master.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}طلب فتح حساب مستشفى جديد{% endblock %}
 
@@ -7,11 +8,11 @@
 <div class="content top-space">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-8 offset-md-2">
+            <div class="col-md-10 offset-md-1">
                 <!-- Register Content -->
                 <div class="account-content">
                     <div class="row align-items-center justify-content-center">
-                        <div class="col-md-7 col-lg-6 login-left">
+                         <div class="col-md-7 col-lg-6 login-left">
                             <img src="{% static 'img/login-banner.png' %}" class="img-fluid" alt="تسجيل مستشفى">    
                         </div>
                         <div class="col-md-12 col-lg-6 login-right">
@@ -21,93 +22,111 @@
                             </div>
 
                             {% if messages %}
-                            <div class="alert alert-info">
-                                {% for message in messages %}
-                                    {{ message }}
-                                {% endfor %}
-                            </div>
+                                <div class="alert alert-info">
+                                    {% for message in messages %}
+                                        {{ message }}
+                                    {% endfor %}
+                                </div>
                             {% endif %}
 
                             <!-- Hospital Account Request Form -->
-                            <form action="{% url 'hospitals:hospital_account_request' %}" method="post" enctype="multipart/form-data">
+                             <form action="{% url 'hospitals:hospital_account_request' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
-                                
-                                <!-- Hospital Information -->
-                                <div class="section-header">
-                                    <h4>معلومات المستشفى</h4>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="text" name="hospital_name" class="form-control floating" required>
-                                    <label class="focus-label">اسم المستشفى</label>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="text" name="hospital_location" class="form-control floating" required>
-                                    <label class="focus-label">عنوان المستشفى</label>
-                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                          <!-- Hospital Information -->
+                                            <tr>
+                                                <th colspan="2" class="text-center bg-light"><h4>معلومات المستشفى</h4></th>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="hospital_name">اسم المستشفى</label></th>
+                                                <td><input type="text" name="hospital_name" id="hospital_name" class="form-control" required></td>
+                                            </tr>
+                                             <tr>
+                                                <th><label for="hospital_location">عنوان المستشفى</label></th>
+                                                <td><input type="text" name="hospital_location" id="hospital_location" class="form-control" required></td>
+                                            </tr>
+                                            
+                                            <!-- Manager Information -->
+                                            <tr>
+                                                <th colspan="2" class="text-center bg-light mt-4"><h4>معلومات مدير المستشفى</h4></th>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="manager_full_name">الاسم الكامل للمدير</label></th>
+                                                <td><input type="text" name="manager_full_name" id="manager_full_name" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="manager_email">البريد الإلكتروني</label></th>
+                                                <td><input type="email" name="manager_email" id="manager_email" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="password">كلمة المرور</label></th>
+                                                <td><input type="password" name="password" id="password" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="confirm_password">تأكيد كلمة المرور</label></th>
+                                                <td><input type="password" name="confirm_password" id="confirm_password" class="form-control" required></td>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="manager_phone">رقم الجوال</label></th>
+                                                <td><input type="text" name="manager_phone" id="manager_phone" class="form-control" required></td>
+                                            </tr>
 
-                                <!-- Manager Information -->
-                                <div class="section-header mt-4">
-                                    <h4>معلومات مدير المستشفى</h4>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="text" name="manager_full_name" class="form-control floating" required>
-                                    <label class="focus-label">الاسم الكامل للمدير</label>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="email" name="manager_email" class="form-control floating" required>
-                                    <label class="focus-label">البريد الإلكتروني</label>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="password" name="password" class="form-control floating" required>
-                                    <label class="focus-label">كلمة المرور</label>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="password" name="confirm_password" class="form-control floating" required>
-                                    <label class="focus-label">تأكيد كلمة المرور</label>
-                                </div>
-                                <div class="form-group form-focus">
-                                    <input type="text" name="manager_phone" class="form-control floating" required>
-                                    <label class="focus-label">رقم الجوال</label>
-                                </div>
+                                            <!-- Required Documents -->
+                                            <tr>
+                                                <th colspan="2" class="text-center bg-light mt-4"><h4>المستندات المطلوبة</h4></th>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="commercial_record">السجل التجاري</label></th>
+                                                <td>
+                                                    <input type="file" name="commercial_record" id="commercial_record" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+                                                    <small class="text-muted">يرجى رفع نسخة واضحة من السجل التجاري للمستشفى</small>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th><label for="medical_license">الترخيص الطبي</label></th>
+                                                <td>
+                                                    <input type="file" name="medical_license" id="medical_license" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+                                                    <small class="text-muted">يرجى رفع نسخة واضحة من الترخيص الطبي للمستشفى</small>
+                                                </td>
+                                            </tr>
 
-                                <!-- Required Documents -->
-                                <div class="section-header mt-4">
-                                    <h4>المستندات المطلوبة</h4>
-                                </div>
-                                <div class="form-group">
-                                    <label>السجل التجاري <span class="text-danger">*</span></label>
-                                    <input type="file" name="commercial_record" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-                                    <small class="text-muted">يرجى رفع نسخة واضحة من السجل التجاري للمستشفى</small>
-                                </div>
-                                <div class="form-group">
-                                    <label>الترخيص الطبي <span class="text-danger">*</span></label>
-                                    <input type="file" name="medical_license" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-                                    <small class="text-muted">يرجى رفع نسخة واضحة من الترخيص الطبي للمستشفى</small>
-                                </div>
+                                            <!-- Additional Notes -->
+                                             <tr>
+                                               <th><label for="notes">ملاحظات إضافية</label></th>
+                                               <td><textarea name="notes" id="notes" class="form-control" rows="3" placeholder="أي معلومات إضافية ترغب في إضافتها"></textarea></td>
+                                             </tr>
 
-                                <!-- Additional Notes -->
-                                <div class="form-group">
-                                    <label>ملاحظات إضافية</label>
-                                    <textarea name="notes" class="form-control" rows="3" placeholder="أي معلومات إضافية ترغب في إضافتها"></textarea>
-                                </div>
+                                            <!-- Terms and Conditions -->
+                                            <tr>
+                                                <th><label for="terms">الشروط والأحكام</label></th>
+                                                <td>
+                                                     <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" id="terms" required>
+                                                        <label class="custom-control-label" for="terms">
+                                                            أوافق على <a href="#">الشروط والأحكام</a>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
 
-                                <!-- Terms and Conditions -->
-                                <div class="form-group">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="terms" required>
-                                        <label class="custom-control-label" for="terms">
-                                            أوافق على <a href="#">الشروط والأحكام</a>
-                                        </label>
-                                    </div>
-                                </div>
+                                           <tr>
+                                               <td colspan="2" class="text-center">
+                                                   <button class="btn btn-primary w-100 btn-lg login-btn" type="submit">تقديم الطلب</button>
+                                               </td>
+                                           </tr>
+                                            <tr>
+                                              <td colspan="2" class="text-center mt-3">
+                                                  <p class="text-muted">
+                                                      لديك حساب بالفعل؟ 
+                                                      <a href="{% url 'users:login' %}">تسجيل الدخول</a>
+                                                  </p>
+                                              </td>
+                                           </tr>
 
-                                <button class="btn btn-primary w-100 btn-lg login-btn" type="submit">تقديم الطلب</button>
-                                
-                                <div class="text-center mt-3">
-                                    <p class="text-muted">
-                                        لديك حساب بالفعل؟ 
-                                        <a href="{% url 'users:login' %}">تسجيل الدخول</a>
-                                    </p>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </form>
                             <!-- /Hospital Account Request Form -->
@@ -123,20 +142,29 @@
 <!-- Add custom CSS for better form styling -->
 {% block custom_css %}
 <style>
-    .section-header {
-        margin-bottom: 20px;
+    .table th {
+        font-weight: bold;
     }
-    .section-header h4 {
-        color: #272b41;
-        font-size: 18px;
-        margin-bottom: 0;
-        font-weight: 500;
+    .table td, .table th{
+         padding: .75rem;
     }
-    .custom-control-label {
-        color: #757575;
-        font-size: 14px;
+    .table .text-center {
+        text-align: center;
     }
-    .alert {
+    .table-bordered{
+         border: 1px solid #dee2e6;
+    }
+    .table-bordered th{
+        border-bottom-width: 2px;
+    }
+    .table-bordered td, .table-bordered th{
+         border: 1px solid #dee2e6;
+    }
+    .table th label {
+        font-weight: bold;
+        margin-bottom: 0; 
+    }
+     .alert {
         margin-bottom: 20px;
     }
 </style>

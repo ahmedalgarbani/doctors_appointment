@@ -25,8 +25,11 @@
                                 <td>
                                     <h2 class="table-avatar">
                                         <a href="javascript:void(0);" class="avatar avatar-sm me-2">
-                                            <img class="avatar-img rounded-circle" src="{{ method.payment_option.logo.url }}" alt="Payment Image">
-                                        </a>
+                                            {% if method.payment_option.logo %}
+                                                <img class="avatar-img rounded-circle" src="{{ method.payment_option.logo.url }}" alt="Payment Image">
+                                            {% else %}
+                                                <img class="avatar-img rounded-circle" src="" alt="Default Payment Image">
+                                            {% endif %} </a>
                                         <a href="javascript:void(0);">
                                             {{ method.payment_option.method_name }} 
                                             <span>{{ method.payment_option.currency }}</span>
