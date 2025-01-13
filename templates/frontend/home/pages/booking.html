@@ -25,6 +25,15 @@
            <div class="col-lg-8 col-md-12">
                <div class="booking-header">
                    <h4 class="booking-title">حجز موعد مع د. {{ doctor.full_name }}</h4>
+                   <div class="hospital-links">
+                       {% for hospital in doctor.hospitals.all %}
+                           <a href="?hospital_id={{ hospital.id }}" 
+                              class="hospital-link {% if hospital.id|stringformat:'s' == request.GET.hospital_id %}active{% endif %}">
+                              {{ hospital.name }}
+                           </a>
+                           {% if not forloop.last %} • {% endif %}
+                       {% endfor %}
+                   </div>
                    <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
                    </div>
                    <div class="booking-date choose-date-book">
@@ -66,7 +75,7 @@
                    <input type="hidden" name="day" id="day_id" value="{{ selected_day }}">
                    <input type="hidden" name="date" id="date_id">
                    <input type="hidden" name="booking_date" id="booking_date_input">
-                   <input type="hidden" name="hospital_id" id="hospital_id" value="{{ doctor.hospitals.first.id }}">
+                   <input type="hidden" name="hospital_id" id="hospital_id" value="{{ selected_hospital_id }}">
                    <div class="booking-btn">
                        <button type="submit" id="next-btn" class="btn btn-primary prime-btn justify-content-center align-items-center" disabled>
                            Next <i class="feather-arrow-right-circle"></i>
@@ -93,6 +102,12 @@
                                <div class="booking-doctor-info">
                                    <h4><a href="{% url 'doctors:doctor_detail' doctor.id %}">Dr. {{ doctor.full_name }}</a></h4>
                                    <p>{{ doctor.specialty.name }}</p>
+                                   {% if doctor_price %}
+                                   <div class="booking-price">
+                                       <h5>Consultation Fee:</h5>
+                                       <p class="price-amount">{{ doctor_price.amount }} $</p>
+                                   </div>
+                                   {% endif %}
                                </div>
                            </div>
                        </div>
@@ -270,6 +285,45 @@ $(document).ready(function () {
 .date-slider li.active {
     background-color: #20c0f3;
     color: #fff;
+}
+
+.hospital-links {
+    margin: 15px 0;
+}
+.hospital-link {
+    color: #20c0f3;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+.hospital-link:hover {
+    background-color: #e8f7fb;
+    color: #0056b3;
+}
+.hospital-link.active {
+    background-color: #20c0f3;
+    color: white;
+}
+
+.booking-price {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.booking-price h5 {
+    color: #272b41;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.price-amount {
+    color: #20c0f3;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
 }
 </style>
 {% endblock %}

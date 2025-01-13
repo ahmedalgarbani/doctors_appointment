@@ -346,20 +346,41 @@ def search_view(request):
 
 def booking_view(request, doctor_id):
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
-    request.session['selected_doctor'] = selected_doctor.id    
-    dayes = selected_doctor.schedules.all()  
-    sched = dayes[0]  
+    request.session['selected_doctor'] = selected_doctor.id
     
+    # Get hospital_id from query parameters
+    hospital_id = request.GET.get('hospital_id')
     
-    schedulesShift = sched.shifts.all()
-
-    grouped_slots = group_shifts_by_period(schedulesShift)
+    # If no hospital is selected, use the first hospital
+    if not hospital_id and selected_doctor.hospitals.exists():
+        hospital_id = str(selected_doctor.hospitals.first().id)
+    
+    # Filter schedules by hospital
+    if hospital_id:
+        dayes = selected_doctor.schedules.filter(hospital_id=hospital_id)
+        # Get doctor's price for selected hospital
+        doctor_price = selected_doctor.pricing.filter(hospital_id=hospital_id).first()
+    else:
+        dayes = selected_doctor.schedules.all()
+        doctor_price = None
+    
+    if dayes.exists():
+        sched = dayes[0]
+        schedulesShift = sched.shifts.all()
+        grouped_slots = group_shifts_by_period(schedulesShift)
+    else:
+        sched = None
+        grouped_slots = []
   
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
         'schedules': grouped_slots,
-        'selected_day':sched.id, 
+        'selected_day': sched.id if sched else None,
+        'selected_hospital_id': hospital_id,
+        'doctor_price': doctor_price,
+        'doctor_prices': selected_doctor.pricing.all(),  
+        'selected_day':sched.id 
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)
@@ -393,5 +414,3 @@ def get_time_slots(request,schedule_id,doctor_id,):
         return JsonResponse({
             'error': str(e)
         }, status=500)
-
-

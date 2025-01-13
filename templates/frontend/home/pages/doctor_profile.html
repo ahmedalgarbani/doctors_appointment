@@ -1,6 +1,20 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    .hospital-link {
+        color: #20c0f3;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    .hospital-link:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 			<!-- Breadcrumb -->
@@ -40,8 +54,10 @@
 
 									<!-- أسماء المستشفيات المرتبطة -->
 									<p class="doc-speciality">
-										{% for hospital in hospitals %}
-											<span>{{ hospital.name }}</span>{% if not forloop.last %}, {% endif %}
+										{% for hospital in doctor_prices %}
+											<a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital.hospital.id }}" class="hospital-link">
+												{{ hospital.hospital.name }}
+											</a>{% if not forloop.last %}, {% endif %}
 										{% endfor %}
 									</p>
 

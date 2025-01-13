@@ -77,35 +77,27 @@
                                     </a>
                                 </div>
                                 <div class="booking-doctor-info">
-                                    <h4><a href="{% url 'home:doctor_profile' doctor.id %}">{{ doctor.full_name }}</a></h4>
-                                    <p>{{ doctor.specialization.name }}</p>
+                                    <h4>{{ doctor.full_name }}</h4>
+                                    <p>{{ doctor.specialty.name }}</p>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="booking-summary mt-4">
-                            <div class="booking-item">
-                                <span>التاريخ:</span>
-                                <span>{{ booking_date }}</span>
+                            <h5>تفاصيل الحجز:</h5>
+                            <div class="booking-summary-details">
+                                <p><strong>المستشفى:</strong> {{ selected_hospital.name }}</p>
+                                <p><strong>التاريخ:</strong> {{ booking_date }}</p>
+                                <p><strong>الوقت:</strong> {{ selected_shift.start_time|time:"H:i" }}</p>
+                                <p><strong>نوع الحجز:</strong> {% if is_online %}استشارة عن بعد{% else %}زيارة في العيادة{% endif %}</p>
                             </div>
-                            <div class="booking-item">
-                                <span>اليوم:</span>
-                                <span>{{ schedule.get_day_display }}</span>
-                            </div>
-                            <div class="booking-item">
-                                <span>الوقت:</span>
-                                <span>{{ shift.start_time|time:"g:i A" }} - {{ shift.end_time|time:"g:i A" }}</span>
-                            </div>
-                            <div class="booking-item">
-                                <span>نوع الكشف:</span>
-                                <span>{% if is_online %}استشارة عن بعد{% else %}كشف في العيادة{% endif %}</span>
-                            </div>
-                            <div class="booking-item">
-                                <span>المستشفى:</span>
-                                <span>{{ hospital.name }}</span>
-                            </div>
-                            <div class="booking-total">
-                                <span>المبلغ الإجمالي:</span>
-                                <span>{{ amount }} ريال</span>
+                            
+                            <div class="price-details mt-3">
+                                <h5>تفاصيل السعر:</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>سعر الكشف:</span>
+                                    <span class="price">{{ doctor_price.amount }} $</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -132,4 +124,40 @@ $(document).ready(function() {
     });
 });
 </script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-summary {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .booking-summary h5 {
+        color: #272b41;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .booking-summary-details p {
+        margin-bottom: 8px;
+        color: #757575;
+    }
+    
+    .booking-summary-details strong {
+        color: #272b41;
+    }
+    
+    .price-details {
+        border-top: 1px solid #dee2e6;
+        padding-top: 15px;
+    }
+    
+    .price {
+        color: #20c0f3;
+        font-size: 20px;
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
