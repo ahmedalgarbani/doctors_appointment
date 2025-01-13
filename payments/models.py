@@ -2,24 +2,10 @@ import datetime
 from django.db import models
 from hospitals.models import BaseModel, Hospital
 from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-# ------------PaymentStatus-------------
-class PaymentStatus(models.Model):
-    payment_status_name = models.CharField(
-        max_length=50,
-        verbose_name=_("اسم حالة الدفع")
-    )
-    status_code = models.IntegerField(
-        verbose_name=_("رمز الحالة")
-    )
 
-    class Meta:
-        verbose_name = _("حالة الدفع")
-        verbose_name_plural = _("حالات الدفع")
-        ordering = ['status_code']
-
-    def __str__(self):
-        return f"{self.payment_status_name} ({self.status_code})"
 
 # ------------PaymentOption-------------
 class PaymentOption(models.Model):
@@ -55,23 +41,32 @@ class HospitalPaymentMethod(models.Model):
         unique_together = ['hospital', 'payment_option']
 
 # ------------Payment-------------
+
+
 class Payment(models.Model):
     Type_choices = [
         ('cash', _('نقدي')),
         ('e_pay', _('دفع إلكتروني')),
     ]
+
+    PaymentStatus_choices = [
+        (0, _('قيد الانتظار')),
+        (1, _('مكتمل')),
+        (2, _('فشل')),
+        (3, _('مسترد')),
+    ]
     
     payment_method = models.ForeignKey(
-        HospitalPaymentMethod,
+        'HospitalPaymentMethod',
         on_delete=models.CASCADE,
         verbose_name=_("طريقة الدفع"),
         related_name='payments'
     )
-    payment_status = models.ForeignKey(
-        PaymentStatus,
-        on_delete=models.CASCADE,
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PaymentStatus_choices,
         verbose_name=_("حالة الدفع"),
-        related_name='payments'
+        default='pending'
     )
     payment_date = models.DateTimeField(
         auto_now_add=True,

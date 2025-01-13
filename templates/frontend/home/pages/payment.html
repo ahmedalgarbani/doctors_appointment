@@ -21,7 +21,7 @@
                 <div class="booking-header">
                     <h4 class="booking-title">طرق الدفع المتاحة</h4>
                 </div>
-                <form id="payment-form" action="{% url 'home:payment' doctor.id %}?day={{ schedule.id }}&date={{ shift.id }}&booking_date={{ booking_date }}&type={% if is_online %}online{% else %}offline{% endif %}" method="POST">
+                <form id="payment-form" action="{% url 'home:payment' doctor.id %}?day={{ selected_schedule.id }}&date={{ selected_schedule.id }}&booking_date={{ booking_date }}&hospital_id={{ hospital_id }}&type={% if is_online %}online{% else %}offline{% endif %}" method="POST">
                     {% csrf_token %}
                     <div class="payments-form">
                         <div class="payment-methods mb-4">

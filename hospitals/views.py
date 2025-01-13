@@ -14,7 +14,7 @@ from django.db import models
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
 from patients.models import Patients
-from payments.models import Payment, PaymentStatus
+from payments.models import Payment
 from bookings.models import BookingStatusHistory
 from bookings.models import Booking
 from payments.models import (
@@ -97,7 +97,7 @@ def index(request):
         booking__hospital=hospital,
         payment_date__year=today.year,
         payment_date__month=today.month,
-        payment_status__status_code=2
+        payment_status=2
     ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
     
     # Calculate revenue percentage (compared to target)
@@ -160,7 +160,6 @@ def index(request):
     current_month_name = ARABIC_MONTHS[today.month]
     
     # Get payment statuses for the filter dropdown
-    payment_statuses = PaymentStatus.objects.all()
     
     # Get invoices with filters
     invoices = Payment.objects.filter(booking__hospital=hospital).select_related('booking', 'booking__patient')
@@ -217,10 +216,10 @@ def index(request):
     # إحصائيات المدفوعات
     payment_stats = {
         'total_invoices_count': invoices.count(),
-        'total_paid_amount': invoices.filter(payment_status__status_code=2).aggregate(
+        'total_paid_amount': invoices.filter(payment_status=2).aggregate(
             total=Sum('payment_totalamount'))['total'] or 0,
-        'pending_payments_count': invoices.filter(payment_status__status_code=1).count(),
-        'total_pending_amount': invoices.filter(payment_status__status_code=1).aggregate(
+        'pending_payments_count': invoices.filter(payment_status=1).count(),
+        'total_pending_amount': invoices.filter(payment_status=1).aggregate(
             total=Sum('payment_totalamount'))['total'] or 0,
     }
     
@@ -254,7 +253,7 @@ def index(request):
         'doctor_schedules': doctor_schedules,
         'days': DoctorSchedules.DAY_CHOICES,
         'invoices': invoices,
-        'payment_statuses': payment_statuses,
+        'payment_statuses': Payment.PaymentStatus_choices,
         'specialties': specialties,
         'specialties_count_percentage': specialties_count_percentage,
         'total_revenue': monthly_revenue,
@@ -911,7 +910,7 @@ def accept_appointment(request, booking_id):
         )
         
         # تحديث حالة الدفع
-        payment.payment_status = PaymentStatus.objects.get(status_code=2)
+        payment.payment_status = 2
         payment.save()
         
         return JsonResponse({
@@ -1333,7 +1332,7 @@ def filter_invoices(request):
     # تحديث الإحصائيات بعد التصفية
     context.update({
         'invoices': invoices.order_by('-payment_date'),
-        'payment_statuses': PaymentStatus.objects.all()
+        'payment_statuses': Payment.PaymentStatus_choices
     })
     
     return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', context)

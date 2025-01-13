@@ -32,12 +32,12 @@ widget_tweaks %} {% block content %}
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
               <a href="#" class="booking-doc-img">
-                <img src="{{hospital.details.photo.url}}" alt="User Image" />
+                <img src="{{hospital.photo.url}}" alt="User Image" />
               </a>
               <div class="profile-det-info">
                 <h3>{{hospital.name}}</h3>
                 <div class="patient-details">
-                  <h5 class="mb-0">{{hospital.details.sub_title}}</h5>
+                  <h5 class="mb-0">{{hospital.sub_title}}</h5>
                 </div>
               </div>
             </div>
@@ -191,7 +191,7 @@ widget_tweaks %} {% block content %}
 {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
 
 
-    {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %}
+    {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
 
 
 {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}

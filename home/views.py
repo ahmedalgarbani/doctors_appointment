@@ -5,7 +5,7 @@ from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
-from hospitals.models import City, Hospital
+from hospitals.models import City
 from reviews.models import Review
 from blog.models import Post
 from datetime import datetime
@@ -380,7 +380,6 @@ def booking_view(request, doctor_id):
         'selected_hospital_id': hospital_id,
         'doctor_price': doctor_price,
         'doctor_prices': selected_doctor.pricing.all(),  
-        'selected_day':sched.id 
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)

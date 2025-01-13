@@ -2,13 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts
 from hospitals.models import Hospital
-from .models import HospitalPaymentMethod, Payment, PaymentStatus
+from .models import HospitalPaymentMethod, Payment
 from bookings.models import Booking
 from django.http import HttpResponseBadRequest
 from patients.models import Patients
 
 # Create your views here.
-@login_required(login_url='/user/login')
 
 def payment_process(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
@@ -18,7 +17,10 @@ def payment_process(request, doctor_id):
     date_id = request.GET.get('date')
     booking_date = request.GET.get('booking_date')
     hospital_id = request.GET.get('hospital_id')
-    
+    print(day_id)
+    print(date_id)
+    print(booking_date)
+    print(hospital_id)
     if not all([day_id, date_id, booking_date, hospital_id]):
         return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز والمستشفى')
     
@@ -84,7 +86,7 @@ def payment_process(request, doctor_id):
             booking_date=booking_date,
             is_online=is_online,
             amount=doctor_price.amount,
-            status='pending',  # Pending until transfer verification
+            status='pending',  
             transfer_number=transfer_number,
             payment_method=payment_method
         )
@@ -97,7 +99,7 @@ def payment_process(request, doctor_id):
         Payment.objects.create(
             booking=booking,
             payment_method=payment_method,
-            payment_status=get_object_or_404(PaymentStatus, status_code=1),  # Default: pending
+            payment_status=0,
             payment_subtotal=subtotal,
             payment_discount=discount,
             payment_totalamount=total,
@@ -115,6 +117,7 @@ def payment_process(request, doctor_id):
     
     context = {
         'doctor': doctor,
+        'hospital_id':hospital_id,
         'selected_hospital': selected_hospital,
         'doctor_price': doctor_price,
         'selected_schedule': selected_schedule,
@@ -126,4 +129,4 @@ def payment_process(request, doctor_id):
     
     return render(request, 'frontend/home/pages/payment.html', context)
 
-pass
+
