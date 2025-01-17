@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Specialty, Doctor, DoctorSchedules, DoctorPricing
 
 # تخصيص واجهة إدارة DoctorPricing
-from .models import Doctor, Specialty, DoctorSchedules
+from .models import Doctor, Specialty, DoctorSchedules, DoctorPricingHistory
 
 # Register your models here.
 from django.contrib import admin
@@ -100,4 +100,5 @@ class DoctorPricingAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.register(DoctorPricing, DoctorPricingAdmin)
+admin.site.register(DoctorPricing, DoctorPricingAdmin )
+admin.site.register(DoctorPricingHistory )
