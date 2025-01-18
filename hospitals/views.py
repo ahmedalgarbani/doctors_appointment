@@ -692,9 +692,7 @@ def add_doctor(request):
         email = request.POST.get("email")
         gender = request.POST.get("gender")
         specialty_id = request.POST.get("specialty")
-        hospital_id = request.user.id
-        specialty_id = request.POST.get("specialty")
-        hospital_id = request.user.id
+        hospital_id = request.POST.get("hospital_id")
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -702,7 +700,6 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
-        price = request.POST.get("price")
         price = request.POST.get("price")
 
         if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
