@@ -1,5 +1,6 @@
 {% extends "frontend/layouts/master.html" %}
 {% block content %}
+{% load static %}
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
 	<div class="container">
@@ -29,10 +30,10 @@
 					<div class="widget-profile pro-widget-content">
 						<div class="profile-info-widget">
 							<a href="#" class="booking-doc-img">
-								{% if patient.profile_picture %}
-									<img src="{{ patient.profile_picture.url }}" alt="{{ patient.full_name }}">
+								{% if patient.user.profile_picture %}
+									<img src="{{ patient.user.profile_picture.url }}" alt="{{ patient.full_name }}">
 								{% else %}
-									<img src="/static/assets/img/patients/default_patient.jpg" alt="Default Picture">
+									<img src="{% static 'assets/img/patients/default_patient.jpg' %}" alt="Default Picture">
 								{% endif %}
 							</a>
 							<div class="profile-det-info">

@@ -11,37 +11,29 @@ from django.shortcuts import redirect, reverse
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 
-
-
-
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.contrib import messages
+from .models import CustomUser
 
 def login_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
-        user = authenticate(request, email=email, password=password)
-        print("user")
-        print(user)
-        print(user)
-        print(user)
-        print("user")
-      
-        if user is not None:
-            login(request, user)
+        user = authenticate(request, username=email, password=password)
 
+        if user is not None:
+            login(request, user) 
+            
             next_url = request.GET.get('next', None)
-            print(next_url)
-            print(next_url)
-            print(next_url)
-            print(next_url)
-            print(next_url)
-            print(next_url)
-            print('user type')
-            print(user.user_type)
-            print('user type')
             if next_url:
                 return redirect(next_url)
-            elif user.user_type == 'admin':
+            
+            if user.user_type == 'admin':
                 return redirect(reverse('users:admin_dashboard'))
             elif user.user_type == 'hospital_manager':
                 return redirect(reverse('hospitals:index'))
@@ -58,9 +50,12 @@ def login_view(request):
 
 
 
+from django.shortcuts import redirect
+from django.contrib.auth import logout
 
-class LogoutView(auth_views.LogoutView):
-    next_page = 'login'
+def user_logout(request):
+    logout(request)
+    return redirect('/')
 
 
 def patient_signup(request):

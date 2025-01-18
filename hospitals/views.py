@@ -71,12 +71,9 @@ import uuid
 User = get_user_model()
 
 @login_required(login_url='/user/login')
-
 def index(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)  
     speciality = Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
@@ -415,7 +412,7 @@ def delete_notification(notification_id, user):
 
 def blog_list(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user_id=user)
     posts = Post.objects.filter(author=hospital)
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')

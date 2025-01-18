@@ -11,12 +11,11 @@ import json
 from django.contrib.auth.decorators import login_required
 
 
+
 @login_required(login_url='/user/login')
 def patient_dashboard(request):
     user_id = request.user
-    patient = get_object_or_404(Patients, user=user_id)
-
-        # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
+    patient = get_object_or_404(Patients, user_id=user_id)
     if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
         data = json.loads(request.body)
         notification_id = data.get('notification_id')

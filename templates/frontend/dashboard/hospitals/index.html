@@ -31,9 +31,12 @@ widget_tweaks %} {% block content %}
         <div class="profile-sidebar">
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
+              {% if request.user.profile_picture %} 
+
               <a href="#" class="booking-doc-img">
-                <img src="{{hospital.photo.url}}" alt="User Image" />
+                <img src="{{request.user.profile_picture.url}}" alt="User Image" />
               </a>
+              {% endif %}
               <div class="profile-det-info">
                 <h3>{{hospital.name}}</h3>
                 <div class="patient-details">

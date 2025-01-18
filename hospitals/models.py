@@ -51,33 +51,46 @@ class City(models.Model):
 
 
 # نموذج المستشفيات
+
 class Hospital(BaseModel):
-    name = models.CharField(max_length=100,verbose_name=_("اسم المستشفى"))
-    hospital_manager = models.OneToOneField(CustomUser, null=True, blank=True, on_delete=models.CASCADE,verbose_name=_("مدير المستشفى"))
-    location = models.CharField(max_length=255, null=True, blank=True,verbose_name=_("الموقع"))
-    slug = models.SlugField(max_length=200, unique=True,verbose_name=_("اسم المستخدم"))
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("المدينة"))
-    description = models.TextField(null=True, blank=True,verbose_name=_("الوصف"))
-    
-    photo = models.ImageField(upload_to='hospital_images/', blank=True, null=True,verbose_name=_("الصورة"))
-    sub_title = models.CharField(max_length=255, null=True, blank=True,verbose_name=_("العنوان الفرعي"))
-    about = models.TextField(null=True, blank=True,verbose_name=_("حول"))
-    status = models.BooleanField(default=True,verbose_name=_("الحالة"))
-    show_at_home = models.BooleanField(default=True,verbose_name=_("إظهار في الصفحة الرئيسية"))
+
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='hospital',
+        verbose_name=_("حساب المستخدم"),
+        limit_choices_to={'user_type': 'hospital_manager'}, 
+    )
+    name = models.CharField(max_length=100, verbose_name=_("اسم المستشفى"))
+    slug = models.SlugField(
+        max_length=200, unique=True, verbose_name=_("اسم المستخدم")
+    )
+    description = models.TextField(
+        null=True, blank=True, verbose_name=_("الوصف")
+    )
+    sub_title = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("العنوان الفرعي")
+    )
+    about = models.TextField(null=True, blank=True, verbose_name=_("حول"))
+    status = models.BooleanField(default=True, verbose_name=_("الحالة"))
+    show_at_home = models.BooleanField(
+        default=True, verbose_name=_("إظهار في الصفحة الرئيسية")
+    )
     commercial_record = models.FileField(
         upload_to='hospital_documents/',
         null=True,
         blank=True,
         verbose_name=_("السجل التجاري"),
-        help_text=_("يرجى رفع نسخة من السجل التجاري للمستشفى")
+        help_text=_("يرجى رفع نسخة من السجل التجاري للمستشفى"),
     )
     medical_license = models.FileField(
         upload_to='hospital_documents/',
         null=True,
         blank=True,
         verbose_name=_("الترخيص الطبي"),
-        help_text=_("يرجى رفع نسخة من الترخيص الطبي للمستشفى")
+        help_text=_("يرجى رفع نسخة من الترخيص الطبي للمستشفى"),
     )
+
     def __str__(self):
         return self.name
 
