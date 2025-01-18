@@ -147,12 +147,69 @@ class DoctorPricing(models.Model):
         default=uuid.uuid4, 
         editable=False, 
         verbose_name="رقم العملية"
-    )  
+    )
 
     def __str__(self):
-        hospital_name = self.hospital.name if self.hospital else "No Hospital"
-        return f"{self.doctor.full_name} - {hospital_name} - {self.amount} - {self.transaction_number}"
+        return f"{self.doctor.full_name} - {self.amount}"
+
+    def save(self, *args, **kwargs):
+        # If this is an update to an existing price
+        if self.pk:
+            old_price = DoctorPricing.objects.get(pk=self.pk)
+            if old_price.amount != self.amount:
+                # Create history record
+                DoctorPricingHistory.objects.create(
+                    doctor=self.doctor,
+                    hospital=self.hospital,
+                    amount=self.amount,
+                    previous_amount=old_price.amount
+                )
+        else:
+            # Create history record for new price
+            DoctorPricingHistory.objects.create(
+                doctor=self.doctor,
+                hospital=self.hospital,
+                amount=self.amount
+            )
+        
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "جدول اسعار الطبيب"
         verbose_name_plural = "جداول اسعار الأطباء"
+
+
+class DoctorPricingHistory(BaseModel):
+    doctor = models.ForeignKey(
+        'doctors.Doctor', 
+        on_delete=models.CASCADE, 
+        related_name='pricing_history'
+    )
+    hospital = models.ForeignKey(
+        'hospitals.Hospital', 
+        on_delete=models.SET_NULL, 
+        related_name='doctor_price_history', 
+        null=True, 
+        blank=True
+    )
+    amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name="السعر"
+    )
+    change_date = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التغيير")
+    previous_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name="السعر السابق",
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "سجل تغييرات أسعار الطبيب"
+        verbose_name_plural = "سجلات تغييرات أسعار الأطباء"
+        ordering = ['-change_date']
+
+    def __str__(self):
+        return f"{self.doctor.full_name} - {self.amount} ({self.change_date})"
