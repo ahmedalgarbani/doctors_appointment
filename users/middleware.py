@@ -11,7 +11,7 @@ class RoleBasedAccessMiddleware:
             # Define restricted routes and their allowed roles
             restricted_routes = {
                 '/hospital/': 'hospital_manager',
-                '/patients/': 'patients',
+                '/patients/': 'patient',
             }
 
             # Check if the requested path is a restricted route

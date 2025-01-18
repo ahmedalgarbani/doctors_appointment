@@ -139,7 +139,7 @@
                             </form>
                         </div>
                     </li>
-                    
+                    {% if request.user.is_authenticated %}
                     <!-- Notifications -->
                     <div class="notification-container">
                         <li class="nav-item dropdown noti-nav me-3 pe-0">
@@ -193,15 +193,49 @@
                         </li>
                     </div>
                     <!-- /Notifications -->
+                    <!-- User Menu -->
+                                            
+                    <li class="nav-item dropdown has-arrow logged-item">
+                        <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                            {% if request.user.profile_picture %} 
 
+                            <span class="user-img">
+                                <img class="rounded-circle" src="{{ request.user.profile_picture.url }}" width="31" alt="{{ request.user.first_name }}">
+                            </span>
+                            {% endif %}
 
-                    <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
-                    <li class="register-btn">
-                        <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <div class="user-header">
+                                {% if request.user.profile_picture %} 
+                                <div class="avatar avatar-sm">
+                                    <img src="{{ request.user.profile_picture.url }}" alt="User Image" class="avatar-img rounded-circle">
+                                </div>
+                                {% endif %}
+                                <div class="user-text">
+                                    <h6>{{ request.user.first_name }}</h6>
+                                    <p class="text-muted mb-0">{{request.user.user_type}}</p>
+                                </div>
+                            </div>
+                            <a class="dropdown-item" href="doctor-dashboard.html">Dashboard</a>
+                            <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                            <a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a>
+                        </div>
                     </li>
-                    <li class="register-btn">
-                        <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
-                    </li>
+                    <!-- /User Menu -->
+                    {% endif %}
+
+                    {% if not request.user.is_authenticated %}                        
+                       
+                        <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
+                        <li class="register-btn">
+                            <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
+                        </li>
+                        <li class="register-btn">
+                            <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
+                        </li>
+                    
+                        {% endif %}
                 </ul>
             </div>
         </nav>
