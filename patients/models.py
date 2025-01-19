@@ -21,10 +21,6 @@ class Patients(BaseModel):
         choices=[('Male', _('Male')), ('Female', _('Female'))],
         verbose_name=_("الجنس"),
     )
-    is_pregnant = models.BooleanField(default=False, verbose_name=_("هل هي حامل؟"))
-    pregnancy_term = models.PositiveSmallIntegerField(
-        null=True, blank=True, verbose_name=_("مدة الحمل (بالأسابيع)")
-    )
     weight = models.FloatField(null=True, blank=True, verbose_name=_("الوزن (كجم)"))
     height = models.FloatField(null=True, blank=True, verbose_name=_("الطول (سم)"))
     age = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("العمر"))
@@ -67,4 +63,4 @@ class Favourites(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.patient.full_name} - {self.doctor}"
+        return f"{self.patient.user} - {self.doctor}"

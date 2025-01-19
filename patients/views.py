@@ -1,74 +1,101 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Patients, Favourites
 from bookings.models import Booking
 from doctors.models import Doctor
 from reviews.models import Review
 from notifications.models import Notifications
-from django.db.models import Avg, Prefetch
+from django.db.models import Avg, Prefetch 
 from datetime import datetime
 from django.http import JsonResponse
 import json
 from django.contrib.auth.decorators import login_required
+from .forms import PatientProfileForm
 
-
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 
 @login_required(login_url='/user/login')
 def patient_dashboard(request):
     user_id = request.user
     patient = get_object_or_404(Patients, user_id=user_id)
-    if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
-        data = json.loads(request.body)
-        notification_id = data.get('notification_id')
+
+    # التحقق إذا كان تم إرسال تحديث للملف الشخصي
+    if request.method == 'POST' and 'update_profile' in request.POST:
+        # استدعاء دالة تحديث الملف الشخصي
+        return update_patient_profile(request, patient)
+    
+    # التحقق إذا كان تم إرسال طلب لتغيير كلمة المرور
+    if request.method == 'POST' and 'change_password' in request.POST:
+        password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+        if password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, password_form.user)  # تحديث الجلسة بعد تغيير كلمة المرور
+            messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
+            return redirect('patients:patient_dashboard')  # إعادة توجيه إلى صفحة داشبورد المريض
+        else:
+            messages.error(request, 'يوجد خطأ في تغيير كلمة المرور.')
+
+    else:
+        password_form = CustomPasswordChangeForm(user=request.user)
+
+    # حذف إشعارات إذا تم تحديد ذلك
+    if request.method == 'POST' and 'notification_id' in request.POST:
+        notification_id = request.POST.get('notification_id')
         result = delete_notification(notification_id, user_id)
         return JsonResponse(result)
 
+    # الحصول على الإشعارات الخاصة بالمريض
     notifications = get_notifications_for_user(user_id=user_id)
-
     unread_notifications_count = notifications.filter(status='0').count()
 
+    # الحصول على الأطباء المفضلين والتقييمات
     favourite_doctors, ratings_context = get_favourites_and_ratings(patient)
     for doctor in favourite_doctors:
         average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
         doctor.average_rating = average_rating if average_rating is not None else 0
 
-    if request.method == 'POST':
-        update_patient_data(patient, request)
-
     context = {
         'patient': patient,
+        'user': patient.user,
         'favourites': Favourites.objects.filter(patient=patient),
         'bookings': Booking.objects.filter(patient=patient),
         'favourite_doctors': favourite_doctors,
         'ratings_context': ratings_context,
-        'notifications': notifications, 
-        'unread_notifications_count': unread_notifications_count,  
+        'notifications': notifications,
+        'unread_notifications_count': unread_notifications_count,
+        'password_form': password_form, 
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
 
-def update_patient_data(patient, request):
-    """
-    دالة لتحديث بيانات المريض.
-    """
-    patient.full_name = request.POST.get('full_name', patient.full_name)
-    
-    birth_date_str = request.POST.get('birth_date', '')
-    if birth_date_str:
-        try:
-            patient.birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            patient.birth_date = None 
-    
-    patient.gender = request.POST.get('gender', patient.gender)
-    patient.email = request.POST.get('email', patient.email)
-    patient.phone_number = request.POST.get('phone_number', patient.phone_number)
-    patient.address = request.POST.get('address', patient.address)
-    patient.notes = request.POST.get('notes', patient.notes)
 
+def update_patient_profile(request, patient):
+    # تحديث البيانات بناءً على الحقول المدخلة
+    patient.user.first_name = request.POST.get('first_name')
+    patient.user.last_name = request.POST.get('last_name')
+    patient.user.email = request.POST.get('email')
+    patient.user.mobile_number = request.POST.get('mobile_number')
+    patient.user.address = request.POST.get('address')
+    patient.user.city = request.POST.get('city')
+    patient.user.state = request.POST.get('state')
+    patient.birth_date = request.POST.get('birth_date')
+    patient.gender = request.POST.get('gender')
+    patient.weight = request.POST.get('weight')
+    patient.height = request.POST.get('height')
+    patient.age = request.POST.get('age')
+    patient.blood_group = request.POST.get('blood_group')
+    patient.notes = request.POST.get('notes')
+    
+    # تحديث الصورة الشخصية إذا تم رفع صورة جديدة
     if request.FILES.get('profile_picture'):
-        patient.profile_picture = request.FILES['profile_picture']
-
+        patient.user.profile_picture = request.FILES['profile_picture']
+    
+    # حفظ البيانات بعد التعديل
+    patient.user.save()
     patient.save()
+
+    return redirect('patients:patient_dashboard')
 
 def get_favourites_and_ratings(patient):
     """
@@ -94,8 +121,6 @@ def get_favourites_and_ratings(patient):
 
     return favourite_doctors, ratings_context
 
-
-
 def get_notifications_for_user(user_id):
     """
     دالة لجلب الإشعارات الخاصة بالمستخدم الذي يمتلك id معين.
@@ -108,9 +133,17 @@ def delete_notification(notification_id, user):
     دالة لحذف الإشعار بناءً على معرف الإشعار والمستخدم.
     """
     try:
-        # الحصول على الإشعار والتأكد من أنه مرتبط بالمستخدم
         notification = Notifications.objects.get(id=notification_id, user=user, is_active=True)
         notification.delete()
         return {"success": True}
     except Notifications.DoesNotExist:
         return {"success": False, "error": "Notification not found."}
+
+
+from django import forms
+from django.contrib.auth.forms import PasswordChangeForm
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
