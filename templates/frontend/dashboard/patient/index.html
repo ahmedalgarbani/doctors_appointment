@@ -6,10 +6,10 @@
 	<div class="container">
 		<div class="row align-items-center inner-banner">
 			<div class="col-md-12 col-12 text-center">
-				<h2 class="breadcrumb-title">Dashboard</h2>
+				<h2 class="breadcrumb-title">لوحة التحكم</h2>
 				<nav aria-label="breadcrumb" class="page-breadcrumb">
 					<ol class="breadcrumb">
-						<li class="breadcrumb-item"><a href="index.html">Home</a></li>
+						<li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
 						<li class="breadcrumb-item" aria-current="page">Dashboard</li>
 					</ol>
 				</nav>
@@ -99,11 +99,12 @@
 									</a>
 								</li>
 								<li>
-									<a href="javascript:;" data-method="logout" >
+									<a href="{% url 'users:logout' %}" data-method="logout" id="logout-link">
 										<i class="fas fa-sign-out-alt"></i>
 										<span>تسجيل الخروج </span>
 									</a>
 								</li>
+								
 							</ul>
 						</nav>
 					</div>
@@ -131,18 +132,41 @@
 <script>
   $(document).ready(function () {
     function showSection(targetSection) {
-      $(".section").addClass("d-none");
-      
-      
-      $(`.${targetSection}`).removeClass("d-none");
+        // إخفاء جميع الأقسام
+        $(".section").addClass("d-none");
+        // إظهار القسم المستهدف
+        $(`.${targetSection}`).removeClass("d-none");
+
+        // تحديث عنوان الصفحة
+        const sectionTitles = {
+            patient_dashboard: "لوحة التحكم",
+            favourites: "الأطباء المفضلين",
+            dependent: "المعالين",
+            orders_list: "الطلبات",
+            notifications_list: "الإشعارات",
+            profile_settings: "إعدادات الملف الشخصي",
+            change_password: "تغيير كلمة المرور"
+        };
+
+        const newTitle = sectionTitles[targetSection] || "لوحة التحكم";
+        $(".breadcrumb-title").text(newTitle); // تحديث العنوان
+        $(".breadcrumb-item.active").text(newTitle); // تحديث العنصر النشط في `breadcrumb`
     }
-  
-    $("a[data-method]").on("click", function () {
-      const methodName = $(this).data("method");
-      showSection(methodName)
-     
+
+    $("a[data-method]").on("click", function (e) {
+        const methodName = $(this).data("method");
+        if (methodName === "logout") {
+            e.preventDefault();
+            const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
+            if (confirmLogout) {
+                window.location.href = $(this).attr("href");
+            }
+        } else {
+            showSection(methodName);
+        }
     });
-  });
-  
+});
+
+
 </script>
 {% endblock extra_js %}

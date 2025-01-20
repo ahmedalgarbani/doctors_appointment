@@ -9,8 +9,8 @@ from datetime import datetime
 from django.http import JsonResponse
 import json
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from .forms import PatientProfileForm
-
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
@@ -55,6 +55,9 @@ def patient_dashboard(request):
         average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
         doctor.average_rating = average_rating if average_rating is not None else 0
 
+    bookings_count = Booking.objects.filter(patient=patient).count()
+
+
     context = {
         'patient': patient,
         'user': patient.user,
@@ -65,6 +68,7 @@ def patient_dashboard(request):
         'notifications': notifications,
         'unread_notifications_count': unread_notifications_count,
         'password_form': password_form, 
+        'bookings_count': bookings_count,
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
@@ -147,3 +151,8 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+
+def user_logout(request):
+    logout(request)
+    return redirect('/')
