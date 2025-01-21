@@ -15,9 +15,6 @@
                         <ul>
                             <li><a href="#" class="active">1</a></li>
                             <li><a href="#">2</a></li>
-                            <li><a href="#">3</a></li>
-                            <li><a href="#">4</a></li>
-                            <li><a href="#">5</a></li>
                         </ul>
                     </div>
 
@@ -25,17 +22,34 @@
                     <form id="profile_pic_form" method="post" enctype="multipart/form-data" action="{% url 'users:register_step1' %}">
                         {% csrf_token %}
                         <div class="profile-pic-col">
-                            <h3>Profile Picture</h3>
+                            <h3>صورة الملف الشخصي</h3>
                             <div class="profile-pic-upload">
                                 <div class="cam-col">
                                     <img src="{% static 'img/icons/camera.svg' %}" id="prof-avatar" alt="camera-image" class="img-fluid">
                                 </div>
-                                <span>Upload Profile Picture</span>
+                                <span>رفع صورة الملف الشخصي</span>
                                 <input type="file" id="profile_image" name="profile_image"> 
                             </div>
                         </div>
+                        <br>
+
+                        <div class="mb-3 form-focus">
+                            <input type="text" name="address" class="form-control floating" required>
+                            <label class="focus-label">العنوان</label>
+                        </div>
+                        
+                        <div class="mb-3 form-focus">
+                            <input type="text" name="city" class="form-control floating" required>
+                            <label class="focus-label">المدينة</label>
+                        </div>
+                        
+                        <div class="mb-3 form-focus">
+                            <input type="text" name="state" class="form-control floating" required>
+                            <label class="focus-label">المديرية</label>
+                        </div>                        
+
                         <div class="mt-5">
-                            <button type="submit" class="btn btn-primary w-100 btn-lg login-btn step1_submit">Continue</button>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg login-btn step1_submit">يكمل</button>
                         </div>
                     </form>
                 </div>

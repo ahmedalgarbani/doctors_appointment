@@ -6,10 +6,10 @@
 			<div class="card">
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-01.png' %}" alt="heart-image" width="55">
+						<img src="{% static 'img/icon-03.png' %}" alt="hospital-equipment" width="55">
 					</div>
-					<h5>Heart Rate</h5>
-					<h6>12 <sub>bpm</sub></h6>
+					<h5>عدد الحجوزات</h5>
+					<h6>{{ bookings_count }}</h6>
 				</div>
 			</div>
 		</div>
@@ -17,10 +17,10 @@
 			<div class="card">
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-02.png' %}" alt="thermometer-image" width="55">
+						<img src="{% static 'img/specialities/weight.png' %}" alt="heart-image" width="55">
 					</div>
-					<h5>Body Temperature</h5>
-					<h6>18 <sub>C</sub></h6>
+					<h5>الوزن</h5>
+					<h6>{{ patient.weight }} <sub>kg</sub></h6>
 				</div>
 			</div>
 		</div>
@@ -28,10 +28,10 @@
 			<div class="card">
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-03.png' %}" alt="hospital-equipment" width="55">
+						<img src="{% static 'img/specialities/age.png' %}" alt="thermometer-image" width="55">
 					</div>
-					<h5>Glucose Level</h5>
-					<h6>70 - 90</h6>
+					<h5>العمر</h5>
+					<h6>{{ patient.age }}<sub> سنة</sub></h6>
 				</div>
 			</div>
 		</div>
@@ -39,16 +39,16 @@
 			<div class="card">
 				<div class="card-body text-center">
 					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-04.png' %}" alt="hospital-equipment" width="55">
+						<img src="{% static 'img/specialities/blood_group.png' %}" alt="hospital-equipment" width="55">
 					</div>
-					<h5>Blood Pressure</h5>
-					<h6>202/90 <sub>mg/dl</sub></h6>
+					<h5>فصيلة الدم</h5>
+					<h6>{{ patient.blood_group }}</h6>
 				</div>
 			</div>
 		</div>
 	</div>
 	
-	<div class="row patient-graph-col">
+	<!-- <div class="row patient-graph-col">
 		<div class="col-12">
 			<div class="card">
 				<div class="card-header">
@@ -112,7 +112,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
 	<div class="card">
 		<div class="card-body pt-0">
@@ -121,7 +121,7 @@
 			<nav class="user-tabs mb-4">
 				<ul class="nav nav-tabs nav-tabs-bottom nav-justified">
 					<li class="nav-item">
-						<a class="nav-link active" href="#pat_appointments" data-bs-toggle="tab">Appointments</a>
+						<a class="nav-link active" href="#pat_appointments" data-bs-toggle="tab">المواعيد</a>
 					</li>
 					<!-- <li class="nav-item">
 						<a class="nav-link" href="#pat_medical_records" data-bs-toggle="tab"><span class="med-records">Medical Records</span></a>

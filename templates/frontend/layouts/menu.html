@@ -217,7 +217,13 @@
                                     <p class="text-muted mb-0">{{request.user.user_type}}</p>
                                 </div>
                             </div>
-                            <a class="dropdown-item" href="doctor-dashboard.html">Dashboard</a>
+                            {% if request.user.user_type == 'patient' %}
+                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
+                            {% elif request.user.user_type == 'hospital_manager' %}
+                                <a class="dropdown-item" href="{% url 'hospitals:hospital_dashboard' %}">لوحة التحكم</a>
+                            {% else %}
+                                <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>
+                            {% endif %}
                             <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
                             <a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a>
                         </div>
