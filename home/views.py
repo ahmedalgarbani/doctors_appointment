@@ -13,6 +13,7 @@ from datetime import timedelta
 from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
+from django.contrib.auth.hashers import make_password,check_password
 
 logger = logging.getLogger(__name__)
 

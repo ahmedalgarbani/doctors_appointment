@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect ,reverse
 from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from pydantic import ValidationError, validate_email
+
+from hospitals.models import HospitalAccountRequest
 from .models import CustomUser
 from patients.models import Patients
 from django.contrib import messages
@@ -19,7 +22,7 @@ def patient_signup(request):
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
         mobile_number = request.POST.get('mobile_number')
-        password = make_password(request.POST.get('password')) 
+        password = request.POST.get('password')
 
         # تخزين البيانات في الجلسة
         request.session['username'] = username
@@ -83,9 +86,7 @@ def register_step2(request):
             return render(request, 'frontend/auth/patient-register-step2.html', {
                 'error': 'حدث خطأ في البيانات. تأكد من إدخال جميع البيانات.'
             })
-
-        encrypted_password = make_password(password)
-
+       
         # إنشاء المستخدم
         user = CustomUser.objects.create_user(
             username=username,
@@ -93,14 +94,13 @@ def register_step2(request):
             last_name=last_name,
             email=email,
             mobile_number=mobile_number,
-            password=encrypted_password,
+            password=password,
             profile_picture=profile_picture,
             address=address,
             city=city,
             state=state,
             user_type='patient',
         )
-
         # إنشاء سجل مريض في جدول Patients
         Patients.objects.create(
             user=user,
@@ -139,6 +139,7 @@ def admin_dashboard(request):
 # def doctor_dashboard(request):
 #     return render(request, 'frontend/dashboard/doctor/index.html')
 
+from django.contrib.auth.hashers import make_password, check_password
 def login_view(request):
     if request.user.is_authenticated:
         logout(request)
@@ -147,9 +148,9 @@ def login_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         user = authenticate(request, username=email, password=password)
-
         if user is not None:
             login(request, user) 
+           
             
             next_url = request.GET.get('next', None)
             if next_url:
@@ -174,3 +175,79 @@ def login_view(request):
 def user_logout(request):
     logout(request)
     return redirect('/')
+
+
+def hospital_account_request(request):
+    if request.method == 'POST':
+        try:
+            # استخلاص البيانات من الطلب
+            hospital_name = request.POST.get('hospital_name')
+            manager_full_name = request.POST.get('manager_full_name')
+            manager_email = request.POST.get('manager_email')
+            manager_phone = request.POST.get('manager_phone')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+            hospital_location = request.POST.get('hospital_location')
+            notes = request.POST.get('notes', '')
+            commercial_record = request.FILES.get('commercial_record')
+            medical_license = request.FILES.get('medical_license')
+            
+            # 1. التحقق من الحقول المطلوبة
+            if not all([hospital_name, manager_full_name, manager_email, manager_phone, password, confirm_password, hospital_location]):
+                messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 2. التحقق من صحة البريد الإلكتروني
+            try:
+              validate_email(manager_email)
+            except ValidationError:
+                messages.error(request, 'البريد الإلكتروني غير صالح.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # 3. التحقق من تطابق كلمتي المرور
+            if password != confirm_password:
+                messages.error(request, 'كلمتا المرور غير متطابقتين.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            # # 4. التحقق من صحة رقم الهاتف (يمكنك إضافة شروط أكثر تعقيدًا إذا لزم الأمر)
+            # if not manager_phone.isdigit() or len(manager_phone) < 9:
+            #      messages.error(request, 'رقم الهاتف غير صالح.')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            
+            #  # 5. التحقق من حجم الملفات (يمكنك تعديل الحجم الأقصى حسب الحاجة)
+            # max_file_size = settings.MAX_UPLOAD_SIZE
+            # if commercial_record and commercial_record.size > max_file_size:
+            #       messages.error(request, f'حجم السجل التجاري كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #       return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            # if medical_license and medical_license.size > max_file_size:
+            #      messages.error(request, f'حجم الترخيص الطبي كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
+            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+            # إنشاء طلب جديد
+            hospital_request = HospitalAccountRequest(
+                hospital_name=hospital_name,
+                manager_full_name=manager_full_name,
+                manager_email=manager_email,
+                manager_phone=manager_phone,
+                manager_password=password,
+                hospital_location=hospital_location,
+                notes=notes,
+                created_by=request.user if request.user.is_authenticated else None
+            )
+            
+            # معالجة الملفات المرفقة
+            if commercial_record:
+                hospital_request.commercial_record = commercial_record
+            if medical_license:
+                hospital_request.medical_license = medical_license
+
+            hospital_request.save()
+
+            messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً.')
+            return redirect('hospitals:hospital_request_success')
+
+        except Exception as e:
+            messages.error(request, f'حدث خطأ أثناء معالجة طلبك: {e}. يرجى المحاولة مرة أخرى.')
+            return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+
+    return render(request, 'frontend/auth/hospital-manager-register.html')
