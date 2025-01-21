@@ -178,10 +178,7 @@ def admin_dashboard(request):
 
 
 def hospital_account_request(request):
-    print("hospital-manager-register.html")
-    print("hospital-manager-register.html")
     if request.method == 'POST':
-        print("hospital-manager-register.html")
         try:
             # استخلاص البيانات من الطلب
             hospital_name = request.POST.get('hospital_name')
