@@ -30,7 +30,7 @@
                             {% endif %}
 
                             <!-- Hospital Account Request Form -->
-                             <form action="{% url 'hospitals:hospital_account_request' %}" method="post" enctype="multipart/form-data">
+                             <form action="{% url 'users:hospital_account_request' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
