@@ -1337,7 +1337,7 @@ def update_hospital_profile(request):
 def get_doctor(request, doctor_id):
     try:
         print(f"Getting doctor {doctor_id}")
-        hospital = Hospital.objects.get(hospital_manager=request.user)
+        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
         print(f"Found hospital: {hospital.id}")
         
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
@@ -1370,19 +1370,16 @@ def get_doctor(request, doctor_id):
         return JsonResponse(response_data)
         
     except Hospital.DoesNotExist:
-        print(f"Hospital not found for user {request.user.id}")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على المستشفى'
         }, status=404)
     except Doctor.DoesNotExist:
-        print(f"Doctor {doctor_id} not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
         return JsonResponse({
             'status': 'error',
             'error': str(e)
@@ -1400,7 +1397,7 @@ def update_doctor(request, doctor_id):
         print(f"POST data: {request.POST}")
         
         # Get hospital and doctor
-        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
         
         # Update doctor information
@@ -1471,7 +1468,8 @@ def delete_doctor(request, doctor_id):
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
     try:
-        hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+        # تعديل هنا
+        hospital = get_object_or_404(Hospital, user=request.user)
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
         
         # Remove the doctor from this hospital
@@ -1488,16 +1486,16 @@ def delete_doctor(request, doctor_id):
 @login_required(login_url='/user/login')
 def get_doctor_history(request, doctor_id):
     try:
-        hospital = Hospital.objects.get(hospital_manager=request.user)
+        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
         
-        # Get doctor's price history
+        # جلب سجل أسعار الطبيب
         history = DoctorPricingHistory.objects.filter(
             doctor=doctor,
             hospital=hospital
         ).order_by('-change_date')
         
-        # Get current price
+        # الحصول على السعر الحالي
         current_price = DoctorPricing.objects.filter(
             doctor=doctor,
             hospital=hospital

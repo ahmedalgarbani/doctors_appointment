@@ -220,7 +220,7 @@
                             {% if request.user.user_type == 'patient' %}
                                 <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
                             {% elif request.user.user_type == 'hospital_manager' %}
-                                <a class="dropdown-item" href="{% url 'hospitals:hospital_dashboard' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
                             {% else %}
                                 <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>
                             {% endif %}

@@ -1,4 +1,4 @@
-<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section">
+<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section d-none">
 						 
 	<div class="row">
 		<div class="col-sm-12">
@@ -335,14 +335,15 @@ function showMessage(message, type = 'danger') {
 }
 
 $(document).ready(function() {
-    var doctorSchedules = {{ doctor_schedules|safe|default:'{}' }};
+    // قراءة بيانات الجداول من العنصر المضمّن
+    var doctorSchedules = JSON.parse(document.getElementById('doctor-schedules').textContent || '{}');
     console.log("Initial doctor schedules:", doctorSchedules);
-    
+
     // تحميل جدول الطبيب عند اختياره
     $('#doctor_select').change(function() {
         var doctorId = $(this).val();
         console.log("Selected doctor:", doctorId);
-        
+
         if (doctorId) {
             var schedules = doctorSchedules[doctorId] || {};
             updateScheduleDisplay(schedules);
@@ -358,7 +359,7 @@ $(document).ready(function() {
         e.preventDefault();
         const form = $(this);
         const doctorId = $('#doctor_select').val();
-        
+
         if (!doctorId) {
             showMessage('الرجاء اختيار الطبيب أولاً');
             return;
@@ -369,13 +370,13 @@ $(document).ready(function() {
         formData.append('doctor_id', doctorId);
         formData.append('day', form.data('day'));
         formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
-        
+
         // تجميع وقت البداية والنهاية
         const startHour = form.find('[name="start_hour"]').val();
         const startMinute = form.find('[name="start_minute"]').val();
         const endHour = form.find('[name="end_hour"]').val();
         const endMinute = form.find('[name="end_minute"]').val();
-        
+
         formData.append('start_time', `${startHour}:${startMinute}`);
         formData.append('end_time', `${endHour}:${endMinute}`);
         formData.append('max_appointments', form.find('[name="max_appointments"]').val());
@@ -383,8 +384,7 @@ $(document).ready(function() {
         // تعطيل زر الإرسال
         const submitButton = form.find('button[type="submit"]');
         submitButton.prop('disabled', true);
-        
-        // طباعة البيانات للتأكد منها
+
         console.log('Sending data:', {
             doctor_id: doctorId,
             day: form.data('day'),
@@ -403,20 +403,18 @@ $(document).ready(function() {
                 console.log('Response:', response);
                 if (response.status === 'success') {
                     showMessage(response.message, 'success');
-                    // تحديث عرض المواعيد
                     if (response.shift) {
                         const schedules = {};
                         schedules[doctorId] = {};
                         schedules[doctorId][form.data('day')] = [response.shift];
                         updateScheduleDisplay(schedules);
                     }
-                    // إعادة تعيين النموذج
                     form[0].reset();
                 } else {
                     showMessage(response.message || 'حدث خطأ أثناء حفظ الموعد');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function(xhr) {
                 console.error('Error:', xhr.responseText);
                 let errorMessage = 'حدث خطأ أثناء معالجة الطلب';
                 try {
@@ -428,7 +426,6 @@ $(document).ready(function() {
                 showMessage(errorMessage);
             },
             complete: function() {
-                // إعادة تفعيل زر الإرسال
                 submitButton.prop('disabled', false);
             }
         });
@@ -438,7 +435,7 @@ $(document).ready(function() {
     $(document).on('click', '.delete-time-slot', function(e) {
         e.preventDefault();
         const shiftId = $(this).data('shift-id');
-        
+
         if (confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
             $.ajax({
                 url: "{% url 'hospitals:delete_shift' '0' %}".replace('0', shiftId),
@@ -449,7 +446,6 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.status === 'success') {
                         showMessage(response.message, 'success');
-                        // تحديث عرض المواعيد
                         const doctorId = $('#doctor_select').val();
                         if (doctorSchedules[doctorId]) {
                             Object.keys(doctorSchedules[doctorId]).forEach(function(day) {
@@ -463,7 +459,7 @@ $(document).ready(function() {
                         showMessage(response.message);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function(xhr) {
                     console.error('Error:', xhr.responseText);
                     let errorMessage = 'حدث خطأ أثناء حذف الموعد';
                     try {
@@ -482,12 +478,12 @@ $(document).ready(function() {
     function updateScheduleDisplay(schedules) {
         console.log("Updating display with schedules:", schedules);
         $('.doc-times').empty().html('<p class="text-muted mb-0">لا توجد مواعيد</p>');
-        
+
         Object.keys(schedules).forEach(function(day) {
             var shifts = schedules[day];
             var dayId = day.toString().padStart(1, '0');
             var docTimes = $(`#slot_${dayId}`).find('.doc-times');
-            
+
             if (shifts && shifts.length > 0) {
                 docTimes.empty();
                 shifts.forEach(function(shift) {
@@ -521,6 +517,12 @@ $(document).ready(function() {
             }
         });
     }
+
+    // رسالة عرض
+    function showMessage(message, type = 'error') {
+        alert(message);
+    }
 });
+
 </script>
 {% endblock %}

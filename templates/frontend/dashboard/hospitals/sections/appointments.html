@@ -135,21 +135,21 @@
                                 <tr>
                                     <td>
                                         <h2 class="table-avatar">
-                                            {% if booking.patient.profile_picture %}
-                                                <img src="{{ booking.patient.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
+                                            {% if booking.patient.user.profile_picture %}
+                                                <img src="{{ booking.patient.user.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
-                                                {{ booking.patient.full_name }}
+                                                {{ booking.patient.user.get_full_name }}
                                                 <small class="d-block text-muted">
-                                                    {{ booking.patient.mobile_number }}
+                                                    {{ booking.patient.user.mobile_number }}
                                                 </small>
                                             </a>
                                         </h2>
                                     </td>
                                     <td>
                                         <h2 class="table-avatar">
-                                            {% if booking.doctor.profile_image %}
-                                                <img src="{{ booking.doctor.profile_image.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
+                                            {% if booking.doctor.photo %}
+                                                <img src="{{ booking.doctor.photo.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
                                                 د. {{ booking.doctor.full_name }}
