@@ -1,4 +1,5 @@
-<div class="col-md-7 col-lg-8 col-xl-9 hospital_dashboard section">
+{% load static %}
+<div class="col-md-7 col-lg-8 col-xl-9 hospital_dashboard section d-none">
     <div class="row">
         <div class="col-md-12">
             <div class="card card-table mb-0">
@@ -8,7 +9,7 @@
                             <div class="dash-widget dct-border-rht">
                                 <div class="circle-bar circle-bar1">
                                     <div class="circle-graph1" data-percent="75">
-                                        <img src="assets/img/icon-01.png" class="img-fluid" alt="Doctors">
+                                        <img src="{% static 'img/icon-01.png' %}" class="img-fluid" alt="Doctors">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
@@ -18,12 +19,12 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-12 col-lg-3">
                             <div class="dash-widget dct-border-rht">
                                 <div class="circle-bar circle-bar2">
                                     <div class="circle-graph2" data-percent="{{ specialties_count_percentage }}">
-                                        <img src="assets/img/icon-02.png" class="img-fluid" alt="التخصصات">
+                                        <img src="{% static 'img/icon-02.png' %}" class="img-fluid" alt="التخصصات">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
@@ -33,12 +34,12 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-12 col-lg-3">
                             <div class="dash-widget">
                                 <div class="circle-bar circle-bar3">
                                     <div class="circle-graph3" data-percent="{{ revenue_percentage }}">
-                                        <img src="assets/img/icon-03.png" class="img-fluid" alt="الإيرادات">
+                                        <img src="{% static 'img/icon-03.png' %}" class="img-fluid" alt="الإيرادات">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
@@ -53,7 +54,7 @@
                             <div class="dash-widget">
                                 <div class="circle-bar circle-bar4">
                                     <div class="circle-graph4" data-percent="{{ appointments_percentage }}">
-                                        <img src="assets/img/icon-04.png" class="img-fluid" alt="المواعيد">
+                                        <img src="{% static 'img/icon-03.png' %}" class="img-fluid" alt="المواعيد">
                                     </div>
                                 </div>
                                 <div class="dash-widget-info">
@@ -153,23 +154,23 @@
                                             <td>#{{ appointment.id }}</td>
                                             <td>
                                                 <h2 class="table-avatar">
-                                                    {% if appointment.patient.photo %}
+                                                    {% if appointment.patient.user.profile_picture %}
                                                     <a class="avatar avatar-sm me-2">
-                                                        <img class="avatar-img rounded-circle" 
-                                                             src="{{ appointment.patient.photo.url }}" 
-                                                             alt="{{ appointment.patient.full_name }}">
+                                                        <img class="avatar-img rounded-circle"
+                                                            src="{{ appointment.patient.user.profile_picture.url }}"
+                                                            alt="{{ appointment.patient.user.get_full_name }}">
                                                     </a>
                                                     {% endif %}
-                                                    <a>{{ appointment.patient.full_name }}</a>
+                                                    <a>{{ appointment.patient.user.get_full_name }}</a>
                                                 </h2>
                                             </td>
                                             <td>
                                                 <h2 class="table-avatar">
                                                     {% if appointment.doctor.photo %}
                                                     <a class="avatar avatar-sm me-2">
-                                                        <img class="avatar-img rounded-circle" 
-                                                             src="{{ appointment.doctor.photo.url }}" 
-                                                             alt="{{ appointment.doctor.full_name }}">
+                                                        <img class="avatar-img rounded-circle"
+                                                            src="{{ appointment.doctor.photo.url }}"
+                                                            alt="{{ appointment.doctor.full_name }}">
                                                     </a>
                                                     {% endif %}
                                                     <a>{{ appointment.doctor.full_name }}</a>
@@ -188,17 +189,19 @@
                                             </td>
                                             <td>
                                                 <div class="actions">
-                                                    {% comment %} <a href="{% url 'view_appointment' appointment.id %}" 
-                                                       class="btn btn-sm bg-info-light me-2">
+                                                    {% comment %} <a href="{% url 'view_appointment' appointment.id %}"
+                                                        class="btn btn-sm bg-info-light me-2">
                                                         <i class="far fa-eye"></i>
                                                     </a> {% endcomment %}
                                                     {% if appointment.status == 'pending' %}
-                                                    {% comment %} <a href="{% url 'confirm_appointment' appointment.id %}" 
-                                                       class="btn btn-sm bg-success-light me-2">
+                                                    {% comment %} <a
+                                                        href="{% url 'confirm_appointment' appointment.id %}"
+                                                        class="btn btn-sm bg-success-light me-2">
                                                         <i class="fas fa-check"></i>
                                                     </a> {% endcomment %}
-                                                    {% comment %} <a href="{% url 'cancel_appointment' appointment.id %}" 
-                                                       class="btn btn-sm bg-danger-light">
+                                                    {% comment %} <a
+                                                        href="{% url 'cancel_appointment' appointment.id %}"
+                                                        class="btn btn-sm bg-danger-light">
                                                         <i class="fas fa-times"></i> {% endcomment %}
                                                     </a>
                                                     {% endif %}
@@ -214,7 +217,7 @@
                                 </table>
                             </div>
                         </div>
-                        
+
                         <!-- Doctors Tab -->
                         <div class="tab-pane" id="doctors-tab">
                             <div class="table-responsive">
@@ -235,10 +238,10 @@
                                             <td>
                                                 <h2 class="table-avatar">
                                                     {% if doctor.photo %}
-                                                    <a href="{% url 'home:doctor_profile' doctor.id %}" class="avatar avatar-sm me-2">
-                                                        <img class="avatar-img rounded-circle" 
-                                                             src="{{ doctor.photo.url }}" 
-                                                             alt="{{ doctor.full_name }}">
+                                                    <a href="{% url 'home:doctor_profile' doctor.id %}"
+                                                        class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle"
+                                                            src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}">
                                                     </a>
                                                     {% endif %}
                                                     <a href="">{{ doctor.full_name }}</a>
@@ -247,27 +250,28 @@
                                             <td>{{ doctor.specialty.name }}</td>
                                             <td>{{ doctor.today_appointments_count }}</td>
                                             <td>
-                                                <i class="fas fa-star text-warning"></i> 
+                                                <i class="fas fa-star text-warning"></i>
                                                 {{ doctor.average_rating|default:"0" }}
                                             </td>
                                             <td>
-                                                <span class="badge {% if doctor.status %}badge-success{% else %}badge-danger{% endif %}">
+                                                <span
+                                                    class="badge {% if doctor.status %}badge-success{% else %}badge-danger{% endif %}">
                                                     {{ doctor.status|yesno:"نشط,غير نشط" }}
                                                 </span>
                                             </td>
                                             <td>
                                                 {% comment %} <div class="actions">
-                                                    <a href="{% url 'hospitals:edit_doctor' doctor.id %}" 
-                                                       class="btn btn-sm bg-success-light me-2">
+                                                    <a href="{% url 'hospitals:edit_doctor' doctor.id %}"
+                                                        class="btn btn-sm bg-success-light me-2">
                                                         <i class="fe fe-pencil"></i>
                                                     </a>
-                                                    <a href="{% url 'doctor_schedule' doctor.id %}" 
-                                                       class="btn btn-sm bg-info-light me-2">
+                                                    <a href="{% url 'doctor_schedule' doctor.id %}"
+                                                        class="btn btn-sm bg-info-light me-2">
                                                         <i class="far fa-calendar-alt"></i>
-                                                    </a> 
-                                                    <a href="#" class="btn btn-sm bg-danger-light" 
-                                                       data-bs-toggle="modal" 
-                                                       data-bs-target="#delete_doctor_{{ doctor.id }}">
+                                                    </a>
+                                                    <a href="#" class="btn btn-sm bg-danger-light"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#delete_doctor_{{ doctor.id }}">
                                                         <i class="fe fe-trash"></i>
                                                     </a>
                                                 </div> {% endcomment %}
@@ -282,7 +286,7 @@
                                 </table>
                             </div>
                         </div>
-                        
+
                         <!-- Payments Tab -->
                         <div class="tab-pane" id="payments-tab">
                             <div class="table-responsive">
@@ -302,17 +306,17 @@
                                         {% for payment in latest_payments %}
                                         <tr>
                                             <td><a href="">#INV-{{ payment.id }}</a></td>
-                                            <td>{{ payment.booking.patient.full_name }}</td>
+                                            <td>{{ payment.booking.patient.user.get_full_name }}</td>
                                             <td>{{ payment.booking.doctor.full_name }}</td>
                                             <td>{{ payment.payment_totalamount }} ر.س</td>
                                             <td>{{ payment.payment_method }}</td>
                                             <td>{{ payment.created_at|date:"Y/m/d" }}</td>
                                             <td>
-                                                <span class="badge {% if payment.payment_status.payment_status_name == 'completed' %}badge-success
-                                                                  {% elif payment.payment_status.payment_status_name == 'pending' %}badge-warning
-                                                                  {% elif payment.payment_status.payment_status_name == 'failed' %}badge-danger
+                                                <span class="badge {% if payment.payment_status == 1 %}badge-success
+                                                                  {% elif payment.payment_status == 0 %}badge-warning
+                                                                  {% elif payment.payment_status == 2 %}badge-danger
                                                                   {% endif %}">
-                                                    {{payment.payment_status.payment_status_name }}
+                                                    {{ payment.get_status_display }}
                                                 </span>
                                             </td>
                                         </tr>

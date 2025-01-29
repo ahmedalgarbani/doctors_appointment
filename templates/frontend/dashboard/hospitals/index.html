@@ -5,7 +5,7 @@ widget_tweaks %} {% block content %}
   <div class="container">
     <div class="row align-items-center inner-banner">
       <div class="col-md-12 col-12 text-center">
-        <h2 class="breadcrumb-title">Doctor Blog</h2>
+        <h2 class="breadcrumb-title">لوحة التحكم</h2>
         <nav aria-label="breadcrumb" class="page-breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -31,7 +31,7 @@ widget_tweaks %} {% block content %}
         <div class="profile-sidebar">
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
-              {% if request.user.profile_picture %} 
+              {% if request.user.profile_picture %}
 
               <a href="#" class="booking-doc-img">
                 <img src="{{request.user.profile_picture.url}}" alt="User Image" />
@@ -49,61 +49,37 @@ widget_tweaks %} {% block content %}
             <nav class="dashboard-menu">
               <ul>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="hospital_dashboard"
-                    data-section="hospital_dashboard"
-                  >
+                  <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard">
                     <i class="fas fa-columns"></i>
                     <span>لوحة التحكم</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="schedule_timings"
-                    data-section="schedule_timings"
-                  >
+                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
                     <i class="fas fa-clock"></i>
                     <span>جدولة المواعيد</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="all_doctor_page"
-                    data-section="all_doctor_page"
-                  >
+                  <a href="javascript:;" data-method="all_doctor_page" data-section="all_doctor_page">
                     <i class="fas fa-calendar-check"></i>
                     <span>الاطباء</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="appointments"
-                    data-section="appointments"
-                  >
+                  <a href="javascript:;" data-method="appointments" data-section="appointments">
                     <i class="fas fa-calendar-check"></i>
                     <span>الحجوزات</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="my_patient"
-                    data-section="my_patient"
-                  >
+                  <a href="javascript:;" data-method="my_patient" data-section="my_patient">
                     <i class="fas fa-user-injured"></i>
                     <span>المرضى</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="invoices"
-                    data-section="invoices"
-                  >
+                  <a href="javascript:;" data-method="invoices" data-section="invoices">
                     <i class="fas fa-file-invoice"></i>
                     <span>الفواتير</span>
                   </a>
@@ -116,21 +92,13 @@ widget_tweaks %} {% block content %}
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="payment_settings"
-                    data-section="payment_settings"
-                  >
+                  <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
                     <i class="fas fa-user-cog"></i>
                     <span> اعدادات طرق الدفع</span>
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="doctor_profile_settings"
-                    data-section="doctor_profile_settings"
-                  >
+                  <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
                     <i class="fas fa-user-cog"></i>
                     <span>إعدادات الملف الشخصي</span>
                   </a>
@@ -149,11 +117,7 @@ widget_tweaks %} {% block content %}
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="javascript:;"
-                    data-method="doctor_change_password"
-                    data-section="doctor_change_password"
-                  >
+                  <a href="javascript:;" data-method="doctor_change_password" data-section="doctor_change_password">
                     <i class="fas fa-lock"></i>
                     <span>تغيير كلمة المرور</span>
                   </a>
@@ -172,39 +136,25 @@ widget_tweaks %} {% block content %}
       </div>
 
       <!-- Include Sections -->
-<!-- Include Sections -->
-{% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-{% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
-{% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
+      {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment
+      %}
+      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
 
-{% include "frontend/dashboard/hospitals/sections/notifications.html" %}
-{% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
-{% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-
-{% comment %}
-    {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
-{% endcomment %}
-
-
-{% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
-{% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
-{% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
-{% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
-{% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-{% include "frontend/dashboard/hospitals/sections/invoices.html" %}
-
-{% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-
-
-
-    {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
-
-
-{% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-
-
-
-{% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% comment %}
+      {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
+      {% endcomment %}
 
     </div>
   </div>
@@ -238,4 +188,44 @@ widget_tweaks %} {% block content %}
     });
   });
 </script>
+
+
+<script>
+  $(document).ready(function () {
+    // عندما يتم الضغط على أي رابط في القائمة الجانبية
+    $("a[data-method]").on("click", function () {
+      const methodName = $(this).data("method");
+      let sectionTitle = "";
+
+      // تحديد العنوان المناسب بناءً على method
+      if (methodName === "hospital_dashboard") {
+        sectionTitle = "لوحة التحكم";
+      } else if (methodName === "schedule_timings") {
+        sectionTitle = "جدولة المواعيد";
+      } else if (methodName === "all_doctor_page") {
+        sectionTitle = "جميع الأطباء";
+      } else if (methodName === "appointments") {
+        sectionTitle = "الحجوزات";
+      } else if (methodName === "my_patient") {
+        sectionTitle = "المرضى";
+      } else if (methodName === "invoices") {
+        sectionTitle = "الفواتير";
+      } else if (methodName === "payment_settings") {
+        sectionTitle = "إعدادات الدفع";
+      } else if (methodName === "doctor_profile_settings") {
+        sectionTitle = "إعدادات الملف الشخصي";
+      } else if (methodName === "notifications_list") {
+        sectionTitle = "الأشعارات";
+      } else if (methodName === "notifications_forms") {
+        sectionTitle = "إرسال إشعار";
+      } else if (methodName === "doctor_change_password") {
+        sectionTitle = "تغيير كلمة المرور";
+      }
+
+      // تحديث عنوان breadcrumb
+      $(".breadcrumb-title").text(sectionTitle);
+    });
+  });
+</script>
+
 {% endblock extra_js %}

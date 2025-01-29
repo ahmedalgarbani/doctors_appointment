@@ -14,39 +14,31 @@ from .forms import PatientProfileForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from payments.models import (
+    HospitalPaymentMethod,
+    PaymentOption,
+    Payment,
+)
 
 @login_required(login_url='/user/login')
 def patient_dashboard(request):
-    user_id = request.user
-    patient = get_object_or_404(Patients, user_id=user_id)
+    user = request.user
+    patient = get_object_or_404(Patients, user_id=user)
 
     # التحقق إذا كان تم إرسال تحديث للملف الشخصي
     if request.method == 'POST' and 'update_profile' in request.POST:
-        # استدعاء دالة تحديث الملف الشخصي
         return update_patient_profile(request, patient)
     
-    # التحقق إذا كان تم إرسال طلب لتغيير كلمة المرور
-    if request.method == 'POST' and 'change_password' in request.POST:
-        password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
-        if password_form.is_valid():
-            password_form.save()
-            update_session_auth_hash(request, password_form.user)  # تحديث الجلسة بعد تغيير كلمة المرور
-            messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
-            return redirect('patients:patient_dashboard')  # إعادة توجيه إلى صفحة داشبورد المريض
-        else:
-            messages.error(request, 'يوجد خطأ في تغيير كلمة المرور.')
-
-    else:
-        password_form = CustomPasswordChangeForm(user=request.user)
-
     # حذف إشعارات إذا تم تحديد ذلك
-    if request.method == 'POST' and 'notification_id' in request.POST:
-        notification_id = request.POST.get('notification_id')
-        result = delete_notification(notification_id, user_id)
+    if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
+        import json
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        result = delete_notification(notification_id, user)
         return JsonResponse(result)
 
     # الحصول على الإشعارات الخاصة بالمريض
-    notifications = get_notifications_for_user(user_id=user_id)
+    notifications = get_notifications_for_user(user_id=user)
     unread_notifications_count = notifications.filter(status='0').count()
 
     # الحصول على الأطباء المفضلين والتقييمات
@@ -57,6 +49,8 @@ def patient_dashboard(request):
 
     bookings_count = Booking.objects.filter(patient=patient).count()
 
+    # جلب المدفوعات الخاصة بالمريض
+    payments = Payment.objects.select_related('booking__doctor').filter(booking__patient=patient)
 
     context = {
         'patient': patient,
@@ -67,39 +61,13 @@ def patient_dashboard(request):
         'ratings_context': ratings_context,
         'notifications': notifications,
         'unread_notifications_count': unread_notifications_count,
-        'password_form': password_form, 
         'bookings_count': bookings_count,
+        'payments': payments,  # إضافة المدفوعات إلى السياق
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
 
 
-def update_patient_profile(request, patient):
-    # تحديث البيانات بناءً على الحقول المدخلة
-    patient.user.first_name = request.POST.get('first_name')
-    patient.user.last_name = request.POST.get('last_name')
-    patient.user.email = request.POST.get('email')
-    patient.user.mobile_number = request.POST.get('mobile_number')
-    patient.user.address = request.POST.get('address')
-    patient.user.city = request.POST.get('city')
-    patient.user.state = request.POST.get('state')
-    patient.birth_date = request.POST.get('birth_date')
-    patient.gender = request.POST.get('gender')
-    patient.weight = request.POST.get('weight')
-    patient.height = request.POST.get('height')
-    patient.age = request.POST.get('age')
-    patient.blood_group = request.POST.get('blood_group')
-    patient.notes = request.POST.get('notes')
-    
-    # تحديث الصورة الشخصية إذا تم رفع صورة جديدة
-    if request.FILES.get('profile_picture'):
-        patient.user.profile_picture = request.FILES['profile_picture']
-    
-    # حفظ البيانات بعد التعديل
-    patient.user.save()
-    patient.save()
-
-    return redirect('patients:patient_dashboard')
 
 def get_favourites_and_ratings(patient):
     """
@@ -146,13 +114,71 @@ def delete_notification(notification_id, user):
 
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
+def update_patient_profile(request, patient):
+    # تحديث البيانات بناءً على الحقول المدخلة
+    patient.user.first_name = request.POST.get('first_name')
+    patient.user.last_name = request.POST.get('last_name')
+    patient.user.email = request.POST.get('email')
+    patient.user.mobile_number = request.POST.get('mobile_number')
+    patient.user.address = request.POST.get('address')
+    patient.user.city = request.POST.get('city')
+    patient.user.state = request.POST.get('state')
+    patient.birth_date = request.POST.get('birth_date')
+    patient.gender = request.POST.get('gender')
+    patient.weight = request.POST.get('weight')
+    patient.height = request.POST.get('height')
+    patient.age = request.POST.get('age')
+    patient.blood_group = request.POST.get('blood_group')
+    patient.notes = request.POST.get('notes')
+    
+    # تحديث الصورة الشخصية إذا تم رفع صورة جديدة
+    if request.FILES.get('profile_picture'):
+        patient.user.profile_picture = request.FILES['profile_picture']
+    
+    # حفظ البيانات بعد التعديل
+    patient.user.save()
+    patient.save()
 
-class CustomPasswordChangeForm(PasswordChangeForm):
-    old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    return redirect('patients:patient_dashboard')
 
 
 def user_logout(request):
     logout(request)
     return redirect('/')
+
+
+@login_required(login_url='/user/login')
+def invoice_view(request, payment_id):
+    # الحصول على الفاتورة المحددة
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'frontend/dashboard/patient/sections/invoice_view.html', {'payment': payment})
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+def change_password_view(request):
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        
+        # التحقق من كلمة المرور القديمة
+        if not request.user.check_password(old_password):
+            messages.error(request, 'كلمة المرور القديمة غير صحيحة.')
+            return redirect('patients:change_password')
+
+        # التحقق من تطابق كلمة المرور الجديدة مع تأكيد كلمة المرور
+        if new_password != request.POST.get('confirm_password'):
+            messages.error(request, 'كلمة المرور الجديدة وتأكيد كلمة المرور لا يتطابقان.')
+            return redirect('patients:change_password')
+
+        # تحديث كلمة المرور الجديدة
+        logger.info(f'Changing password for user {request.user.username}')
+        request.user.set_password(new_password)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+
+        logger.info(f'Password successfully changed for user {request.user.username}')
+        messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
+        return redirect('patients:patient_dashboard')

@@ -62,12 +62,12 @@ class Payment(models.Model):
         verbose_name=_("طريقة الدفع"),
         related_name='payments'
     )
-    payment_status = models.CharField(
-        max_length=20,
+    payment_status = models.IntegerField(  
         choices=PaymentStatus_choices,
         verbose_name=_("حالة الدفع"),
         default='pending'
     )
+
     payment_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("تاريخ الدفع")
@@ -117,8 +117,12 @@ class Payment(models.Model):
         verbose_name_plural = _("فواتير الدفع")
         ordering = ['-payment_date']
 
+    def get_status_display(self):
+        """إرجاع النصوص الواضحة لحالة الدفع."""
+        return dict(self.PaymentStatus_choices).get(self.payment_status, _("غير معروف"))
+
     def __str__(self):
-        return f"فاتورة رقم {self.id} - {self.booking.patient.full_name} - {self.payment_totalamount} {self.payment_currency}"
+        return f"فاتورة رقم {self.id} - {self.booking.patient.user.get_full_name} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
         if self.payment_subtotal and self.payment_discount:
