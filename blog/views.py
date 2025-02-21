@@ -32,7 +32,6 @@ def post_detail(request,slug):
             comment.user = request.user  
             comment.save()
             return redirect('home:blog:post_detail', slug=slug)  
-
     else:
         form = CommentForm()
     ctx = {

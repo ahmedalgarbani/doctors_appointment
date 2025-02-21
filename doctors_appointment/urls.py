@@ -13,5 +13,6 @@ urlpatterns = [
     path('users/', include('users.urls', namespace='users')),
     path('hospital/', include(('hospitals.urls', 'hospitals'), namespace='hospitals')),
     path('patients/', include(('patients.urls', 'patients'), namespace='patients'),name='patients'),  # رابط المرضى
+    path('api/', include('api.urls')),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
