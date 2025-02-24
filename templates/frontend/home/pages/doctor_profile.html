@@ -45,7 +45,11 @@
 						<div class="doctor-widget">
 							<div class="doc-info-left">
 								<div class="doctor-img">
-									<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% if doctor.photo %}
+										<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% else %}
+										<img src="{% static 'img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% endif %}
 								</div>
 								<div class="doc-info-cont">
 									<!-- اسم الدكتور -->
@@ -63,7 +67,9 @@
 
 									<!-- قسم الطبيب -->
 									<p class="doc-department">
-										<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
+										{% if doctor.specialty.image %}
+											<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
+										{% endif %}
 										{{ doctor.specialty.name }}
 									</p>
 

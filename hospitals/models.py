@@ -61,6 +61,13 @@ class Hospital(BaseModel):
         verbose_name=_("حساب المستخدم"),
         limit_choices_to={'user_type': 'hospital_manager'}, 
     )
+    city = models.ForeignKey(
+        City,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='hospitals',
+        verbose_name=_("المدينة")
+    )
     name = models.CharField(max_length=100, verbose_name=_("اسم المستشفى"))
     slug = models.SlugField(
         max_length=200, unique=True, verbose_name=_("اسم المستخدم")
