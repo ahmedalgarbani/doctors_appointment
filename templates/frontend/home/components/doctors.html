@@ -14,172 +14,48 @@
             </div>
         </div>
         <div class="owl-carousel doctor-slider-one owl-theme aos" data-aos="fade-up">
-
+            {% for doctor in doctors %}
             <!-- Doctor Item -->
             <div class="item">
                 <div class="doctor-profile-widget">
                     <div class="doc-pro-img">
-                        <a href="">
+                        <a href="{% url 'home:doctor_profile' doctor.id %}">
                             <div class="doctor-profile-img">
-                                <img src="{% static 'img/doctors/doctor-03.jpg' %}" class="img-fluid" alt="Ruby Perrin">
+                                {% if doctor.photo %}
+                                    <img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+                                {% else %}
+                                    <img src="{% static 'img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="{{ doctor.full_name }}">
+                                {% endif %}
                             </div>
                         </a>
+                        {% if doctor.pricing.first %}
                         <div class="doctor-amount">
-                            <span>$ 200</span>
+                            <span>{{ doctor.pricing.first.amount }} ريال</span>
                         </div>
+                        {% endif %}
                     </div>
                     <div class="doc-content">
                         <div class="doc-pro-info">
                             <div class="doc-pro-name">
-                                <a href="">Dr. Ruby Perrin</a>
-                                <p>Cardiology</p>
+                                <a href="{% url 'home:doctor_profile' doctor.id %}">{{ doctor.full_name }}</a>
+                                <p>{{ doctor.specialty.name }}</p>
                             </div>
                             <div class="reviews-ratings">
                                 <p>
-                                    <span><i class="fas fa-star"></i> 4.5</span> (35)
+                                    <span><i class="fas fa-star"></i> {{ doctor.average_rating|default:"0.0" }}</span> ({{ doctor.reviews.count }})
                                 </p>
                             </div>
                         </div>
                         <div class="doc-pro-location">
-                            <p><i class="feather-map-pin"></i> Newyork, USA</p>
+                            {% if doctor.hospitals.first %}
+                                <p><i class="feather-map-pin"></i> {{ doctor.hospitals.first.city.name }}</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
             <!-- /Doctor Item -->
-
-            <!-- Doctor Item -->
-            <div class="item">
-                <div class="doctor-profile-widget">
-                    <div class="doc-pro-img">
-                        <a href="doctor-profile.html">
-                            <div class="doctor-profile-img">
-                                <img src="{% static 'img/doctors/doctor-04.jpg' %}" class="img-fluid" alt="Darren Elder">
-                            </div>
-                        </a>
-                        <div class="doctor-amount">
-                            <span>$ 360</span>
-                        </div>
-                    </div>
-                    <div class="doc-content">
-                        <div class="doc-pro-info">
-                            <div class="doc-pro-name">
-                                <a href="doctor-profile.html">Dr. Darren Elder</a>
-                                <p>Neurology</p>
-                            </div>
-                            <div class="reviews-ratings">
-                                <p>
-                                    <span><i class="fas fa-star"></i> 4.0</span> (20)
-                                </p>
-                            </div>
-                        </div>
-                        <div class="doc-pro-location">
-                            <p><i class="feather-map-pin"></i> Florida, USA</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Doctor Item -->
-
-            <!-- Doctor Item -->
-            <div class="item">
-                <div class="doctor-profile-widget">
-                    <div class="doc-pro-img">
-                        <a href="doctor-profile.html">
-                            <div class="doctor-profile-img">
-                                <img src="{% static 'img/doctors/doctor-05.jpg' %}" class="img-fluid" alt="Sofia Brient">
-                            </div>
-                        </a>
-                        <div class="doctor-amount">
-                            <span>$ 450</span>
-                        </div>
-                    </div>
-                    <div class="doc-content">
-                        <div class="doc-pro-info">
-                            <div class="doc-pro-name">
-                                <a href="doctor-profile.html">Dr. Sofia Brient</a>
-                                <p>Urology</p>
-                            </div>
-                            <div class="reviews-ratings">
-                                <p>
-                                    <span><i class="fas fa-star"></i> 4.5</span> (30)
-                                </p>
-                            </div>
-                        </div>
-                        <div class="doc-pro-location">
-                            <p><i class="feather-map-pin"></i> Georgia, USA</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Doctor Item -->
-
-            <!-- Doctor Item -->
-            <div class="item">
-                <div class="doctor-profile-widget">
-                    <div class="doc-pro-img">
-                        <a href="doctor-profile.html">
-                            <div class="doctor-profile-img">
-                                <img src="{% static 'img/doctors/doctor-02.jpg' %}" class="img-fluid" alt="Paul Richard">
-                            </div>
-                        </a>
-                        <div class="doctor-amount">
-                            <span>$ 570</span>
-                        </div>
-                    </div>
-                    <div class="doc-content">
-                        <div class="doc-pro-info">
-                            <div class="doc-pro-name">
-                                <a href="doctor-profile.html">Dr. Paul Richard</a>
-                                <p>Orthopedic</p>
-                            </div>
-                            <div class="reviews-ratings">
-                                <p>
-                                    <span><i class="fas fa-star"></i> 4.3</span> (45)
-                                </p>
-                            </div>
-                        </div>
-                        <div class="doc-pro-location">
-                            <p><i class="feather-map-pin"></i> Michigan, USA</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Doctor Item -->
-
-            <!-- Doctor Item -->
-            <div class="item">
-                <div class="doctor-profile-widget">
-                    <div class="doc-pro-img">
-                        <a href="doctor-profile.html">
-                            <div class="doctor-profile-img">
-                                <img src="{% static 'img/doctors/doctor-01.jpg' %}" class="img-fluid" alt="John Doe">
-                            </div>
-                        </a>
-                        <div class="doctor-amount">
-                            <span>$ 880</span>
-                        </div>
-                    </div>
-                    <div class="doc-content">
-                        <div class="doc-pro-info">
-                            <div class="doc-pro-name">
-                                <a href="doctor-profile.html">Dr. John Doe</a>
-                                <p>Dentist</p>
-                            </div>
-                            <div class="reviews-ratings">
-                                <p>
-                                    <span><i class="fas fa-star"></i> 4.4</span> (50)
-                                </p>
-                            </div>
-                        </div>
-                        <div class="doc-pro-location">
-                            <p><i class="feather-map-pin"></i> California, USA</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Doctor Item -->
-
+            {% endfor %}
         </div>
     </div>
 </section>

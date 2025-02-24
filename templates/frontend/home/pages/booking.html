@@ -71,7 +71,7 @@
                </div>
 
                <!-- Form for next step -->
-               <form id="booking-form" action="{% url 'home:payment' doctor.id %}" method="GET">
+               <form id="booking-form" action="{% url 'payments:process' doctor.id %}" method="GET">
                    <input type="hidden" name="day" id="day_id" value="{{ selected_day }}">
                    <input type="hidden" name="date" id="date_id">
                    <input type="hidden" name="booking_date" id="booking_date_input">
