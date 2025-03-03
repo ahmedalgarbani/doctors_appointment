@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404, render
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
-from doctors.models import Doctor
+from doctors.models import Doctor,Specialty
 from hospitals.models import Hospital
-from .serializers import DoctorSerializer, HospitalSerializer, RegisterSerializer
+from .serializers import DoctorSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +12,7 @@ from rest_framework import status, permissions
 from patients.models import Patients
 from django.db.utils import IntegrityError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser,MultiPartParser, FormParser
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.core.exceptions import ValidationError
@@ -29,8 +29,13 @@ def get_tokens_for_user(user):
 
 
 class DoctorsViewSet(viewsets.ModelViewSet):
-    queryset = Doctor.objects.all()
+    queryset = Doctor.objects.filter(status=True)
     serializer_class = DoctorSerializer
+
+
+class SpecialtiesViewSet(viewsets.ModelViewSet):
+    queryset = Specialty.objects.filter(status=True)
+    serializer_class = SpecialtiesSerializer
 
 
 class HospitalsViewSet(viewsets.ModelViewSet):
@@ -40,7 +45,7 @@ class HospitalsViewSet(viewsets.ModelViewSet):
 
 
 class RegisterView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (JSONParser,MultiPartParser, FormParser)
 
     def post(self, request):
         print("Received request data:", request.data)

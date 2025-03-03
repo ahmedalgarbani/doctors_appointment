@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import DoctorsViewSet, HospitalsViewSet, LoginView, RegisterView,LogoutView
+from .views import DoctorsViewSet, HospitalsViewSet, LoginView, RegisterView,LogoutView, SpecialtiesViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import (
 
 # Test
 router = DefaultRouter()
+router.register(r'specialties', SpecialtiesViewSet)
 router.register(r'doctors', DoctorsViewSet)
 router.register(r'hospitals', HospitalsViewSet)
 

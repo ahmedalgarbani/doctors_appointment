@@ -136,6 +136,9 @@ widget_tweaks %} {% block content %}
       </div>
 
       <!-- Include Sections -->
+      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
@@ -149,10 +152,9 @@ widget_tweaks %} {% block content %}
       {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
       {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment
       %}
-      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
 
-      {% comment %}
+     
       {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
       {% endcomment %}
 
