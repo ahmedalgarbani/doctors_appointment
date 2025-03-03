@@ -35,6 +35,12 @@ def index(request):
         logger.error(f'Failed to retrieve specialities: {str(e)}')
 
     try:
+        doctors = Doctor.objects.filter(show_at_home=True, status=True).select_related('specialty')
+        logger.info('Retrieved doctors')
+    except Exception as e:
+        logger.error(f'Failed to retrieve doctors: {str(e)}')
+
+    try:
         workSection = WorkSection.objects.first()
         logger.info('Retrieved work section')
     except Exception as e:
@@ -91,6 +97,7 @@ def index(request):
     ctx = {
         'homeBanner': homeBanner,
         'specialities': specialities,
+        'doctors': doctors,
         'workSection': workSection,
         'appSection': appSection,
         'faqSection': faqSection,
@@ -211,9 +218,7 @@ def search_view(request):
         filters['hospitals__name__icontains'] = search_text 
 
     if city_slug:
-        city = City.objects.filter(slug=city_slug).first() 
-        if city:
-            filters['hospitals__city'] = city
+        filters['hospitals__city__slug__in'] = [city_slug]
 
     if gender:
         gender_map = {

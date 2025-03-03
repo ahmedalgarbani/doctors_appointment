@@ -13,11 +13,22 @@ def payment_process(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     
     # Verify required values
-    day_id = request.GET.get('day')
-    date_id = request.GET.get('date')
-    booking_date = request.GET.get('booking_date')
-    hospital_id = request.GET.get('hospital_id')
-  
+    if request.method == 'POST':
+        day_id = request.POST.get('day')
+        date_id = request.POST.get('date')
+        booking_date = request.POST.get('booking_date')
+        hospital_id = request.POST.get('hospital_id')
+    else:
+        day_id = request.GET.get('day')
+        date_id = request.GET.get('date')
+        booking_date = request.GET.get('booking_date')
+        hospital_id = request.GET.get('hospital_id')
+    
+    print("Day ID:", day_id)
+    print("Date ID:", date_id)
+    print("Booking Date:", booking_date)
+    print("Hospital ID:", hospital_id)
+    
     if not all([day_id, date_id, booking_date, hospital_id]):
         return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز والمستشفى')
     
@@ -50,6 +61,10 @@ def payment_process(request, doctor_id):
         payment_method_id = request.POST.get('payment_method')
         transfer_number = request.POST.get('transfer_number')
         notes = request.POST.get('notes', '')
+        
+        print("POST request received")
+        print("Payment method:", payment_method_id)
+        print("Transfer number:", transfer_number)
         
         if not all([payment_method_id, transfer_number]):
             return HttpResponseBadRequest('يرجى اختيار طريقة الدفع وإدخال رقم الحوالة')
@@ -125,5 +140,3 @@ def payment_process(request, doctor_id):
     }
     
     return render(request, 'frontend/home/pages/payment.html', context)
-
-
