@@ -62,7 +62,7 @@ def patient_dashboard(request):
         'notifications': notifications,
         'unread_notifications_count': unread_notifications_count,
         'bookings_count': bookings_count,
-        'payments': payments,  # إضافة المدفوعات إلى السياق
+        'payments': payments, 
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
