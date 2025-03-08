@@ -17,20 +17,19 @@
         <div class="owl-carousel specialities-slider-one owl-theme aos" data-aos="fade-up">
             {% for specialy in specialities %}
             <div class="item">
-                <div class="specialities-item">
+                <a href="{% url 'home:search_view' %}?specialty={{ specialy.id }}" class="specialities-item">
                     {% if specialy.image %}
                     <div class="specialities-img">
                         <span><img src="{{ specialy.image.url }}" alt="heart-image"></span>
                     </div>
                     {% endif %}
                     <p>{{ specialy.name }}</p>
-                </div>
+                </a>
             </div>
             {% endfor %}
-          
         </div>
         <div class="specialities-btn aos" data-aos="fade-up">
-            <a href="" class="btn">
+            <a href="{% url 'home:search_view' %}" class="btn">
                 See All Specialities
             </a>
         </div>
@@ -50,6 +49,5 @@
         loop: false,
         items: 3
     });
-    
 </script>
 {% endblock  %}

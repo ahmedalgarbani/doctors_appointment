@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def index(request):
-    request.session.flush()
+   
 
     try:
         homeBanner = HomeBanner.objects.first()  
@@ -205,10 +205,11 @@ def search_view(request):
     fee_range = request.GET.get('fee_range')
     experience = request.GET.get('experience')
     rating = request.GET.get('rating')
+    specialty = request.GET.get('specialty')
     page = request.GET.get('page', 1)
     
     filters = {}
-    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, page: {page}")
+    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
 
     # قائمة الأطباء الأساسية
     doctors = Doctor.objects.all()
@@ -219,6 +220,9 @@ def search_view(request):
 
     if city_slug:
         filters['hospitals__city__slug__in'] = [city_slug]
+
+    if specialty:
+        filters['specialty_id'] = specialty
 
     if gender:
         gender_map = {
@@ -328,6 +332,7 @@ def search_view(request):
         'doctors': doctors_page,
         'page_obj': doctors_page,
         'cities': cities,
+        'specialities': Specialty.objects.all(),
         'selected_filters': {
             'search': search_text,
             'city': city_slug,
@@ -336,7 +341,8 @@ def search_view(request):
             'availability': availability,
             'fee_range': fee_range,
             'experience': experience,
-            'rating': rating
+            'rating': rating,
+            'specialty': specialty
         },
         'price_range': price_range,
         'doctors_with_ratings':doctors_with_ratings,

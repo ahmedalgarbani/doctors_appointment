@@ -1,0 +1,146 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+    <div class="container">
+        <div class="row align-items-center inner-banner">
+            <div class="col-md-12 col-12 text-center">
+                <h2 class="breadcrumb-title">إضافة طبيب جديد</h2>
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hospitals:index' %}">لوحة التحكم</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">إضافة طبيب</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">إضافة طبيب جديد</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'hospitals:add_doctor' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>الاسم الكامل <span class="text-danger">*</span></label>
+                                        <input type="text" name="full_name" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>التخصص <span class="text-danger">*</span></label>
+                                        <select name="specialty" class="form-control" required>
+                                            <option value="">اختر التخصص</option>
+                                            {% for specialty in speciality %}
+                                            <option value="{{ specialty.id }}">{{ specialty.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>تاريخ الميلاد <span class="text-danger">*</span></label>
+                                        <input type="date" name="birthday" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>رقم الهاتف <span class="text-danger">*</span></label>
+                                        <input type="text" name="phone_number" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>البريد الإلكتروني <span class="text-danger">*</span></label>
+                                        <input type="email" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>الجنس <span class="text-danger">*</span></label>
+                                        <select name="gender" class="form-control" required>
+                                            <option value="1">ذكر</option>
+                                            <option value="0">أنثى</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>سنوات الخبرة</label>
+                                        <input type="number" name="experience_years" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>العنوان الفرعي</label>
+                                        <input type="text" name="sub_title" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>نبذة عن الطبيب</label>
+                                        <textarea name="about" class="form-control" rows="4"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>الصورة الشخصية</label>
+                                        <input type="file" name="photo" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>سعر الكشف <span class="text-danger">*</span></label>
+                                        <input type="number" name="amount" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>الحالة</label>
+                                        <div class="status-toggle">
+                                            <input type="checkbox" name="status" id="status" class="check" value="1" checked>
+                                            <label for="status" class="checktoggle">checkbox</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="submit-section">
+                                <button type="submit" class="btn btn-primary submit-btn">حفظ</button>
+                                <a href="{% url 'hospitals:index' %}" class="btn btn-secondary submit-btn">إلغاء</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}

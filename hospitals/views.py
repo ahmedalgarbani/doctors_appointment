@@ -4,7 +4,8 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import datetime, date, time
-from doctors.models import Doctor, DoctorSchedules, DoctorShifts
+from django.db.models import Prefetch
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts, DoctorPricing
 from hospitals.models import Hospital
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -77,7 +78,9 @@ def index(request):
     speciality = Specialty.objects.filter(status=True)
     payment_method = HospitalPaymentMethod.objects.filter(hospital=hospital)
     bookings = Booking.objects.filter(hospital=hospital)
-    doctors = Doctor.objects.filter(hospitals=hospital, status=True)
+    doctors = Doctor.objects.filter(hospitals=hospital).select_related('specialty').prefetch_related(
+        Prefetch('pricing', queryset=DoctorPricing.objects.filter(hospital=hospital))
+    )
     phoneNumber = PhoneNumber.objects.filter(hospital=hospital)
     city = City.objects.filter( status=True)
     patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
@@ -168,19 +171,18 @@ def index(request):
     
     # Apply filters if provided
     date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    payment_status = request.GET.get('payment_status')
-    amount_min = request.GET.get('amount_min')
-    amount_max = request.GET.get('amount_max')
-    
     if date_from:
         invoices = invoices.filter(payment_date__gte=date_from)
+    date_to = request.GET.get('date_to')
     if date_to:
         invoices = invoices.filter(payment_date__lte=date_to)
+    payment_status = request.GET.get('payment_status')
     if payment_status:
         invoices = invoices.filter(payment_status_id=payment_status)
+    amount_min = request.GET.get('amount_min')
     if amount_min:
         invoices = invoices.filter(payment_totalamount__gte=amount_min)
+    amount_max = request.GET.get('amount_max')
     if amount_max:
         invoices = invoices.filter(payment_totalamount__lte=amount_max)
         
@@ -612,6 +614,7 @@ def filter_doctors(request):
     return render(request, 'frontend/dashboard/hospitals/index.html', context)
 
 
+@login_required(login_url='/user/login')
 def add_doctor(request):
     if request.method == "POST":
         full_name = request.POST.get("full_name")
@@ -620,7 +623,6 @@ def add_doctor(request):
         email = request.POST.get("email")
         gender = request.POST.get("gender")
         specialty_id = request.POST.get("specialty")
-        hospital_id = request.POST.get("hospital_id")
         experience_years = request.POST.get("experience_years")
         sub_title = request.POST.get("sub_title")
         slug = request.POST.get("slug")
@@ -628,55 +630,49 @@ def add_doctor(request):
         photo = request.FILES.get("photo")
         status = request.POST.get("status") == "1"
         show_at_home = request.POST.get("show_at_home") == "1"
-        price = request.POST.get("price")
-        
+        amount = request.POST.get("amount")
 
-        if not all([full_name, birthday, phone_number, email, gender, hospital_id]):
-            return HttpResponseBadRequest("Missing required fields")
+        if not all([full_name, birthday, phone_number, email, gender, specialty_id]):
+            messages.error(request, "الرجاء تعبئة جميع الحقول المطلوبة")
+            return redirect('hospitals:add_doctor_form')
 
         try:
-            specialty = Specialty.objects.get(id=specialty_id) if specialty_id else None
-            hospital = Hospital.objects.get(id=hospital_id)
-        except (Specialty.DoesNotExist, Hospital.DoesNotExist):
-            return HttpResponseBadRequest("Invalid specialty or hospital ID")
+            hospital = get_object_or_404(Hospital, user=request.user)
+            specialty = get_object_or_404(Specialty, id=specialty_id)
+            
+            doctor = Doctor.objects.create(
+                full_name=full_name,
+                birthday=birthday,
+                phone_number=phone_number,
+                email=email,
+                gender=gender,
+                specialty=specialty,
+                experience_years=experience_years,
+                sub_title=sub_title,
+                slug=slug,
+                about=about,
+                photo=photo,
+                status=status,
+                show_at_home=show_at_home,
+            )
+            
+            DoctorPricing.objects.create(
+                doctor=doctor,
+                hospital=hospital,
+                amount=amount,
+            )
+            
+            doctor.hospitals.add(hospital)
+            doctor.save()
+            
+            messages.success(request, "تم إضافة الطبيب بنجاح")
+            return redirect('hospitals:index')
+            
+        except Exception as e:
+            messages.error(request, f"حدث خطأ أثناء إضافة الطبيب: {str(e)}")
+            return redirect('hospitals:add_doctor_form')
 
-        doctor = Doctor.objects.create(
-            full_name=full_name,
-            birthday=birthday,
-            phone_number=phone_number,
-            email=email,
-            gender=gender,
-            specialty=specialty,
-            experience_years=experience_years,
-            sub_title=sub_title,
-            slug=slug,
-            about=about,
-            photo=photo,
-            status=status,
-            show_at_home=show_at_home,
-        )
-        priceCreate = DoctorPricing.objects.create(
-            doctor = get_object_or_404(Doctor,id=doctor.id),
-            hospital = get_object_or_404(Hospital,id=hospital_id),
-            amount = price,
-        )
-        priceCreate = DoctorPricing.objects.create(
-            doctor = get_object_or_404(Doctor,id=doctor.id),
-            hospital = get_object_or_404(Hospital,id=hospital_id),
-            amount = price,
-        )
-        doctor.hospitals.set([hospital])  
-        doctor.save()
-        
-        
-        return render(request, "frontend/dashboard/hospitals/index.html")
-
-    context = {
-        "hospitals": Hospital.objects.all(), 
-        "specialties": Specialty.objects.all(),  
-    }
-    return render(request, "frontend/dashboard/hospitals/index.html", context)
-
+    return redirect('hospitals:index')
 
 
 def add_payment_method(request):
@@ -1076,7 +1072,6 @@ def edit_booking(request, booking_id):
             'message': str(e)
         }, status=500)
 
-
 @login_required(login_url='/user/login')
 
 def schedule_timings(request):
@@ -1241,7 +1236,7 @@ def filter_invoices(request):
         
     payment_status = request.GET.get('payment_status')
     if payment_status:
-        invoices = invoices.filter(payment_status__id=payment_status)
+        invoices = invoices.filter(payment_status_id=payment_status)
     payment_method= request.GET.get('payment_method')
     if payment_method:
         invoices= invoices.filter(payment_method__id=payment_method)
@@ -1465,23 +1460,39 @@ def update_doctor(request, doctor_id):
 @login_required(login_url='/user/login')
 def delete_doctor(request, doctor_id):
     if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
+        return HttpResponseBadRequest('Invalid request method')
     
     try:
-        # تعديل هنا
+        # Get hospital and doctor
         hospital = get_object_or_404(Hospital, user=request.user)
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
         
         # Remove the doctor from this hospital
         doctor.hospitals.remove(hospital)
         
-        # If the doctor is not associated with any other hospital, delete them
+        # Delete the doctor's pricing for this hospital
+        DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).delete()
+        
+        # If the doctor is not associated with any other hospitals, delete the doctor
         if doctor.hospitals.count() == 0:
             doctor.delete()
-            
-        return JsonResponse({'message': 'تم حذف الطبيب بنجاح'})
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم حذف الطبيب بنجاح'
+        })
+        
+    except Doctor.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'error': 'لم يتم العثور على الطبيب'
+        }, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        print(f"Error deleting doctor: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e)
+        }, status=500)
 
 @login_required(login_url='/user/login')
 def get_doctor_history(request, doctor_id):
@@ -1534,3 +1545,44 @@ def get_doctor_history(request, doctor_id):
             'status': 'error',
             'error': str(e)
         }, status=500)
+
+@login_required(login_url='/user/login')
+def add_doctor_form(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, user=user)
+    speciality = Specialty.objects.filter(status=True)
+    context = {
+        'hospital': hospital,
+        'speciality': speciality,
+    }
+    return render(request, 'frontend/dashboard/hospitals/page/add_doctor.html', context)
+
+@login_required(login_url='/user/login')
+def doctor_details(request, doctor_id):
+    try:
+        print(f"Accessing doctor details for ID: {doctor_id}")  # Debug print
+        hospital = get_object_or_404(Hospital, user=request.user)
+        doctor = get_object_or_404(Doctor.objects.select_related('specialty'), id=doctor_id, hospitals=hospital)
+        
+        # Get current price
+        doctor_price = DoctorPricing.objects.filter(
+            doctor=doctor,
+            hospital=hospital
+        ).first()
+        
+        context = {
+            'doctor': doctor,
+            'doctor_price': doctor_price,
+            'section': 'doctors'  # For active menu highlighting
+        }
+        
+        print(f"Rendering template with context: {context}")  # Debug print
+        return render(request, 'frontend/dashboard/hospitals/page/doctor_details.html', context)
+        
+    except Doctor.DoesNotExist:
+        messages.error(request, 'لم يتم العثور على الطبيب')
+        return redirect('hospitals:index')
+    except Exception as e:
+        print(f"Error in doctor_details view: {str(e)}")  # Debug print
+        messages.error(request, str(e))
+        return redirect('hospitals:index')
