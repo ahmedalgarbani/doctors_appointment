@@ -43,10 +43,14 @@ INSTALLED_APPS = [
     'ckeditor',
     'widget_tweaks',
     'rolepermissions',
+
     'rest_framework_simplejwt',
     'rest_framework',   
     'api',
     'rest_framework_simplejwt.token_blacklist',
+
+    'django_celery_beat',
+
 ]
 
 
@@ -147,11 +151,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'doctors_appointment.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-         'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -159,10 +162,12 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'notifications.context_processors.notifications',  # إضافة معالج السياق للإشعارات
             ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'doctors_appointment.wsgi.application'
 
@@ -319,3 +324,11 @@ CKEDITOR_5_CONFIGS = {
         'language': 'en',
     },
 }
+
+
+# إعدادات Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'UTC'

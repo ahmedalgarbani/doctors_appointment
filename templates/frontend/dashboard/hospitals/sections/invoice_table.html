@@ -1,54 +1,79 @@
-
-
-<table class="table table-hover table-center mb-0">
-    <thead>
-        <tr>
-            <th>Invoice No</th>
-            <th>Patient</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Paid On</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for invoice in invoices %}
-        <tr>
-            <td>
-                <a href="{% url 'hospitals:invoice_detail' invoice_id=invoice.id %}">#INV-{{ invoice.id }}</a>
-            </td>
-            <td>
-                <h2 class="table-avatar">
-                    {% if invoice.booking.patient.profile_image %}
-                    <a href="#" class="avatar avatar-sm me-2">
-                        <img class="avatar-img rounded-circle" src="{{ invoice.booking.patient.profile_image.url }}" alt="Patient Image">
-                    </a>
-                    {% endif %}
-                    <a href="#">{{ invoice.booking.patient.get_full_name }} <span>#PT{{ invoice.booking.patient.id }}</span></a>
-                </h2>
-            </td>
-            <td>${{ invoice.payment_totalamount }}</td>
-            <td>
-                <span class="badge {% if invoice.payment_status.payment_status_name == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
-                    {{ invoice.payment_status.payment_status_name }}
-                </span>
-            </td>
-            <td>{{ invoice.payment_date|date:"d M Y" }}</td>
-            <td>
-                <div class="table-action">
-                    <a href="{% url 'hospitals:invoice_detail' invoice_id=invoice.id %}" class="btn btn-sm bg-info-light">
-                        <i class="far fa-eye"></i> View
-                    </a>
-                    <a href="#" class="btn btn-sm bg-primary-light print-invoice" data-invoice-id="{{ invoice.id }}">
-                        <i class="fas fa-print"></i> Print
-                    </a>
+<div class="col-md-7 col-lg-8 col-xl-9 invoice_table section d-none">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover table-center mb-0">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>اسم المريض</th>
+                                <th>اسم الدكتور</th>
+                                <th>المبلغ</th>
+                                <th>الحالة</th>
+                                <th>تاريخ الدفع</th>
+                                <th>الإجراء</th>
+                            </tr>						
+                        </thead>
+                        <tbody>
+                            {% for payment in invoices %}
+                            <tr>
+                                <td>
+                                    <a href="{% if payment.slug %}{% url 'patients:invoice_view' payment.slug %}{% else %}#{% endif %}">
+                                        #INV-{{ payment.id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <h2 class="table-avatar">
+                                        <a href="patients-profile.html" class="avatar avatar-sm me-2">
+                                            <img class="avatar-img rounded-circle"
+                                                src="{{ payment.booking.patient.user.profile_picture.url }}"
+                                                alt="patients Image">
+                                        </a>
+                                        <a href="patients-profile.html">
+                                            {{ payment.booking.patient.user.get_full_name|default:"Unknown patients" }}
+                                        </a>
+                                    </h2>
+                                <td>
+                                    <h2 class="table-avatar">
+                                        <a href="doctor-profile.html" class="avatar avatar-sm me-2">
+                                            <img class="avatar-img rounded-circle"
+                                                src="{% if payment.booking.doctor.photo %}{{ payment.booking.doctor.photo.url }}{% else %}/static/path/to/default/image.jpg{% endif %}"
+                                                alt="Doctor Image">
+                                        </a>
+                                        <a href="doctor-profile.html">
+                                            {{ payment.booking.doctor.full_name|default:"Unknown Doctor" }}
+                                            <span>{{ payment.booking.doctor.specialty|default:"No Specialty" }}</span>
+                                        </a>
+                                    </h2>
+                                </td>
+                                <td>{{ payment.payment_totalamount|default:"0.00" }} ريال</td>
+                                <td>
+                                    <span class="badge {% if payment.payment_status == 1 %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ payment.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ payment.payment_date|date:"d M Y"|default:"N/A" }}</td>
+                                <td>
+                                    <div class="table-action">
+                                        <a href="{% url 'hospitals:invoice_view' payment.id %}" class="btn btn-sm bg-info-light">
+                                            <i class="far fa-eye"></i> عرض
+                                        </a>
+                                        <a href="javascript:void(0);" class="btn btn-sm bg-primary-light">
+                                            <i class="fas fa-print"></i> طباعة
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">لا توجد مدفوعات لعرضها.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6" class="text-center">No invoices found</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </div>
+        </div>
+    </div>
+</div>
