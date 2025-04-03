@@ -24,11 +24,8 @@
         margin-top: 20px;
     }
 </style>
-
 {% block content %}
-
 <div class="col-md-7 col-lg-8 col-xl-9 section notifications_list d-none">
-
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -36,14 +33,12 @@
                     <div class="card card-table mb-0">
                         <div class="card-body">
                             <h2 class="text-center mb-4">الإشعارات</h2>
-
                             {% if notifications %}
                             <div class="list-group" id="notificationList">
                                 {% for notification in notifications %}
                                 <div
-                                    class="list-group-item d-flex justify-content-between align-items-center 
-                    {% if notification.status == '0' %} list-group-item-warning {% else %} list-group-item-success {% endif %}">
-
+                                    class="list-group-item d-flex justify-content-between align-items-center
+                                            {% if notification.status == '0' %} list-group-item-warning {% else %} list-group-item-success {% endif %}">
                                     <div>
                                         <h5 class="mb-1">{{ notification.message }}</h5>
                                         <small>{{ notification.send_time|date:"Y-m-d H:i" }}</small>
@@ -58,18 +53,14 @@
                                             {% endif %}
                                         </small>
                                     </div>
-
                                     <!-- زر حذف الإشعار -->
                                     <button class="btn btn-danger btn-sm"
                                         onclick="confirmDeleteNotification('{{ notification.id }}')">
                                         حذف
                                     </button>
-
                                 </div>
                                 {% endfor %}
                             </div>
-
-
                             {% else %}
                             <div class="alert alert-info text-center">لا توجد إشعارات حالياً.</div>
                             {% endif %}
@@ -113,5 +104,4 @@
     }
 
 </script>
-
 {% endblock %}

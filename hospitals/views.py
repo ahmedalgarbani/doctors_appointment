@@ -69,6 +69,13 @@ from django.db.models import Sum, Count
 from decimal import Decimal
 import uuid
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def logout_view(request):
+    logout(request)
+    return redirect('home:home')
+
 User = get_user_model()
 
 @login_required(login_url='/user/login')

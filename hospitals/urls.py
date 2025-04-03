@@ -1,10 +1,12 @@
 from django.urls import path,include
 from . import views
+from django.contrib.auth.views import LogoutView
 
 app_name = 'hospitals'
 
 urlpatterns = [
     
+    path('logout/', views.logout_view, name='logout'),
     path('', views.index, name='index'),
     path('add-doctor-form/', views.add_doctor_form, name='add_doctor_form'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),

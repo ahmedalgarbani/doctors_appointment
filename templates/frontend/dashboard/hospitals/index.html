@@ -81,7 +81,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="invoices" data-section="invoices">
+                  <a href="javascript:;" data-method="invoices_table" data-section="invoices_table">
                     <i class="fas fa-file-invoice"></i>
                     <span>الفواتير</span>
                   </a>
@@ -125,7 +125,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-section="logout">
+                  <a href="{% url 'hospitals:logout' %}">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>تسجيل الخروج</span>
                   </a>
@@ -137,29 +137,27 @@
         <!-- /Profile Sidebar -->
       </div>
 
-      <!-- Include Sections -->
-       
-      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
-      
-      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
-      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
-      {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
-      {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment
-      %}
-      
-      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
-
-      {% comment %}
-      {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
-      {% endcomment %}
-
+            <!-- Include Sections -->
+            {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
+            {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
+            {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+            {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+            {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
+            {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
+            {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+            {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+            {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+            {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
+            {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+            {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+            
+            {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+            
+          
+            
+            
+            
+            
     </div>
   </div>
 </div>
@@ -169,6 +167,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   function showSection(targetSection) {
+    if (targetSection === "logout") {
+      window.location.href = "{% url 'hospitals:logout' %}";
+      return;
+    }
     // إخفاء جميع الأقسام
     $(".section").addClass("d-none");
 
@@ -187,9 +189,10 @@
     showSection("hospital_dashboard");
 
     // تحديث القسم المعروض عند النقر على الروابط
-    $("a[data-method]").on("click", function () {
+    $("a[data-method], a[data-section]").on("click", function () {
       const methodName = $(this).data("method");
-      showSection(methodName);
+      const sectionName = $(this).data("section");
+      showSection(methodName || sectionName);
     });
 
     // تهيئة المودال
@@ -217,7 +220,7 @@
         sectionTitle = "الحجوزات";
       } else if (methodName === "my_patient") {
         sectionTitle = "المرضى";
-      } else if (methodName === "invoices") {
+      } else if (methodName === "invoices_table") {
         sectionTitle = "الفواتير";
       } else if (methodName === "payment_settings") {
         sectionTitle = "إعدادات الدفع";
