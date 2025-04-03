@@ -1,6 +1,13 @@
 {% extends "frontend/layouts/master.html" %}
 {% block content %}
 {% load static %}
+
+<!-- <style>
+	.section {
+        display: none; /* إخفاء الأقسام بشكل افتراضي */
+	}
+</style> -->
+
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
 	<div class="container">
@@ -69,10 +76,10 @@
 										<i class="fas fa-users"></i>
 										<span>Dependent</span>
 									</a>
-								</li>  -->
+								</li> 
 								
 								
-								<!-- <li>
+								<li>
 									<a href="javascript:;" data-method="orders_list" >
 										<i class="fas fa-list-alt"></i>
 										<span>Orders</span>
@@ -132,42 +139,68 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function () {
-    function showSection(targetSection) {
-        // إخفاء جميع الأقسام
-        $(".section").addClass("d-none");
-        // إظهار القسم المستهدف
-        $(`.${targetSection}`).removeClass("d-none");
-
-        // تحديث عنوان الصفحة
-        const sectionTitles = {
-            patient_dashboard: "لوحة التحكم",
-            favourites: "الأطباء المفضلين",
-            dependent: "المعالين",
-            orders_list: "الطلبات",
-            notifications_list: "الإشعارات",
-            profile_settings: "إعدادات الملف الشخصي",
-            change_password: "تغيير كلمة المرور"
-        };
-
-        const newTitle = sectionTitles[targetSection] || "لوحة التحكم";
-        $(".breadcrumb-title").text(newTitle); // تحديث العنوان
-        $(".breadcrumb-item.active").text(newTitle); // تحديث العنصر النشط في `breadcrumb`
+    // دالة لتحديث عنوان الصفحة في breadcrumb
+    function updateBreadcrumb(title) {
+      $(".breadcrumb-title").text(title);
+      $(".breadcrumb-item.active").text(title);
     }
 
-    $("a[data-method]").on("click", function (e) {
-        const methodName = $(this).data("method");
-        if (methodName === "logout") {
-            e.preventDefault();
-            const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
-            if (confirmLogout) {
-                window.location.href = $(this).attr("href");
-            }
-        } else {
-            showSection(methodName);
+    // دالة للتعامل مع الروابط
+    function handleLinkClick(e) {
+      const methodName = $(this).data("method");
+      
+      if (methodName === "logout") {
+        e.preventDefault();
+        const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
+        if (confirmLogout) {
+          window.location.href = $(this).attr("href");
         }
-    });
-});
+      } else {
+        e.preventDefault();
+        const sectionTitles = {
+          patient_dashboard: "لوحة التحكم",
+          favourites: "الأطباء المفضلين",
+          dependent: "المعالين",
+          orders_list: "الطلبات",
+          notifications_list: "الإشعارات",
+          profile_settings: "إعدادات الملف الشخصي",
+          change_password: "تغيير كلمة المرور"
+        };
+        
+        const newTitle = sectionTitles[methodName] || "لوحة التحكم";
+        updateBreadcrumb(newTitle);
+        
+        // إعادة تحميل الصفحة مع إضافة بارامتر للقسم المطلوب
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?section=' + methodName;
+      }
+    }
 
+    // التعامل مع الروابط
+    $("a[data-method]").on("click", handleLinkClick);
 
+    // عند تحميل الصفحة، التحقق من وجود قسم معين في URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+    
+    if (sectionParam) {
+      const sectionTitles = {
+        patient_dashboard: "لوحة التحكم",
+        favourites: "الأطباء المفضلين",
+        dependent: "المعالين",
+        orders_list: "الطلبات",
+        notifications_list: "الإشعارات",
+        profile_settings: "إعدادات الملف الشخصي",
+        change_password: "تغيير كلمة المرور"
+      };
+      
+      const title = sectionTitles[sectionParam] || "لوحة التحكم";
+      updateBreadcrumb(title);
+      
+      // إخفاء جميع الأقسام وإظهار القسم المطلوب
+      $(".section").addClass("d-none");
+      $(`.${sectionParam}`).removeClass("d-none");
+    }
+  });
 </script>
 {% endblock extra_js %}

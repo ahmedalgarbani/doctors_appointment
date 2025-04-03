@@ -1,8 +1,8 @@
 
 {% block content %}
-
-<div class="col-md-7 col-lg-8 col-xl-9 section invoices d-none">
-    <div class="row">
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
@@ -11,16 +11,16 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <h4>معلومات المستشفى</h4>
-                                    <p><strong>الاسم:</strong> {{ hospital.name }}</p>
-                                    <p><strong>الموقع:</strong> {{ hospital.location }}</p>
+                                    <p><strong>الاسم:</strong> {{ payment.payment_method.hospital.name }}</p>
+                                    <p><strong>الموقع:</strong> {{ payment.payment_method.hospital.sub_title }}</p>
                                 </div>
                                 <div class="col-md-6 text-end">
                                     <h4>معلومات الفاتورة</h4>
-                                    <p><strong>رقم الفاتورة:</strong> #INV-{{ invoice.id }}</p>
-                                    <p><strong>تاريخ الفاتورة:</strong> {{ invoice.payment_date|date:"d M Y" }}</p>
+                                    <p><strong>رقم الفاتورة:</strong> #INV-{{ payment.id }}</p>
+                                    <p><strong>تاريخ الفاتورة:</strong> {{ payment.payment_date|date:"d M Y" }}</p>
                                     <p><strong>الحالة:</strong> 
-                                        <span class="badge {% if invoice.payment_status.payment_status_name == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
-                                            {{ invoice.payment_status.payment_status_name }}
+                                        <span class="badge {% if payment.payment_status == 1 %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ payment.get_status_display }}
                                         </span>
                                     </p>
                                 </div>
@@ -30,14 +30,14 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <h4>معلومات المريض</h4>
-                                    <p><strong>الاسم:</strong> {{ invoice.booking.patient.get_full_name }}</p>
-                                    <p><strong>رقم المريض:</strong> #PT{{ invoice.booking.patient.id }}</p>
-                                    <p><strong>رقم الهاتف:</strong> {{ invoice.booking.patient.phone_number }}</p>
+                                    <p><strong>الاسم:</strong> {{ payment.booking.patient.user.get_full_name }}</p>
+                                    <p><strong>رقم المريض:</strong> #PT{{ payment.booking.patient.id }}</p>
+                                    <p><strong>رقم الهاتف:</strong> {{ payment.booking.patient.user.mobile_number }}</p>
                                 </div>
                                 <div class="col-md-6">
                                     <h4>معلومات الطبيب</h4>
-                                    <p><strong>الاسم:</strong> د. {{ invoice.booking.doctor.full_name }}</p>
-                                    <p><strong>التخصص:</strong> {{ invoice.booking.doctor.specialty.name }}</p>
+                                    <p><strong>الاسم:</strong> د. {{ payment.booking.doctor.full_name }}</p>
+                                    <p><strong>التخصص:</strong> {{ payment.booking.doctor.specialty.name }}</p>
                                 </div>
                             </div>
 
@@ -45,9 +45,9 @@
                             <div class="row mb-4">
                                 <div class="col-12">
                                     <h4>تفاصيل الموعد</h4>
-                                    <p><strong>تاريخ الموعد:</strong> {{ invoice.booking.appointment_datetime|date:"d M Y" }}</p>
-                                    <p><strong>وقت الموعد:</strong> {{ invoice.booking.appointment_datetime|date:"h:i A" }}</p>
-                                    <p><strong>حالة الحجز:</strong> {{ invoice.booking.status }}</p>
+                                    <p><strong>تاريخ الموعد:</strong> {{ payment.booking.appointment_date|date:"d M Y" }}</p>
+                                    <p><strong>وقت الموعد:</strong> {{ payment.booking.appointment_time.start_time|date:"h:i A" }}</p>
+                                    <p><strong>حالة الحجز:</strong> {{ payment.booking.get_status_display }}</p>
                                 </div>
                             </div>
 
@@ -60,23 +60,23 @@
                                             <tbody>
                                                 <tr>
                                                     <td><strong>طريقة الدفع:</strong></td>
-                                                    <td>{{ invoice.payment_method.payment_option.method_name }}</td>
+                                                    <td>{{ payment.payment_method.payment_option.method_name }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>نوع الدفع:</strong></td>
-                                                    <td>{{ invoice.get_payment_type_display }}</td>
+                                                    <td>{{ payment.get_payment_type_display }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>المبلغ الفرعي:</strong></td>
-                                                    <td>{{ invoice.payment_currency }} {{ invoice.payment_subtotal }}</td>
+                                                    <td>{{ payment.payment_currency }} {{ payment.payment_subtotal }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>الخصم:</strong></td>
-                                                    <td>{{ invoice.payment_currency }} {{ invoice.payment_discount }}</td>
+                                                    <td>{{ payment.payment_currency }} {{ payment.payment_discount }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>المبلغ الإجمالي:</strong></td>
-                                                    <td><strong>{{ invoice.payment_currency }} {{ invoice.payment_totalamount }}</strong></td>
+                                                    <td><strong>{{ payment.payment_currency }} {{ payment.payment_totalamount }}</strong></td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -84,12 +84,12 @@
                                 </div>
                             </div>
 
-                            {% if invoice.payment_note %}
+                            {% if payment.payment_note %}
                             <!-- Payment Notes -->
                             <div class="row">
                                 <div class="col-12">
                                     <h4>ملاحظات</h4>
-                                    <p>{{ invoice.payment_note }}</p>
+                                    <p>{{ payment.payment_note }}</p>
                                 </div>
                             </div>
                             {% endif %}
@@ -97,10 +97,10 @@
                             <!-- Actions -->
                             <div class="row mt-4">
                                 <div class="col-12 text-end">
-                                    <a href="{% url 'hospitals:index' %}" class="btn btn-secondary">
+                                    <a href="{% url 'patients:patient_dashboard' %}" class="btn btn-secondary">
                                         <i class="fas fa-arrow-left"></i> العودة للقائمة
                                     </a>
-                                    <button type="button" class="btn btn-primary print-invoice" data-invoice-id="{{ invoice.id }}">
+                                    <button type="button" class="btn btn-primary print-invoice" data-invoice-id="{{ payment.id }}">
                                         <i class="fas fa-print"></i> طباعة الفاتورة
                                     </button>
                                 </div>

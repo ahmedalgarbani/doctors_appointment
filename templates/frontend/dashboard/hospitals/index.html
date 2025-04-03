@@ -105,13 +105,13 @@
                     <span>إعدادات الملف الشخصي</span>
                   </a>
                 </li>
-                <li>
+                <!-- <li>
                   <a href="javascript:;" data-method="notifications_list">
                     <i class="fas fa-comments"></i>
                     <span>الأشعارات</span>
                     <small class="unread-msg">{{ notifications.count }}</small>
                   </a>
-                </li>
+                </li> -->
                 <li>
                   <a href="javascript:;" data-method="notifications_forms">
                     <i class="fas fa-comments"></i>
@@ -138,6 +138,11 @@
       </div>
 
             <!-- Include Sections -->
+            {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+            {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+            {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+            {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
+
             {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
             {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
             {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
@@ -146,10 +151,6 @@
             {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
             {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
             {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-            {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-            {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
-            {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
-            {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
             
             {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
             
@@ -162,7 +163,8 @@
   </div>
 </div>
 <!-- /Page Content -->
-{% endblock %} {% block extra_js %}
+{% endblock %}
+{% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

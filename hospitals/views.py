@@ -1299,6 +1299,14 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
+
+@login_required(login_url='/user/login')
+def invoice_view(request, payment_id):
+    # الحصول على الفاتورة المحددة
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', {'payment': payment})
+
+
 @login_required
 def update_hospital_profile(request):
     """معالجة طلب تعديل بيانات ملف المستشفى الشخصي"""

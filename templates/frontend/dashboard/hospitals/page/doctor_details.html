@@ -79,8 +79,10 @@
                             <a href="{% url 'hospitals:index' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-right ml-2"></i>عودة للقائمة
                             </a>
-                            <a href="#" onclick="toggleEditForm({{ doctor.id }})" class="btn btn-primary">
-                                <i class="fas fa-edit ml-2"></i>تعديل البيانات
+                        </a>
+                        {% if doctor.id %}
+                            <a href="{% url 'hospitals:edit_doctor' doctor.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit ml-2"></i> تعديل البيانات
                             </a>
                         </div>
                     </div>

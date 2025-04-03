@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 def index(request):
    
-
     try:
         homeBanner = HomeBanner.objects.first()  
         logger.info('Retrieved home banner')
