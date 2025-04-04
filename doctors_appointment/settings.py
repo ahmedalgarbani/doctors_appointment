@@ -55,11 +55,6 @@ INSTALLED_APPS = [
 
 
 REST_FRAMEWORK = {
-     'DEFAULT_PARSER_CLASSES': (
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser',
-    ),
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
@@ -84,7 +79,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=100),  
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),  
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  
     "ROTATE_REFRESH_TOKENS": True,  
     "BLACKLIST_AFTER_ROTATION": True,  

@@ -1,5 +1,5 @@
-<div class="col-md-7 col-lg-8 col-xl-9 schedule_timings section d-none">
-						 
+
+<div class="col-md-7 col-lg-8 col-xl-9 section schedule_timings d-none">
 	<div class="row">
 		<div class="col-sm-12">
 			<div class="card">
@@ -33,7 +33,7 @@
 						<div class="row">
 							<div class="col-md-12">
 								<div class="card schedule-widget mb-0">
-									
+
 									<!-- Schedule Header -->
 									<div class="schedule-header">
 										<div class="schedule-nav">
@@ -47,10 +47,10 @@
 										</div>
 									</div>
 									<!-- /Schedule Header -->
-									
+
 									<!-- Schedule Content -->
 									<div class="tab-content schedule-cont">
-										
+
 										{% for value, name in days %}
 										<div id="slot_{{ value|lower }}" class="tab-pane fade {% if forloop.counter == 2 %}show active{% endif %}">
 											<div class="row">
@@ -68,7 +68,7 @@
 															<form class="add-time-slot-form" data-day="{{ value }}">
 																{% csrf_token %}
 																<input type="hidden" name="day" value="{{ value }}">
-																
+
 																<div class="mb-3">
 																	<label class="form-label">وقت البداية</label>
 																	<div class="row g-2">
@@ -129,10 +129,10 @@
 											</div>
 										</div>
 										{% endfor %}
-										
+
 									</div>
 									<!-- /Schedule Content -->
-									
+
 								</div>
 							</div>
 						</div>
@@ -141,7 +141,7 @@
 			</div>
 		</div>
 	</div>
-		
+
 
 
 <!-- Add Time Slot Modal -->
@@ -231,7 +231,7 @@
 		</div>
 	</div>
 </div>
-
+</div>
 <style>
     #alert-messages {
         position: fixed;
@@ -320,14 +320,14 @@ function showMessage(message, type = 'danger') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
     alertDiv.role = 'alert';
-    
+
     alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
-    
+
     messagesContainer.appendChild(alertDiv);
-    
+
     // إخفاء الرسالة تلقائياً بعد 5 ثواني
     setTimeout(() => {
         alertDiv.remove();

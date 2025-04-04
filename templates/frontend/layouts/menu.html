@@ -166,7 +166,7 @@
                                                     <div class="notify-block d-flex">
                                                         {% if notification.image %}
                                                         <span class="avatar">
-                                                            <img class="avatar-img" alt="Notification Image" src="{{ notification.image.url }}">
+                                                            <img class="avatar-img" alt="Notification Image" src="{{ notification.profile_picture.url }}">
                                                         </span>
                                                         {% endif %}
                                                         <div class="media-body">
@@ -186,9 +186,22 @@
                                             </li>
                                             {% endif %}
                                         {% endfor %}
+                                        <a href="
+                                        {% if request.user.user_type == 'patient' %}
+                                            {% url 'patients:patient_dashboard' %}?section=notifications_list
+                                        {% elif request.user.user_type == 'hospital_manager' %}
+                                            {% url 'hospitals:index' %}?section=notifications_list
+                                        {% else %}
+                                            #notifications-list
+                                        {% endif %}" 
+                                        class="dropdown-item drop-reveal-btn text-center" 
+                                        data-method="notifications_list">
+                                        مشاهدة الكل
+                                    </a>
                                     </ul>
                                 </div>
                             </div>
+
                         </li>
                     </div>
                     <!-- /Notifications -->

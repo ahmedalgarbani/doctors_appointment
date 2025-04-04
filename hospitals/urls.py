@@ -1,18 +1,22 @@
 from django.urls import path,include
 from . import views
+from django.contrib.auth.views import LogoutView
 
 app_name = 'hospitals'
 
 urlpatterns = [
     
+    path('logout/', views.logout_view, name='logout'),
     path('', views.index, name='index'),
-    # path('dashboard/', views.hospital_dashboard, name='dashboard'),
+    path('add-doctor-form/', views.add_doctor_form, name='add_doctor_form'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
+    # path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('doctors-filter/', views.filter_doctors, name='filter_doctors'),
     path('doctor/<int:doctor_id>/get/', views.get_doctor, name='get_doctor'),
     path('doctor/<int:doctor_id>/update/', views.update_doctor, name='update_doctor'),
     path('doctor/<int:doctor_id>/delete/', views.delete_doctor, name='delete_doctor'),
     path('doctor/<int:doctor_id>/history/', views.get_doctor_history, name='get_doctor_history'),
+    path('doctor/<int:doctor_id>/details/', views.doctor_details, name='doctor_details'),
     path('hospitals/blogs', views.blog_list, name='blog_list'),
     path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
     path('hospitals/add-blog/', views.add_blog, name='add_blog'),

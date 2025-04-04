@@ -172,6 +172,7 @@ def login_view(request):
     return render(request, 'frontend/auth/login.html')
 
 
+
 def user_logout(request):
     logout(request)
     return redirect('/')
