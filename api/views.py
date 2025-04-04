@@ -1,24 +1,38 @@
 from django.shortcuts import get_object_or_404, render
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
+from bookings.models import Booking
 from doctors.models import Doctor,Specialty
 from hospitals.models import Hospital
-from .serializers import DoctorSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer
+from payments.models import HospitalPaymentMethod
+from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, permissions
-from patients.models import Patients
+from patients.models import Favourites, Patients
 from django.db.utils import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser,MultiPartParser, FormParser
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 
 
 User = get_user_model()
+
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -173,6 +187,159 @@ class LogoutView(APIView):
             return Response({"message": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class FavouritesViewSet(viewsets.ModelViewSet):
+    serializer_class = FavouritesSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        """Return favourites for the authenticated user."""
+        patient = get_object_or_404(Patients, user=self.request.user.id)
+        return Favourites.objects.filter(patient=patient)
+
+    def perform_create(self, serializer):
+        """Save favourite with the authenticated user's patient instance."""
+        patient = get_object_or_404(Patients, user=self.request.user.id)
+        serializer.save(patient=patient)
+
+    def create(self, request, *args, **kwargs):
+        """Handle creation of a new favourite, preventing duplicates."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        doctor = serializer.validated_data['doctor']
+
+        patient = get_object_or_404(Patients, user=request.user.id)
+        if Favourites.objects.filter(patient=patient, doctor=doctor).exists():
+            return Response(
+                {"detail": "Favourite already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        self.perform_create(serializer)
+        return Response(
+            {"detail": "Favourite added successfully."},
+            status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=False, methods=['delete'], url_path='remove')
+    def remove_favourite(self, request):
+        """Remove a favourite doctor for the authenticated user."""
+        doctor_id = request.data.get('doctor')
+
+        if not doctor_id:
+            return Response(
+                {"error": "Doctor ID is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        patient = get_object_or_404(Patients, user=request.user.id)
+        instance = Favourites.objects.filter(patient=patient, doctor_id=doctor_id).first()
+
+        if instance:
+            instance.delete()
+            return Response(
+                {"detail": "Favourite removed successfully."},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+        return Response(
+            {"error": "Favourite not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+
+
+
+from django.utils import timezone
+from datetime import datetime
+
+class BookingViewSet(viewsets.ModelViewSet):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        patient = get_object_or_404(Patients, user=self.request.user.id)
+        return Booking.objects.filter(patient=patient)
+
+    def perform_create(self, serializer):
+        patient = get_object_or_404(Patients, user=self.request.user.id)
+        serializer.save(patient=patient, booking_date=timezone.now().date())
+
+    @action(detail=False, methods=['get'])
+    def history_bookings(self, request):
+        patient = get_object_or_404(Patients, user=request.user.id)
+        today = timezone.now().date()
+        past_bookings = Booking.objects.filter(patient=patient, booking_date__lt=today)
+        page = self.paginate_queryset(past_bookings)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(past_bookings, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def upcoming_bookings(self, request):
+        patient = get_object_or_404(Patients, user=request.user.id)
+        today = timezone.now().date()
+        future_bookings = Booking.objects.filter(patient=patient, booking_date__gte=today)
+        page = self.paginate_queryset(future_bookings)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(future_bookings, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def create_booking(self, request):
+        """Creates a new booking"""
+        patient = get_object_or_404(Patients, user=request.user.id)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(patient=patient, booking_date=timezone.now().date())
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+class HospitalPaymentMethodViewSet(viewsets.ModelViewSet):
+    pagination_class = CustomPagination
+
+    queryset = HospitalPaymentMethod.objects.filter(is_active=True)  
+    serializer_class = HospitalPaymentMethodSerializer
+
+    @action(detail=False, methods=['post'])
+    def active_payment_methods(self, request):
+        hospital_id = request.data.get('hospital_id')
+
+        if not hospital_id:
+            return Response(
+                {'error': 'hospital_id is required in the request body'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            hospital = Hospital.objects.get(pk=hospital_id)
+        except Hospital.DoesNotExist:  
+            return Response(
+                {'error': 'Hospital not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        payment_methods = HospitalPaymentMethod.objects.filter(
+            hospital=hospital,
+            is_active=True,
+            payment_option__is_active=True
+        )
+        serializer = HospitalPaymentMethodSerializer(payment_methods, many=True,context={'request': request})
+        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 
