@@ -79,7 +79,7 @@ widget_tweaks %} {% block content %}
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="invoices" data-section="invoices">
+                  <a href="javascript:;" data-method="invoice_table" data-section="invoice_table">
                     <i class="fas fa-file-invoice"></i>
                     <span>الفواتير</span>
                   </a>
@@ -136,9 +136,11 @@ widget_tweaks %} {% block content %}
       </div>
 
       <!-- Include Sections -->
-      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
-      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
-      {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %}
+
+      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+
+      {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
+
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
       {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
@@ -146,7 +148,6 @@ widget_tweaks %} {% block content %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
       {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
       {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
@@ -210,7 +211,7 @@ widget_tweaks %} {% block content %}
         sectionTitle = "الحجوزات";
       } else if (methodName === "my_patient") {
         sectionTitle = "المرضى";
-      } else if (methodName === "invoices") {
+      } else if (methodName === "invoice_table") {
         sectionTitle = "الفواتير";
       } else if (methodName === "payment_settings") {
         sectionTitle = "إعدادات الدفع";

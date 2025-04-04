@@ -173,14 +173,13 @@
                                                             <p class="noti-details">
                                                                 {{ notification.message }}
                                                             </p>
-                                                            <h6>{{ notification.sender.name }} 
+                                                            <h6>{{ notification.sender.name }}
                                                                 <span class="notification-time">
                                                                     {{ notification.send_time|date:"H:i A" }}
                                                                     <br>
                                                                 <small>من: {{ notification.sender.username }}</small>
                                                                 </span>
                                                             </h6>
-                                                            
                                                         </div>
                                                     </div>
                                                 </a>
@@ -219,12 +218,16 @@
                             </div>
                             {% if request.user.user_type == 'patient' %}
                                 <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">Profile Settings</a>
                             {% elif request.user.user_type == 'hospital_manager' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+
                             {% else %}
                                 <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+
                             {% endif %}
-                            <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
                             <a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a>
                         </div>
                     </li>
@@ -253,8 +256,8 @@
         const notificationList = document.getElementById("notification-list");
         const notificationContainer = document.querySelector(".noti-content");
         
-        const maxHeight = 300; 
+        const maxHeight = 300;
         notificationContainer.style.maxHeight = `${maxHeight}px`;
-        notificationContainer.style.overflowY = 'auto'; 
+        notificationContainer.style.overflowY = 'auto';
     });
 </script>
