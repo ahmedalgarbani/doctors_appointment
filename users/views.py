@@ -252,3 +252,38 @@ def hospital_account_request(request):
             return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
     return render(request, 'frontend/auth/hospital-manager-register.html')
+
+
+
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import redirect
+import logging
+
+
+#تغيير كلمة السر للمريض و مدير المستشفى
+logger = logging.getLogger(__name__)
+
+def change_password_view(request):
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if not request.user.check_password(old_password):
+            messages.error(request, 'كلمة المرور القديمة غير صحيحة.')
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        if new_password != confirm_password:
+            messages.error(request, 'كلمة المرور الجديدة وتأكيد كلمة المرور لا يتطابقان.')
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        request.user.set_password(new_password)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+
+        logger.info(f'Password successfully changed for user {request.user.username}')
+        messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))

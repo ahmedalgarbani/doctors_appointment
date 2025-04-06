@@ -177,8 +177,8 @@
                                                 </h2>
                                             </td>
                                             <td>{{ appointment.doctor.specialty.name }}</td>
-                                            <td>{{ appointment.appointment_date|date:"Y/m/d" }}</td>
-                                            <td>{{ appointment.appointment_time|time:"H:i" }}</td>
+                                            <td>{{ appointment.booking_date|date:"Y/m/d" }}</td>
+                                            <td>{{ appointment.appointment_time.start_time|time:"h:i A" }}</td>
                                             <td>
                                                 <span class="badge {% if appointment.status == 'confirmed' %}badge-success
                                                                   {% elif appointment.status == 'pending' %}badge-warning
@@ -195,7 +195,7 @@
                                                     </a> {% endcomment %}
                                                     {% if appointment.status == 'pending' %}
                                                     {% comment %} <a
-                                                        href="{% url 'confirm_appointment' appointment.id %}"
+                                                        href=""
                                                         class="btn btn-sm bg-success-light me-2">
                                                         <i class="fas fa-check"></i>
                                                     </a> {% endcomment %}
@@ -248,10 +248,22 @@
                                                 </h2>
                                             </td>
                                             <td>{{ doctor.specialty.name }}</td>
-                                            <td>{{ doctor.today_appointments_count }}</td>
                                             <td>
-                                                <i class="fas fa-star text-warning"></i>
-                                                {{ doctor.average_rating|default:"0" }}
+                                                <span class="badge bg-primary-light">
+                                                    متاحة: {{ doctor.available_slots|default:"0" }}
+                                                </span>
+                                                <span class="badge bg-info-light">
+                                                    محجوزة: {{ doctor.booked_slots|default:"0" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% for i in "12345" %}
+                                                    {% if i|add:0 <= doctor.average_rating|default:0|floatformat:0|add:0 %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
                                             </td>
                                             <td>
                                                 <span
@@ -308,9 +320,9 @@
                                             <td><a href="">#INV-{{ payment.id }}</a></td>
                                             <td>{{ payment.booking.patient.user.get_full_name }}</td>
                                             <td>{{ payment.booking.doctor.full_name }}</td>
-                                            <td>{{ payment.payment_totalamount }} ر.س</td>
+                                            <td>{{ payment.payment_totalamount }} ر.ي</td>
                                             <td>{{ payment.payment_method }}</td>
-                                            <td>{{ payment.created_at|date:"Y/m/d" }}</td>
+                                            <td>{{ payment.payment_date|date:"Y/m/d" }}</td>
                                             <td>
                                                 <span class="badge {% if payment.payment_status == 1 %}badge-success
                                                                   {% elif payment.payment_status == 0 %}badge-warning

@@ -68,15 +68,15 @@
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>تاريخ الحجز:</strong></div>
-                                                <div class="col-sm-8">{{ booking.appointment_date|date:"Y-m-d" }}</div>
+                                                <div class="col-sm-8">{{ booking.booking_date|date:"Y-m-d" }}</div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>وقت الحجز:</strong></div>
-                                                <div class="col-sm-8">{{ booking.appointment_time|time:"H:i" }}</div>
+                                                <div class="col-sm-8">{{ booking.appointment_time.start_time|time:"h:i A" }}</div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>تاريخ الإنشاء:</strong></div>
-                                                <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d H:i" }}</div>
+                                                <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d / H:i" }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -91,20 +91,20 @@
                                         <div class="card-body">
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>اسم المريض:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.full_name }}</div>
+                                                <div class="col-sm-8">{{ booking.patient.user.get_full_name }}</div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
                                                 <div class="col-sm-8">
-                                                    <a href="tel:{{ booking.patient.phone_number }}" class="text-decoration-none">
-                                                        {{ booking.patient.phone_number }}
+                                                    <a href="tel:{{ booking.patient.user.mobile_number }}" class="text-decoration-none">
+                                                        {{ booking.patient.user.mobile_number }}
                                                         <i class="fas fa-phone-alt ms-2"></i>
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>العمر:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.birth_date|timesince }}</div>
+                                                <div class="col-sm-4"><strong>تاريخ الميلاد:</strong></div>
+                                                <div class="col-sm-8">{{ booking.patient.birth_date|date:"Y-m-d" }}</div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>الجنس:</strong></div>
@@ -112,7 +112,7 @@
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-sm-4"><strong>العنوان:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.address }}</div>
+                                                <div class="col-sm-8">{{ booking.patient.user.address }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -218,10 +218,10 @@
                                                 <i class="fas fa-print me-1"></i> طباعة
                                             </button>
                                             {% endif %}
-{% comment %}                                             
-                                            <a href="{% url 'appointments_list' %}" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة لقائمة الحجوزات">
+                                            <a href="javascript:history.back()" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة للصفحة السابقة">
                                                 <i class="fas fa-arrow-left me-1"></i> رجوع
-                                            </a> {% endcomment %}
+                                            </a>
+                                            
                                         </div>
                                     </div>
                                 </div>

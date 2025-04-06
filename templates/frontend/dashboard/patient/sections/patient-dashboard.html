@@ -167,8 +167,8 @@
 												</a>
 											</h2>
 										</td>
-										<td>{{ booking.appointment_date }} <span class="d-block text-info">{{ booking.appointment_time }}</span></td>
-										<td>{{ booking.booking_date }}</td>
+										<td>{{ booking.appointment_date }} <span class="d-block text-info">{{ booking.appointment_time.start_time|time:"h:i A" }}</span></td>
+										<td>{{ booking.booking_date|date:"Y/m/d" }}</td>
 										<td>{{ booking.amount }} ريال</td>
 										<td>{{ booking.follow_up }}</td>
 										<td>

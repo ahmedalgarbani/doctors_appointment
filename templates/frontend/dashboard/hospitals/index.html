@@ -1,6 +1,7 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
-{% load widget_tweaks %} 
+{% load widget_tweaks %}
+
 {% block content %}
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
@@ -34,7 +35,6 @@
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
               {% if request.user.profile_picture %}
-
               <a href="#" class="booking-doc-img">
                 <img src="{{request.user.profile_picture.url}}" alt="User Image" />
               </a>
@@ -57,15 +57,15 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
-                    <i class="fas fa-clock"></i>
-                    <span>جدولة المواعيد</span>
-                  </a>
-                </li>
-                <li>
                   <a href="javascript:;" data-method="all_doctors_page" data-section="all_doctors_page">
                     <i class="fas fa-calendar-check"></i>
                     <span>الاطباء</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
+                    <i class="fas fa-clock"></i>
+                    <span>جدولة المواعيد</span>
                   </a>
                 </li>
                 <li>
@@ -105,13 +105,13 @@
                     <span>إعدادات الملف الشخصي</span>
                   </a>
                 </li>
-                <!-- <li>
+                <li>
                   <a href="javascript:;" data-method="notifications_list">
                     <i class="fas fa-comments"></i>
                     <span>الأشعارات</span>
                     <small class="unread-msg">{{ notifications.count }}</small>
                   </a>
-                </li> -->
+                </li>
                 <li>
                   <a href="javascript:;" data-method="notifications_forms">
                     <i class="fas fa-comments"></i>
@@ -137,109 +137,101 @@
         <!-- /Profile Sidebar -->
       </div>
 
-            <!-- Include Sections -->
-            {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-            {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
-            {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-            {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
-
-            {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
-            {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
-            {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
-            {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
-            {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
-            {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
-            {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
-            {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-            
-            {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-            
-          
-            
-            
-            
-            
+      <!-- Include Sections -->
+      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
+      {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
+      {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
     </div>
   </div>
 </div>
 <!-- /Page Content -->
+
 {% endblock %}
+
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function showSection(targetSection) {
-    if (targetSection === "logout") {
-      window.location.href = "{% url 'hospitals:logout' %}";
-      return;
+  $(document).ready(function () {
+    // دالة لتحديث عنوان الصفحة في breadcrumb
+    function updateBreadcrumb(title) {
+      $(".breadcrumb-title").text(title);
+      $(".breadcrumb-item.active").text(title);
     }
-    // إخفاء جميع الأقسام
-    $(".section").addClass("d-none");
 
-    // إظهار القسم المطلوب
-    $("." + targetSection).removeClass("d-none");
-
-    // تحديث الرابط النشط في القائمة
-    $(".dashboard-menu li").removeClass("active");
-    $('a[data-section="' + targetSection + '"]')
-      .parent()
-      .addClass("active");
-  }
-
-  $(document).ready(function () {
-    // عرض لوحة التحكم عند تحميل الصفحة
-    showSection("hospital_dashboard");
-
-    // تحديث القسم المعروض عند النقر على الروابط
-    $("a[data-method], a[data-section]").on("click", function () {
+    // دالة للتعامل مع الروابط
+    function handleLinkClick(e) {
       const methodName = $(this).data("method");
-      const sectionName = $(this).data("section");
-      showSection(methodName || sectionName);
-    });
-
-    // تهيئة المودال
-    $('#add_doctor_modal').modal({
-      show: false
-    });
-  });
-</script>
-
-<script>
-  $(document).ready(function () {
-    // عندما يتم الضغط على أي رابط في القائمة الجانبية
-    $("a[data-method]").on("click", function () {
-      const methodName = $(this).data("method");
-      let sectionTitle = "";
-
-      // تحديد العنوان المناسب بناءً على method
-      if (methodName === "hospital_dashboard") {
-        sectionTitle = "لوحة التحكم";
-      } else if (methodName === "schedule_timings") {
-        sectionTitle = "جدولة المواعيد";
-      } else if (methodName === "all_doctors_page") {
-        sectionTitle = "جميع الأطباء";
-      } else if (methodName === "appointments") {
-        sectionTitle = "الحجوزات";
-      } else if (methodName === "my_patient") {
-        sectionTitle = "المرضى";
-      } else if (methodName === "invoices_table") {
-        sectionTitle = "الفواتير";
-      } else if (methodName === "payment_settings") {
-        sectionTitle = "إعدادات الدفع";
-      } else if (methodName === "doctor_profile_settings") {
-        sectionTitle = "إعدادات الملف الشخصي";
-      } else if (methodName === "notifications_list") {
-        sectionTitle = "الأشعارات";
-      } else if (methodName === "notifications_forms") {
-        sectionTitle = "إرسال إشعار";
-      } else if (methodName === "doctor_change_password") {
-        sectionTitle = "تغيير كلمة المرور";
+      
+      if (methodName === "logout") {
+        e.preventDefault();
+        const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
+        if (confirmLogout) {
+          window.location.href = $(this).attr("href");
+        }
+      } else {
+        e.preventDefault();
+        const sectionTitles = {
+          hospital_dashboard: "لوحة التحكم",
+          all_doctors_page: "جميع الأطباء",
+          schedule_timings: "جدولة المواعيد",
+          appointments: "الحجوزات",
+          my_patient: "المرضى",
+          invoices_table: "الفواتير",
+          payment_settings: "إعدادات الدفع",
+          doctor_profile_settings: "إعدادات الملف الشخصي",
+          notifications_list: "الأشعارات",
+          notifications_forms: "ارسال اشعار",
+          doctor_change_password: "تغيير كلمة المرور"
+        };
+        
+        const newTitle = sectionTitles[methodName] || "لوحة التحكم";
+        updateBreadcrumb(newTitle);
+        
+        // إعادة تحميل الصفحة مع إضافة بارامتر للقسم المطلوب
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?section=' + methodName;
       }
+    }
 
-      // تحديث عنوان breadcrumb
-      $(".breadcrumb-title").text(sectionTitle);
-    });
+    // التعامل مع الروابط
+    $("a[data-method]").on("click", handleLinkClick);
+
+    // عند تحميل الصفحة، التحقق من وجود قسم معين في URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+    
+    if (sectionParam) {
+      const sectionTitles = {
+        hospital_dashboard: "لوحة التحكم",
+        all_doctors_page: "جميع الأطباء",
+        schedule_timings: "جدولة المواعيد",
+        appointments: "الحجوزات",
+        my_patient: "المرضى",
+        invoices_table: "الفواتير",
+        payment_settings: "إعدادات الدفع",
+        doctor_profile_settings: "إعدادات الملف الشخصي",
+        notifications_list: "الأشعارات",
+        notifications_forms: "ارسال اشعار",
+        doctor_change_password: "تغيير كلمة المرور"
+      };
+      
+      const title = sectionTitles[sectionParam] || "لوحة التحكم";
+      updateBreadcrumb(title);
+      
+      // إخفاء جميع الأقسام وإظهار القسم المطلوب
+      $(".section").addClass("d-none");
+      $(`.${sectionParam}`).removeClass("d-none");
+    }
   });
 </script>
-
-{% endblock extra_js %}
+{% endblock %}

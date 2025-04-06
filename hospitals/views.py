@@ -858,6 +858,9 @@ def accept_appointment(request, booking_id):
             'message': str(e)
         }, status=500)
 
+
+
+
 def completed_appointment(request, booking_id):
     """تأكيد اكتمال الحجز بعد الكشف"""
     if not hasattr(request.user, 'hospital'):
@@ -909,6 +912,9 @@ def completed_appointment(request, booking_id):
             'message': str(e)
         }, status=500)
 
+
+
+
 def booking_history(request, booking_id):
     """عرض تاريخ حالات الحجز"""
     if not request.user.is_authenticated:
@@ -942,7 +948,7 @@ def booking_history(request, booking_id):
         return JsonResponse({
             'status': 'success',
             'booking_id': booking_id,
-            'patient_name': booking.patient.full_name,
+            'patient_name':  f"{booking.patient.user.first_name} {booking.patient.user.last_name}",
             'doctor_name': booking.doctor.full_name,
             'history': history_data
         })
@@ -957,6 +963,9 @@ def booking_history(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
+
 
 def delete_booking(request, booking_id):
     """حذف الحجز"""
@@ -1003,6 +1012,8 @@ def delete_booking(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
 
 @login_required(login_url='/user/login')
 @csrf_exempt
@@ -1061,7 +1072,7 @@ def edit_booking(request, booking_id):
                     'amount': str(booking.amount),
                     'is_online': booking.is_online,
                     'payment_notes': booking.payment_notes or '',
-                    'patient_name': booking.patient.full_name,
+                    'patient_name': f"{booking.patient.user.first_name} {booking.patient.user.last_name}", 
                     'doctor_name': booking.doctor.full_name,
                     'appointment_date': schedule.get_day_display(),
                     'appointment_time': f"{shift.start_time} - {shift.end_time}"
@@ -1079,8 +1090,8 @@ def edit_booking(request, booking_id):
             'message': str(e)
         }, status=500)
 
-@login_required(login_url='/user/login')
 
+@login_required(login_url='/user/login')
 def schedule_timings(request):
     try:
         hospital = Hospital.objects.get(hospital_manager=request.user)
@@ -1092,7 +1103,6 @@ def schedule_timings(request):
             end_time = request.POST.get('end_time')
             max_appointments = int(request.POST.get('max_appointments', 1))
 
-            # التحقق من صحة البيانات
             if not all([doctor_id, day, start_time, end_time]):
                 return JsonResponse({
                     'status': 'error',
@@ -1100,10 +1110,8 @@ def schedule_timings(request):
                 })
 
             try:
-                # التحقق من وجود الطبيب وارتباطه بالمستشفى
                 doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
                 
-                # التحقق من صحة التوقيت
                 start_time_obj = datetime.strptime(start_time, '%H:%M').time()
                 end_time_obj = datetime.strptime(end_time, '%H:%M').time()
                 
@@ -1113,7 +1121,6 @@ def schedule_timings(request):
                         'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
                     })
 
-                # التحقق من تداخل المواعيد
                 existing_shifts = DoctorShifts.objects.filter(
                     doctor_schedule__doctor=doctor,
                     doctor_schedule__day=day,
@@ -1127,14 +1134,12 @@ def schedule_timings(request):
                             'message': 'يوجد تداخل مع موعد آخر'
                         })
 
-                # إنشاء أو الحصول على جدول الطبيب
                 schedule, created = DoctorSchedules.objects.get_or_create(
                     doctor=doctor,
                     hospital=hospital,
                     day=day
                 )
                 
-                # إنشاء الفترة الزمنية
                 shift = DoctorShifts.objects.create(
                     doctor_schedule=schedule,
                     start_time=start_time_obj,
@@ -1161,15 +1166,38 @@ def schedule_timings(request):
                     'message': str(e)
                 })
 
-        # GET request
+        # GET request - تم التعديل هنا
         doctors = Doctor.objects.filter(hospitals=hospital)
-        schedules = DoctorShifts.objects.filter(
-            doctor_schedule__hospital=hospital
-        ).select_related('doctor_schedule__doctor')
+        doctor_id = request.GET.get('doctor_id')
+        
+        if doctor_id:
+            # إرجاع بيانات الجدول للطبيب المحدد
+            schedules = DoctorShifts.objects.filter(
+                doctor_schedule__doctor_id=doctor_id,
+                doctor_schedule__hospital=hospital
+            ).select_related('doctor_schedule')
+            
+            schedules_data = {}
+            for shift in schedules:
+                day = shift.doctor_schedule.day
+                if day not in schedules_data:
+                    schedules_data[day] = []
+                
+                schedules_data[day].append({
+                    'id': shift.id,
+                    'start_time': shift.start_time.strftime('%H:%M'),
+                    'end_time': shift.end_time.strftime('%H:%M'),
+                    'available_slots': shift.available_slots,
+                    'booked_slots': shift.booked_slots
+                })
+            
+            return JsonResponse({
+                'status': 'success',
+                'doctor_schedules': schedules_data
+            })
         
         context = {
             'doctors': doctors,
-            'doctor_schedules': {},
             'days': DoctorSchedules.DAY_CHOICES,
             'section': 'schedule_timings'
         }
@@ -1187,6 +1215,9 @@ def schedule_timings(request):
             'status': 'error',
             'message': 'حدث خطأ أثناء معالجة الطلب'
         })
+
+
+
 
 @login_required(login_url='/user/login')
 
@@ -1209,7 +1240,7 @@ def delete_shift(request, shift_id):
                 'message': 'لا يمكنك حذف هذا الموعد'
             }, status=403)
         except Exception as e:
-            print(f"Error: {str(e)}")  # للتصحيح
+            print(f"Error: {str(e)}")  
             return JsonResponse({
                 'status': 'error',
                 'message': 'حدث خطأ أثناء حذف الموعد'
@@ -1220,52 +1251,88 @@ def delete_shift(request, shift_id):
         'message': 'طريقة الطلب غير صحيحة'
     }, status=405)
 
-@login_required(login_url='/user/login')
 
+
+
+
+@login_required(login_url='/user/login')
+def invoice_view(request, payment_id):
+    # الحصول على الفاتورة المحددة
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', {'payment': payment})
+
+
+
+@login_required(login_url='/user/login')
 def filter_invoices(request):
     """تصفية الفواتير"""
     hospital = request.user.hospital
     invoices = Payment.objects.filter(payment_method__hospital=hospital)
-    
-    # إحصائيات سريعة
-    context = {
-       
-    }
-    
-    # تطبيق الفلترة
+
+    # Get payment methods available for this hospital
+    payment_methods = HospitalPaymentMethod.objects.filter(
+        hospital=hospital,
+        is_active=True
+    ).select_related('payment_option')
+
+    # Apply filters
     date_from = request.GET.get('date_from')
     if date_from:
         invoices = invoices.filter(payment_date__date__gte=date_from)
-        
+
     date_to = request.GET.get('date_to')
     if date_to:
         invoices = invoices.filter(payment_date__date__lte=date_to)
-        
+
     payment_status = request.GET.get('payment_status')
     if payment_status:
-        invoices = invoices.filter(payment_status_id=payment_status)
-    payment_method= request.GET.get('payment_method')
+        invoices = invoices.filter(payment_status=payment_status)
+
+    payment_method = request.GET.get('payment_method')
     if payment_method:
-        invoices= invoices.filter(payment_method__id=payment_method)
-        
+        invoices = invoices.filter(payment_method__id=payment_method)
+
     patient_name = request.GET.get('patient_name')
     if patient_name:
-        invoices = invoices.filter(booking__patient__full_name__icontains=patient_name)
+        invoices = invoices.filter(booking__patient__user__full_name__icontains=patient_name)
+
     amount_min = request.GET.get('amount_min')
     if amount_min:
         invoices = invoices.filter(payment_totalamount__gte=amount_min)
-        
+
     amount_max = request.GET.get('amount_max')
     if amount_max:
         invoices = invoices.filter(payment_totalamount__lte=amount_max)
 
-    # تحديث الإحصائيات بعد التصفية
-    context.update({
+    # For AJAX requests
+    # For AJAX requests
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        invoices_data = []
+        for invoice in invoices:
+            invoices_data.append({
+                'id': invoice.id,
+                'patient_name': invoice.booking.patient.user.get_full_name(),
+                'doctor_name': invoice.booking.doctor.full_name if invoice.booking.doctor else '',
+                'amount': str(invoice.payment_totalamount),
+                'status': invoice.get_status_display(),
+                'date': invoice.payment_date.strftime("%d %b %Y"),
+                'method': invoice.payment_method.payment_option.method_name,
+                'status_code': invoice.payment_status,
+                'patient_photo': invoice.booking.patient.user.profile_picture.url if invoice.booking.patient.user.profile_picture else '/static/path/to/default/image.jpg',
+                'doctor_photo': invoice.booking.doctor.photo.url if invoice.booking.doctor.photo else '/static/path/to/default/image.jpg',
+            })
+        return JsonResponse({'invoices': invoices_data})
+
+    context = {
         'invoices': invoices.order_by('-payment_date'),
-        'payment_statuses': Payment.PaymentStatus_choices
-    })
-    
+        'payment_statuses': Payment.PaymentStatus_choices,
+        'payment_methods': payment_methods,
+        'request': request,
+    }
+
     return render(request, 'frontend/dashboard/hospitals/sections/invoice_table.html', context)
+
+
 
 @login_required(login_url='/user/login')
 
@@ -1299,12 +1366,6 @@ def invoice_detail(request, invoice_id):
     # If regular request, return the full page
     return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', context)
 
-
-@login_required(login_url='/user/login')
-def invoice_view(request, payment_id):
-    # الحصول على الفاتورة المحددة
-    payment = get_object_or_404(Payment, id=payment_id)
-    return render(request, 'frontend/dashboard/hospitals/invoice_detail.html', {'payment': payment})
 
 
 @login_required

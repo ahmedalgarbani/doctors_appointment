@@ -29,7 +29,7 @@ urlpatterns = [
     path('update-payment/', views.update_payment_method, name='update_payment_method'),
     path('delete-payment/', views.delete_payment_method, name='delete_payment_method'),
     path("toggle-payment-status/", views.toggle_payment_status, name="toggle_payment_status"),
-       path('invoice/<int:payment_id>/', views.invoice_view, name='invoice_view'),
+    path('invoice/<int:payment_id>/', views.invoice_view, name='invoice_view'),
 
 
     

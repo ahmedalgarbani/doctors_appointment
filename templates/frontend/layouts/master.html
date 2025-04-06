@@ -29,6 +29,7 @@
     />
     
 
+
    <!-- Favicon -->
 		<link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
 		
@@ -104,6 +105,14 @@
 
     {% block extra_js %}
     {% endblock extra_js %}
+
+
+    <!-- في head -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+<!-- قبل نهاية body -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<!-- jQuery -->
     <!-- JS Libraies -->
     <script src="{% static 'modules/summernote/summernote-bs4.js' %}"></script>
