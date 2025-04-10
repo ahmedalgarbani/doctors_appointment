@@ -28,7 +28,6 @@ class Review(models.Model):
         verbose_name=_("صاحب المراجعة"),
         related_name='reviews'
     )
-   
     rating = models.PositiveSmallIntegerField(
         verbose_name=_("التقييم"),
         choices=[(i, f"{i} نجوم" if i > 1 else "نجمة واحدة") for i in range(1, 6)],
