@@ -1,0 +1,251 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+  <div class="container">
+    <div class="row align-items-center inner-banner">
+      <div class="col-md-12 col-12 text-center">
+        <h2 class="breadcrumb-title">تفاصيل الحجز</h2>
+        <nav aria-label="breadcrumb" class="page-breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Doctor Blog</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content 
+-->
+<div class="content">
+  <div class="container">
+    
+      <!-- Include Sections -->      
+
+      
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="card-title text-white mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>تفاصيل الحجز
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!-- معلومات الحجز -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="card-title mb-0">معلومات الحجز</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.id }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>حالة الحجز:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'confirmed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'completed' %}bg-info{% endif %}">
+                                                        {{ booking.get_status_display }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                           
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.booking_date|date:"Y-m-d" }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>وقت الحجز:</strong></div>
+                                                <div class="col-sm-8">{{ booking.appointment_time.start_time|time:"h:i A" }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الإنشاء:</strong></div>
+                                                <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d / H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <!-- معلومات الطبيب -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="card-title mb-0">معلومات الطبيب</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>اسم الطبيب:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.full_name }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>التخصص:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.specialty.name }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>سنوات الخبرة:</strong></div>
+                                                <div class="col-sm-8">{{ booking.doctor.experience_years }} سنة</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="tel:{{ booking.doctor.phone_number }}" class="text-decoration-none">
+                                                        {{ booking.doctor.phone_number }}
+                                                        <i class="fas fa-phone-alt ms-2"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>البريد الإلكتروني:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <a href="mailto:{{ booking.doctor.email }}" class="text-decoration-none">
+                                                        {{ booking.doctor.email }}
+                                                        <i class="fas fa-envelope ms-2"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="row mt-4">
+                               
+                                <!-- معلومات الدفع -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="card-title mb-0">معلومات الدفع</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>المبلغ:</strong></div>
+                                                <div class="col-sm-8">{{ booking.amount }} ريال</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>حالة الدفع:</strong></div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge {% if booking.is_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                                        {{ booking.is_paid|yesno:"تم الدفع,لم يتم الدفع" }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {% if booking.transfer_number %}
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>رقم الحوالة:</strong></div>
+                                                <div class="col-sm-8">{{ booking.transfer_number }}</div>
+                                            </div>
+                                            {% endif %}
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4"><strong>تاريخ الدفع:</strong></div>
+                                                <div class="col-sm-8">{{ booking.payment_date|default:"لم يتم الدفع بعد"|date:"Y-m-d H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- أزرار الإجراءات -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                           
+                                            
+                                            {% if not booking.is_online %}
+                                            <button class="btn btn-primary me-2" onclick="printAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="طباعة تفاصيل الحجز">
+                                                <i class="fas fa-print me-1"></i> طباعة
+                                            </button>
+                                            {% endif %}
+                                            <a href="javascript:history.back()" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة للصفحة السابقة">
+                                                <i class="fas fa-arrow-left me-1"></i> رجوع
+                                            </a>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- إضافة سكربت للتعامل مع الإجراءات -->
+                        <script>
+                            // تفعيل tooltips
+                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                return new bootstrap.Tooltip(tooltipTriggerEl)
+                            })
+
+                            
+
+                            // دالة طباعة تفاصيل الحجز
+                            function printAppointment(bookingId) {
+                                window.print();
+                            }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+   
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.info-group label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.rounded-circle {
+    border: 4px solid #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+
+    </div>
+  </div>
+</div>
+<!-- /Page Content -->
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+{% endblock extra_js %}

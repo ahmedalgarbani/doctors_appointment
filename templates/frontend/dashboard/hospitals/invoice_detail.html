@@ -29,13 +29,20 @@
                     <div class="invoice-content">
                         <div class="invoice-item">
                             <!-- Hospital Information -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
+                            <div class="row mb-4 text-center align-items-center">
+                                <div class="col-md-4 text-start">
                                     <h4>معلومات المستشفى</h4>
                                     <p><strong>الاسم:</strong> {{ payment.payment_method.hospital.name }}</p>
                                     <p><strong>الموقع:</strong> {{ payment.payment_method.hospital.sub_title }}</p>
                                 </div>
-                                <div class="col-md-6 text-end">
+                            
+                                <div class="col-md-4">
+                                    {% if payment.payment_method.hospital.logo %}
+                                        <img src="{{ payment.payment_method.hospital.logo.url }}" alt="شعار المستشفى" style="max-width: 150px; max-height: 150px; margin-bottom: 10px;">
+                                    {% endif %}
+                                </div>
+                            
+                                <div class="col-md-4 text-end">
                                     <h4>معلومات الفاتورة</h4>
                                     <p><strong>رقم الفاتورة:</strong> #INV-{{ payment.id }}</p>
                                     <p><strong>تاريخ الفاتورة:</strong> {{ payment.payment_date|date:"d M Y" }}</p>
@@ -46,6 +53,7 @@
                                     </p>
                                 </div>
                             </div>
+                            
 
                             <!-- Patient Information -->
                             <div class="row mb-4">

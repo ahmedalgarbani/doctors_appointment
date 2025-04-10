@@ -36,7 +36,8 @@
                                             </span>
                                         </div>
                                         <p class="noti-details mb-2 fs-6 text-dark">{{ notification.message }}</p>
-                                        <small class="text-secondary fs-6">من: @{{ notification.sender.username }}</small>
+                                        <small class="text-secondary">من: {{ notification.sender.get_full_name }}</small><br>
+                                        <small class="text-secondary">{{ notification.sender.email }}</small>
                                     </div>
                                     <button class="btn btn-link text-danger p-0 ms-3" onclick="confirmDeleteNotification('{{ notification.id }}')">
                                         <i class="fas fa-trash-alt fa-lg"></i>

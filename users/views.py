@@ -186,6 +186,7 @@ def hospital_account_request(request):
             manager_full_name = request.POST.get('manager_full_name')
             manager_email = request.POST.get('manager_email')
             manager_phone = request.POST.get('manager_phone')
+            logo = request.FILES.get('logo')
             password = request.POST.get('password')
             confirm_password = request.POST.get('confirm_password')
             hospital_location = request.POST.get('hospital_location')
@@ -194,7 +195,7 @@ def hospital_account_request(request):
             medical_license = request.FILES.get('medical_license')
             
             # 1. التحقق من الحقول المطلوبة
-            if not all([hospital_name, manager_full_name, manager_email, manager_phone, password, confirm_password, hospital_location]):
+            if not all([hospital_name, manager_full_name, manager_email, manager_phone,logo, password, confirm_password, hospital_location]):
                 messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
                 return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
@@ -230,6 +231,7 @@ def hospital_account_request(request):
                 manager_full_name=manager_full_name,
                 manager_email=manager_email,
                 manager_phone=manager_phone,
+                logo=logo,
                 manager_password=password,
                 hospital_location=hospital_location,
                 notes=notes,
@@ -252,6 +254,7 @@ def hospital_account_request(request):
             return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
 
     return render(request, 'frontend/auth/hospital-manager-register.html')
+
 
 
 

@@ -1662,3 +1662,5 @@ def doctor_details(request, doctor_id):
         print(f"Error in doctor_details view: {str(e)}")  # Debug print
         messages.error(request, str(e))
         return redirect('hospitals:index')
+    
+    

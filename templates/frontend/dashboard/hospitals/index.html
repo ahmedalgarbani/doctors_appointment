@@ -63,6 +63,12 @@
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:;" data-method="doctor_table" data-section="doctor_table">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>جدول الاطباء</span>
+                  </a>
+                </li>
+                <li>
                   <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
                     <i class="fas fa-clock"></i>
                     <span>جدولة المواعيد</span>
@@ -139,6 +145,7 @@
 
       <!-- Include Sections -->
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/doctor_table.html" %}
       {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
       {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
@@ -183,6 +190,7 @@
         const sectionTitles = {
           hospital_dashboard: "لوحة التحكم",
           all_doctors_page: "جميع الأطباء",
+          doctor_table: " الأطباء",
           schedule_timings: "جدولة المواعيد",
           appointments: "الحجوزات",
           my_patient: "المرضى",
@@ -214,6 +222,7 @@
       const sectionTitles = {
         hospital_dashboard: "لوحة التحكم",
         all_doctors_page: "جميع الأطباء",
+        doctor_table: " الأطباء",
         schedule_timings: "جدولة المواعيد",
         appointments: "الحجوزات",
         my_patient: "المرضى",

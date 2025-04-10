@@ -143,9 +143,10 @@ class DoctorPricing(models.Model):
         decimal_places=2, 
         verbose_name="السعر"
     )
-    transaction_number = models.UUIDField(
-        default=uuid.uuid4, 
-        editable=False, 
+    transaction_number = models.CharField(
+        max_length=256, 
+        default=uuid.uuid4,
+        editable=False,
         verbose_name="رقم العملية"
     )
 

@@ -1,26 +1,35 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib.auth import get_user_model
-from .models import Hospital, HospitalAccountRequest, City, PhoneNumber,HospitalUpdateRequest
+from .models import Hospital, HospitalAccountRequest, City, PhoneNumber, HospitalUpdateRequest
 
 User = get_user_model()
 
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'status') 
+    list_display = ('name', 'slug', 'status')
     prepopulated_fields = {'slug': ('name',)} 
     list_filter = ('status',)  
     search_fields = ('name', 'slug')  
 
 @admin.register(HospitalAccountRequest)
 class HospitalAccountRequestAdmin(admin.ModelAdmin):
-    list_display = ['hospital_name', 'manager_full_name', 'manager_email', 'status', 'created_at', 'view_documents']
+    list_display = ['hospital_name', 'manager_full_name', 'logo_display', 'manager_email', 'status', 'created_at', 'view_documents']
     list_filter = ['status', 'created_at']
     search_fields = ['hospital_name', 'manager_full_name', 'manager_email']
     readonly_fields = ['created_at', 'created_by']
     actions = ['approve_requests', 'reject_requests']
-    # prepopulated_fields = {'slug': ('hospital_name',)} 
 
+    # دالة لعرض الشعار
+    def logo_display(self, obj):
+        if hasattr(obj, 'hospital') and obj.hospital:  # Check if 'hospital' exists and is not None
+            hospital = obj.hospital
+            if hospital.logo:
+                return format_html('<img src="{}" style="width: 50px; height: auto;" />', hospital.logo.url)
+        return "لا يوجد شعار"
+
+
+    # دالة لعرض المستندات
     def view_documents(self, obj):
         links = []
         if obj.commercial_record:
@@ -30,6 +39,7 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
         return format_html(' | '.join(links))
     view_documents.short_description = 'المستندات'
 
+    # دالة للموافقة على الطلبات
     def approve_requests(self, request, queryset):
         for hospital_request in queryset.filter(status='pending'):
             # إنشاء حساب مستخدم جديد لمدير المستشفى
@@ -41,7 +51,6 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
                 user_type='hospital_manager',
                 mobile_number=hospital_request.manager_phone,
             )
-            # استخدام كلمة المرور المخزنة
             user.set_password(hospital_request.manager_password)
             user.save()
 
@@ -59,13 +68,10 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
             # إرسال بريد إلكتروني بمعلومات تسجيل الدخول
             subject = 'تمت الموافقة على طلب تسجيل المستشفى'
-            message = f'''مرحباً {hospital_request.manager_full_name}،
-            
+            message = f'''مرحباً {hospital_request.manager_full_name}، 
             تمت الموافقة على طلب تسجيل المستشفى الخاص بكم. يمكنكم الآن تسجيل الدخول باستخدام المعلومات التالية:
-            
             اسم المستخدم: {user.username}
             كلمة المرور: {hospital_request.manager_password}
-            
             يرجى تغيير كلمة المرور بعد تسجيل الدخول لأول مرة.
             '''
             try:
@@ -76,6 +82,7 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
+    # دالة لرفض الطلبات
     def reject_requests(self, request, queryset):
         queryset.filter(status='pending').update(
             status='rejected',
@@ -86,20 +93,21 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
 @admin.register(HospitalUpdateRequest)
 class HospitalUpdateRequestAdmin(admin.ModelAdmin):
-    list_display = ['hospital', 'name','location', 'status', 'created_at',]
+    list_display = ['hospital', 'name', 'location', 'status', 'created_at']
     list_filter = ['status', 'created_at']
-    search_fields = ['hospital__name','name', 'location']
-    readonly_fields = ['created_at', 'created_by','hospital']
+    search_fields = ['hospital__name', 'name', 'location']
+    readonly_fields = ['created_at', 'created_by', 'hospital']
     actions = ['approve_requests', 'reject_requests']
 
+    # دالة للموافقة على الطلبات
     def approve_requests(self, request, queryset):
         for update_request in queryset.filter(status='pending'):
-             update_request.approve_request(request.user)
+            update_request.approve_request(request.user)
            
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
-        
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
+    # دالة لرفض الطلبات
     def reject_requests(self, request, queryset):
         queryset.filter(status='pending').update(
             status='rejected',
@@ -108,9 +116,6 @@ class HospitalUpdateRequestAdmin(admin.ModelAdmin):
         self.message_user(request, f"تم رفض {queryset.count()} طلب/طلبات")
     reject_requests.short_description = "رفض الطلبات المحددة"
 
-
-
-
+# تسجيل النماذج في واجهة الإدارة
 admin.site.register(Hospital)
-
 admin.site.register(PhoneNumber)

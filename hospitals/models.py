@@ -72,6 +72,13 @@ class Hospital(BaseModel):
     slug = models.SlugField(
         max_length=200, unique=True, verbose_name=_("اسم المستخدم")
     )
+    logo = models.ImageField(
+        upload_to='hospital_logos/',
+        null=True,
+        blank=True,
+        verbose_name=_("شعار المستشفى"),
+        help_text=_(" .رفع شعار المستشفى")
+    )
     description = models.TextField(
         null=True, blank=True, verbose_name=_("الوصف")
     )
@@ -137,6 +144,15 @@ class HospitalAccountRequest(BaseModel):
         max_length=255,
         verbose_name=_("اسم مدير المستشفى")
     )
+
+    logo = models.ImageField(
+        upload_to='hospital_logos/',
+        null=True,
+        blank=True,
+        verbose_name=_("شعار المستشفى"),
+        help_text=_(" .رفع شعار المستشفى")
+    )
+
     manager_email = models.EmailField(
         verbose_name=_("البريد الإلكتروني للمدير")
     )
@@ -221,6 +237,12 @@ class HospitalUpdateRequest(BaseModel):
     ]
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, verbose_name=_("المستشفى"))
     name = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("اسم المستشفى"))
+    logo = models.ImageField(
+        upload_to='hospital_logos/',
+        null=True,
+        blank=True,
+        verbose_name=_("شعار المستشفى"),
+    )
     location = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("الموقع"))
     description = models.TextField(null=True, blank=True, verbose_name=_("الوصف"))
     specialty = models.ForeignKey('doctors.Specialty', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("التخصص"))

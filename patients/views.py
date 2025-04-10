@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Patients, Favourites
 from bookings.models import Booking
-from doctors.models import Doctor
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts
 from reviews.models import Review
 from notifications.models import Notifications
 from django.db.models import Avg, Prefetch 
@@ -19,6 +19,10 @@ from payments.models import (
     PaymentOption,
     Payment,
 )
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import PermissionDenied
+import logging
 
 @login_required(login_url='/user/login')
 def patient_dashboard(request):
@@ -152,3 +156,109 @@ def invoice_view(request, payment_id):
     # الحصول على الفاتورة المحددة
     payment = get_object_or_404(Payment, id=payment_id)
     return render(request, 'frontend/dashboard/patient/sections/invoice_view.html', {'payment': payment})
+
+
+def appointment_details(request, booking_id):
+    """عرض تفاصيل الحجز في صفحة منفصلة"""
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    context = {
+        'booking': booking,
+        'page_title': 'تفاصيل الحجز'
+    }
+    
+    return render(request, 'frontend/dashboard/patient/sections/appointment_details.html', context)
+
+
+
+logger = logging.getLogger(__name__)
+
+@require_POST
+@login_required
+def cancel_booking(request, booking_id):
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        # التحقق من ملكية الحجز
+        if booking.patient.user != request.user:
+            logger.warning(f"User {request.user.id} tried to cancel booking {booking_id} they don't own")
+            raise PermissionDenied("ليس لديك صلاحية لإلغاء هذا الحجز")
+        
+        # التحقق من حالة الحجز
+        if booking.status not in ['pending', 'confirmed']:
+            return JsonResponse({
+                'success': False,
+                'message': 'لا يمكن إلغاء الحجز في حالته الحالية'
+            }, status=400)
+        
+        # إلغاء الحجز
+        booking.status = 'cancelled'
+        booking.cancellation_reason = 'تم الإلغاء من قبل المريض'
+        booking.save()
+        
+        # هنا يمكنك إضافة إرسال إشعار للطبيب أو أي إجراءات أخرى
+        
+        logger.info(f"Booking {booking_id} cancelled successfully by user {request.user.id}")
+        return JsonResponse({
+            'success': True, 
+            'message': 'تم إلغاء الحجز بنجاح',
+            'new_status': 'cancelled',
+            'status_display': booking.get_status_display()
+        })
+        
+    except PermissionDenied as e:
+        return JsonResponse({
+            'success': False, 
+            'message': str(e)
+        }, status=403)
+        
+    except Exception as e:
+        logger.error(f"Error cancelling booking {booking_id}: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'حدث خطأ غير متوقع أثناء معالجة الطلب'
+        }, status=500)
+    
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import BookingForm
+from bookings.models import Booking, DoctorSchedules, DoctorShifts, HospitalPaymentMethod
+
+def edit_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # الحصول على اختيارات اليوم (DoctorSchedules) للمستشفى
+    doctor_schedules = DoctorSchedules.objects.filter(
+        doctor=booking.doctor,  # تصفية حسب الطبيب
+        hospital=booking.hospital  # تصفية حسب المستشفى
+    )
+
+    # الحصول على الأوقات المتاحة (DoctorShifts) بناءً على المواعيد المحجوزة
+    doctor_shifts = DoctorShifts.objects.filter(
+        doctor_schedule__in=doctor_schedules
+    )
+
+    # اليوم المفضل عند تحميل الصفحة
+    selected_day = booking.appointment_date.day if booking.appointment_date else None
+
+    if request.method == "POST":
+        form = BookingForm(request.POST, instance=booking)
+        if form.is_valid():
+            form.save()  # حفظ التعديلات
+            return redirect('patients:patient_dashboard')
+    else:
+        form = BookingForm(instance=booking)
+
+    # الحصول على اختيارات اليوم والوقت وطريقة الدفع
+    days_choices = doctor_schedules
+    times = doctor_shifts.filter(doctor_schedule__day=selected_day) if selected_day else doctor_shifts
+    payment_methods = HospitalPaymentMethod.objects.all()
+
+    context = {
+        'form': form,
+        'booking': booking,
+        'days_choices': days_choices,
+        'times': times,
+        'payment_methods': payment_methods
+    }
+
+    return render(request, 'frontend/dashboard/patient/sections/edit_booking.html', context)
