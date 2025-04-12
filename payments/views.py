@@ -59,19 +59,29 @@ def payment_process(request, doctor_id):
     
     if request.method == 'POST':
         payment_method_id = request.POST.get('payment_method')
-        transfer_number = request.POST.get('transfer_number')
+        payment_type = request.POST.get('payment_type')
         notes = request.POST.get('notes', '')
         
         print("POST request received")
         print("Payment method:", payment_method_id)
-        print("Transfer number:", transfer_number)
+        print("Payment type:", payment_type)
         
-        if not all([payment_method_id, transfer_number]):
-            return HttpResponseBadRequest('يرجى اختيار طريقة الدفع وإدخال رقم الحوالة')
+        if not payment_method_id:
+            return HttpResponseBadRequest('يرجى اختيار طريقة الدفع')
         
-        # Validate transfer number
-        if not transfer_number.isdigit() or len(transfer_number) < 5:
-            return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
+        transfer_number = None
+        account_image = None
+        
+        if payment_type == 'transfer':
+            transfer_number = request.POST.get('transfer_number')
+            if not transfer_number:
+                return HttpResponseBadRequest('يرجى إدخال رقم الحوالة')
+            if not transfer_number.isdigit() or len(transfer_number) < 5:
+                return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
+        else:  # payment_type == 'account'
+            if 'account_image' not in request.FILES:
+                return HttpResponseBadRequest('يرجى إرفاق صورة سند الحساب')
+            account_image = request.FILES['account_image']
             
         try:
             payment_method = payment_methods.get(id=payment_method_id)
@@ -100,7 +110,8 @@ def payment_process(request, doctor_id):
             amount=doctor_price.amount,
             status='pending',  
             transfer_number=transfer_number,
-            payment_method=payment_method
+            payment_method=payment_method,
+            account_image=account_image if payment_type == 'account' else None
         )
         
         # Create the payment

@@ -43,11 +43,15 @@ class BaseModel(models.Model):
 
 class City(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     status = models.BooleanField(default=True)
     def __str__(self):
         return self.name
-  
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
 
 # نموذج المستشفيات

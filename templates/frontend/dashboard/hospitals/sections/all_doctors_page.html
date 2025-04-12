@@ -182,15 +182,44 @@
                                     </td>
                                     <td>
                                         <div class="actions">
-                                            <a href="/hospital/doctor/{{ doctor.id }}/details/" class="btn bg-info-light mr-2" style="padding: 10px;">
-                                                <i class="fas fa-info-circle fa-lg"></i>
+                                            <a href="{% url 'home:doctor_profile' doctor.id %}" class="btn btn-sm bg-info-light">
+                                                <i class="far fa-eye"></i> عرض
                                             </a>
-                                            <a href="#" onclick="toggleEditForm({{ doctor.id }})" class="btn bg-success-light mr-2" style="padding: 10px;">
-                                                <i class="fas fa-edit fa-lg"></i>
-                                            </a>
-                                            <a href="#" onclick="deleteDoctor({{ doctor.id }})" class="btn bg-danger-light" style="padding: 10px;">
-                                                <i class="fas fa-trash fa-lg"></i>
-                                            </a>
+                                            <button onclick="toggleEditForm({{ doctor.id }})" class="btn btn-sm bg-success-light">
+                                                <i class="far fa-edit"></i> تعديل
+                                            </button>
+                                            <button onclick="deleteDoctor({{ doctor.id }})" class="btn btn-sm bg-danger-light">
+                                                <i class="far fa-trash-alt"></i> حذف
+                                            </button>
+                                            <button class="btn btn-sm bg-info-light show-history-btn"
+                                                    data-doctor-id="{{ doctor.id }}"
+                                                    data-doctor-name="{{ doctor.full_name }}"
+                                                    onclick="togglePriceHistory({{ doctor.id }}, '{{ doctor.full_name }}')">
+                                                <i class="far fa-clock"></i> عرض السجل
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Price History Row -->
+                                <tr id="price-history-{{ doctor.id }}" class="price-history-row" style="display: none;">
+                                    <td colspan="5">
+                                        <div class="price-history-content p-3">
+                                            <div class="doctor-info mb-3">
+                                                <h6>السعر الحالي: <span class="current-price-{{ doctor.id }}"></span></h6>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>التاريخ</th>
+                                                            <th>السعر السابق</th>
+                                                            <th>السعر الجديد</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="price-history-body-{{ doctor.id }}">
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -394,5 +423,53 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Remove showDoctorDetails function since we're using a direct link now
+function togglePriceHistory(doctorId, doctorName) {
+    const historyRow = document.getElementById(`price-history-${doctorId}`);
+    const isHidden = historyRow.style.display === 'none';
+
+    // إذا كان مخفياً، اجلب البيانات وأظهرها
+    if (isHidden) {
+        fetch(`/hospital/doctor/${doctorId}/history/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // تحديث السعر الحالي
+                document.querySelector(`.current-price-${doctorId}`).textContent = data.doctor.current_price + ' ريال';
+
+                // تحديث جدول السجل
+                const tableBody = document.querySelector(`.price-history-body-${doctorId}`);
+                tableBody.innerHTML = '';
+
+                data.history.forEach(entry => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${entry.date}</td>
+                        <td>${entry.previous_amount ? entry.previous_amount + ' ريال' : '-'}</td>
+                        <td>${entry.amount} ريال</td>
+                        <td>${entry.created_by ? entry.created_by : '-'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // إظهار الصف
+                historyRow.style.display = 'table-row';
+            } else {
+                alert(data.error || 'حدث خطأ أثناء جلب سجل الأسعار');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء جلب سجل الأسعار');
+        });
+    } else {
+        // إخفاء الصف
+        historyRow.style.display = 'none';
+    }
+}
 </script>

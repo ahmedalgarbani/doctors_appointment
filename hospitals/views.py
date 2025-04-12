@@ -4,6 +4,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import datetime, date, time
+import traceback
 from django.db.models import Prefetch
 from doctors.models import Doctor, DoctorSchedules, DoctorShifts, DoctorPricing
 from hospitals.models import Hospital
@@ -1091,62 +1092,244 @@ def edit_booking(request, booking_id):
         }, status=500)
 
 
+from django.core.exceptions import ObjectDoesNotExist
+
 @login_required(login_url='/user/login')
 def schedule_timings(request):
+    import json
+    from django.views.decorators.http import require_http_methods
+    
     try:
-        hospital = Hospital.objects.get(hospital_manager=request.user)
+        print(f"User ID: {request.user.id}")
+        print(f"User Type: {request.user.user_type}")
+        print(f"Request method: {request.method}")
         
-        if request.method == 'POST':
-            doctor_id = request.POST.get('doctor_id')
-            day = request.POST.get('day')
-            start_time = request.POST.get('start_time')
-            end_time = request.POST.get('end_time')
-            max_appointments = int(request.POST.get('max_appointments', 1))
-
-            if not all([doctor_id, day, start_time, end_time]):
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'جميع الحقول مطلوبة'
-                })
-
+        # Check if user is a hospital manager
+        if request.user.user_type != 'hospital_manager':
+            print(f"Invalid user type: {request.user.user_type}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لا يمكنك الوصول إلى هذه الصفحة - يجب أن تكون مدير مستشفى'
+            })
+        
+        # Get the hospital for the logged-in user
+        hospital = get_object_or_404(Hospital, user=request.user)
+        print(f"Found hospital: {hospital.name}")
+        print(f"Found hospital for user {request.user.id}: {hospital.id}")
+        
+        # Handle DELETE request for shift deletion
+        if request.method == 'DELETE':
             try:
-                doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+                data = json.loads(request.body)
+                shift_id = data.get('shift_id')
                 
-                start_time_obj = datetime.strptime(start_time, '%H:%M').time()
-                end_time_obj = datetime.strptime(end_time, '%H:%M').time()
-                
-                if start_time_obj >= end_time_obj:
+                if not shift_id:
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
+                        'message': 'معرف الموعد مطلوب'
                     })
-
-                existing_shifts = DoctorShifts.objects.filter(
-                    doctor_schedule__doctor=doctor,
-                    doctor_schedule__day=day,
-                    doctor_schedule__hospital=hospital
-                )
                 
-                for shift in existing_shifts:
-                    if (start_time_obj <= shift.end_time and end_time_obj >= shift.start_time):
+                try:
+                    shift = DoctorShifts.objects.get(id=shift_id)
+                    
+                    # Check if the shift belongs to this hospital
+                    if shift.hospital.id != hospital.id:
                         return JsonResponse({
                             'status': 'error',
-                            'message': 'يوجد تداخل مع موعد آخر'
+                            'message': 'لا يمكنك حذف هذا الموعد'
                         })
+                    
+                    # Check if there are any booked appointments
+                    if shift.booked_slots > 0:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'لا يمكن حذف الموعد لأنه يحتوي على حجوزات'
+                        })
+                    
+                    # Delete the shift
+                    shift.delete()
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'message': 'تم حذف الموعد بنجاح'
+                    })
+                    
+                except DoctorShifts.DoesNotExist:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'الموعد غير موجود'
+                    })
+                    
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'بيانات غير صالحة'
+                })
+        
+        # Handle PUT request for shift updates
+        elif request.method == 'POST' and request.POST.get('_method') == 'PUT':
+            try:
+                print('Received edit request with data:', request.POST)
+                shift_id = request.POST.get('shift_id')
+                start_time = request.POST.get('start_time')
+                end_time = request.POST.get('end_time')
+                max_appointments = request.POST.get('max_appointments')
+                
+                print(f'Parsed data: shift_id={shift_id}, start_time={start_time}, end_time={end_time}, max_appointments={max_appointments}')
+                
+                if not all([shift_id, start_time, end_time, max_appointments]):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'جميع الحقول مطلوبة'
+                    })
+                
+                try:
+                    shift = DoctorShifts.objects.get(id=shift_id)
+                    
+                    # Check if the shift belongs to this hospital
+                    if shift.hospital.id != hospital.id:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'لا يمكنك تعديل هذا الموعد'
+                        })
+                    
+                    # Validate time format and order
+                    try:
+                        start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+                        end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+                        
+                        if start_time_obj >= end_time_obj:
+                            return JsonResponse({
+                                'status': 'error',
+                                'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
+                            })
+                    except ValueError:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'صيغة الوقت غير صحيحة'
+                        })
+                    
+                    # Update the shift
+                    shift.start_time = start_time_obj
+                    shift.end_time = end_time_obj
+                    shift.available_slots = int(max_appointments)
+                    
+                    # Update day if provided
+                    day = request.POST.get('day')
+                    if day:
+                        try:
+                            day_int = int(day)
+                            if 0 <= day_int <= 6:  # تحقق من أن القيمة بين 0 و 6
+                                # تحديث الجدول الزمني للطبيب
+                                schedule = shift.doctor_schedule
+                                schedule.day = day_int
+                                schedule.save()
+                            else:
+                                return JsonResponse({
+                                    'status': 'error',
+                                    'message': 'قيمة اليوم غير صالحة'
+                                })
+                        except ValueError:
+                            return JsonResponse({
+                                'status': 'error',
+                                'message': 'قيمة اليوم يجب أن تكون رقماً'
+                            })
+                    
+                    shift.save()
+                    print(f'Successfully updated shift {shift.id}. New day: {shift.doctor_schedule.day}')
+                    
+                    print('Successfully updated shift:', shift.id)
+                    
+                    return JsonResponse({
+                        'status': 'success',
+                        'message': 'تم تحديث الموعد بنجاح'
+                    })
+                    
+                except DoctorShifts.DoesNotExist:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'الموعد غير موجود'
+                    })
+                    
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'بيانات غير صالحة'
+                })
+                
+        elif request.method == 'POST':
+            print("Received POST request for schedule_timings")
+            try:
+                doctor_id = request.POST.get('doctor_id')
+                day = request.POST.get('day')
+                start_time = request.POST.get('start_time')
+                end_time = request.POST.get('end_time')
+                max_appointments = int(request.POST.get('max_appointments', 1))
 
+                print(f"Received data: doctor_id={doctor_id}, day={day}, start_time={start_time}, end_time={end_time}, max_appointments={max_appointments}")
+
+                if not all([doctor_id, day, start_time, end_time]):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'جميع الحقول مطلوبة'
+                    })
+
+                # Get the doctor
+                try:
+                    doctor = Doctor.objects.get(id=doctor_id)
+                    print(f"Found doctor: {doctor.id} - {doctor.full_name}")
+                except Doctor.DoesNotExist:
+                    print(f"Doctor not found with id: {doctor_id}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'الطبيب غير موجود'
+                    })
+
+                # Check if the doctor belongs to this hospital
+                if not doctor.hospitals.filter(id=hospital.id).exists():
+                    print(f"Doctor {doctor.id} does not belong to hospital {hospital.id}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'هذا الطبيب لا ينتمي إلى مستشفاك'
+                    })
+
+                # Validate time format and order
+                try:
+                    start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+                    end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+                    print(f"Time validation: start={start_time_obj}, end={end_time_obj}")
+                    
+                    if start_time_obj >= end_time_obj:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
+                        })
+                except ValueError as e:
+                    print(f"Time format error: {str(e)}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'صيغة الوقت غير صحيحة'
+                    })
+
+                # Get or create the schedule for this doctor and day
                 schedule, created = DoctorSchedules.objects.get_or_create(
                     doctor=doctor,
                     hospital=hospital,
                     day=day
                 )
-                
+                print(f"{'Created new' if created else 'Using existing'} schedule: {schedule.id}")
+
+                # Create or update the shift
                 shift = DoctorShifts.objects.create(
                     doctor_schedule=schedule,
+                    hospital=hospital,
                     start_time=start_time_obj,
                     end_time=end_time_obj,
                     available_slots=max_appointments,
                     booked_slots=0
                 )
+
+                print(f"{'Created' if created else 'Updated'} schedule {schedule.id} with shift {shift.id}")
 
                 return JsonResponse({
                     'status': 'success',
@@ -1159,8 +1342,21 @@ def schedule_timings(request):
                         'booked_slots': shift.booked_slots
                     }
                 })
-                
+
             except (ValueError, Doctor.DoesNotExist) as e:
+                print(f"Error: {str(e)}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                })
+            except Exception as e:
+                print(f"Error adding schedule: {str(e)}")
+                print(f"Error type: {type(e).__name__}")
+                print(f"Error traceback: {traceback.format_exc()}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'حدث خطأ أثناء إضافة الموعد'
+                })
                 return JsonResponse({
                     'status': 'error',
                     'message': str(e)
@@ -1171,24 +1367,57 @@ def schedule_timings(request):
         doctor_id = request.GET.get('doctor_id')
         
         if doctor_id:
-            # إرجاع بيانات الجدول للطبيب المحدد
-            schedules = DoctorShifts.objects.filter(
-                doctor_schedule__doctor_id=doctor_id,
-                doctor_schedule__hospital=hospital
-            ).select_related('doctor_schedule')
-            
-            schedules_data = {}
-            for shift in schedules:
-                day = shift.doctor_schedule.day
-                if day not in schedules_data:
-                    schedules_data[day] = []
+            print(f"Looking for doctor ID: {doctor_id}")
+            try:
+                # Verify the doctor belongs to this hospital
+                doctor = Doctor.objects.get(id=doctor_id)
+                print(f"Found doctor: {doctor.id} - {doctor.full_name}")
                 
-                schedules_data[day].append({
-                    'id': shift.id,
-                    'start_time': shift.start_time.strftime('%H:%M'),
-                    'end_time': shift.end_time.strftime('%H:%M'),
-                    'available_slots': shift.available_slots,
-                    'booked_slots': shift.booked_slots
+                # Check if doctor belongs to hospital
+                if not doctor.hospitals.filter(id=hospital.id).exists():
+                    print(f"Doctor {doctor.id} does not belong to hospital {hospital.id}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'الطبيب غير موجود في هذا المستشفى'
+                    })
+                
+                print(f"Doctor {doctor.id} belongs to hospital {hospital.id}")
+                
+                # Get the doctor's schedules with shifts
+                schedules = DoctorSchedules.objects.filter(
+                    doctor_id=doctor_id,
+                    hospital=hospital
+                ).prefetch_related('shifts')
+                
+                print(f"Found {schedules.count()} schedules for doctor {doctor_id}")
+                
+                schedules_data = {}
+                for schedule in schedules:
+                    shifts = schedule.shifts.all()
+                    print(f"Found {shifts.count()} shifts for schedule {schedule.id} on day {schedule.day}")
+                    
+                    if shifts.exists():
+                        if schedule.day not in schedules_data:
+                            schedules_data[schedule.day] = []
+                            
+                        for shift in shifts:
+                            schedules_data[schedule.day].append({
+                                'id': shift.id,
+                                'start_time': shift.start_time.strftime('%H:%M'),
+                                'end_time': shift.end_time.strftime('%H:%M'),
+                                'available_slots': shift.available_slots,
+                                'booked_slots': shift.booked_slots
+                            })
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'doctor_schedules': schedules_data
+                })
+            except Doctor.DoesNotExist:
+                print(f"Doctor {doctor_id} not found")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'الطبيب غير موجود'
                 })
             
             return JsonResponse({
@@ -1205,16 +1434,24 @@ def schedule_timings(request):
         return render(request, 'frontend/dashboard/hospitals/sections/schedule-timings.html', context)
 
     except Hospital.DoesNotExist:
+        print(f"Hospital not found for user {request.user.id}")
         return JsonResponse({
             'status': 'error',
             'message': 'لا يمكنك الوصول إلى هذه الصفحة'
         })
+    except Doctor.DoesNotExist:
+        print(f"Doctor {doctor_id} not found in hospital {hospital.id}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الطبيب غير موجود في هذا المستشفى'
+        })
     except Exception as e:
-        print(f"Error in schedule_timings: {str(e)}")
+        print(f"Unexpected error: {str(e)}")
         return JsonResponse({
             'status': 'error',
             'message': 'حدث خطأ أثناء معالجة الطلب'
         })
+
 
 
 
@@ -1489,7 +1726,7 @@ def update_doctor(request, doctor_id):
         
         # Update doctor price
         price = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
-        new_price = request.POST.get('price')
+        new_price = request.POST.get('pricing-0-amount')
         
         if new_price:
             if price:
@@ -1498,7 +1735,8 @@ def update_doctor(request, doctor_id):
                     doctor=doctor,
                     hospital=hospital,
                     amount=new_price,
-                    previous_amount=price.amount
+                    previous_amount=price.amount,
+                    created_by=request.user
                 )
                 # Update current price
                 price.amount = new_price
@@ -1588,13 +1826,12 @@ def get_doctor_history(request, doctor_id):
             hospital=hospital
         ).first()
         
-        history_data = []
-        for entry in history:
-            history_data.append({
-                'date': entry.change_date.strftime('%Y-%m-%d %H:%M'),
-                'amount': str(entry.amount),
-                'previous_amount': str(entry.previous_amount) if entry.previous_amount else None,
-            })
+        history_data = [{
+            'date': entry.change_date.strftime('%Y-%m-%d %H:%M'),
+            'amount': str(entry.amount),
+            'previous_amount': str(entry.previous_amount) if entry.previous_amount else None,
+            'created_by': entry.created_by.get_full_name() if entry.created_by else None
+        } for entry in history]
         
         return JsonResponse({
             'status': 'success',
