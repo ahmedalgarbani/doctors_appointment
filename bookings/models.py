@@ -97,6 +97,13 @@ class Booking(models.Model):
         verbose_name="ملاحظات الدفع"
     )
     
+    account_image = models.ImageField(
+        upload_to='booking_images/',
+        verbose_name="صورة سند الحساب",
+        null=True,
+        blank=True
+    )
+    
     def __str__(self):
         return f"{self.patient} - {self.doctor} - {self.booking_date}"
     

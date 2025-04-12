@@ -84,7 +84,6 @@ class DoctorSchedules(models.Model):
         ordering = ['day', 'doctor']
         verbose_name = "جدول الطبيب"
         verbose_name_plural = "جداول الأطباء"
-        unique_together = ['doctor', 'day']  # لا يمكن للطبيب أن يكون له أكثر من جدول في نفس اليوم
 
 
 class DoctorShifts(models.Model):

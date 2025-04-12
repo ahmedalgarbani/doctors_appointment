@@ -111,6 +111,8 @@ class Payment(models.Model):
         verbose_name=_("نوع الدفع"),
         default='cash'
     )
+    
+
 
     class Meta:
         verbose_name = _("فاتورة دفع")
