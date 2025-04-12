@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, RegisterView,LogoutView, SpecialtiesViewSet
+from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, PaymentViewSet, RegisterView,LogoutView, SpecialtiesViewSet, UserProfileView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -15,12 +15,14 @@ router.register(r'hospitals', HospitalsViewSet)
 router.register(r'favourites', FavouritesViewSet, basename='favourite')
 router.register(r'bookings', BookingViewSet,basename='booking')
 router.register(r'hospital-payment-methods', HospitalPaymentMethodViewSet, basename='hospital-payment-methods')
+# router.register(r'payment', PaymentViewSet, basename='payment')
 
 
 
 urlpatterns = [
     
     path('', include(router.urls)),
+        path('profile/', UserProfileView.as_view(), name='user-profile'),
 
     #  JWT Token endpoints
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

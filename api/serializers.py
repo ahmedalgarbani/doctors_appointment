@@ -6,7 +6,7 @@ from hospitals.models import Hospital
 from django.contrib.auth import get_user_model
 from django.db.models import Min, Max, Avg
 from patients.models import Favourites
-from payments.models import HospitalPaymentMethod, PaymentOption
+from payments.models import HospitalPaymentMethod, Payment, PaymentOption
 from reviews.models import Review
 from datetime import date
 
@@ -169,7 +169,6 @@ class BookingSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source="patient.get_full_name", read_only=True)
     hospital_name = serializers.CharField(source="hospital.name", read_only=True)
     patient = serializers.PrimaryKeyRelatedField(read_only=True)
-    booking_date = serializers.DateField(read_only=True)
 
     class Meta:
         model = Booking
@@ -179,7 +178,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "booking_date", "amount", "status", "created_at", "updated_at",
             "payment_method", "transfer_number", "payment_verified", "payment_notes"
         ]
-        read_only_fields = ["status", "created_at", "updated_at", "booking_date"]
+        read_only_fields = ["status", "created_at", "updated_at"]
 
     def validate(self, data):
         if data.get("amount") and data["amount"] <= 0:
@@ -225,6 +224,42 @@ class HospitalPaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = HospitalPaymentMethod
         fields = ['id','hospital','payment_option','account_name','account_number','iban','description']   
+
+
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
+
+
+
+
+
+# class PaymentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Payment
+#         fields = [
+#             'id', 'user', 'booking', 'payment_method', 'transfer_image',
+#             'payment_status', 'payment_date', 'payment_subtotal',
+#             'payment_discount', 'payment_totalamount', 'payment_currency',
+#             'payment_type', 'payment_note'
+#         ]
+#         extra_kwargs = {
+#             'transfer_image': {'required': False, 'allow_null': True},
+#             'user': {'read_only': True},
+#             'payment_date': {'read_only': True},
+#             'payment_status': {'read_only': True}
+#         }
+
+
+
+
+
 
 
 

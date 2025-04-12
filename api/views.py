@@ -4,8 +4,8 @@ from rest_framework import viewsets
 from bookings.models import Booking
 from doctors.models import Doctor,Specialty
 from hospitals.models import Hospital
-from payments.models import HospitalPaymentMethod
-from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer
+from payments.models import HospitalPaymentMethod, Payment
+from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, PaymentSerializer, RegisterSerializer, SpecialtiesSerializer, UserSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -269,7 +269,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         patient = get_object_or_404(Patients, user=self.request.user.id)
-        serializer.save(patient=patient, booking_date=timezone.now().date())
+        serializer.save(patient=patient, )
 
     @action(detail=False, methods=['get'])
     def history_bookings(self, request):
@@ -300,8 +300,9 @@ class BookingViewSet(viewsets.ModelViewSet):
         """Creates a new booking"""
         patient = get_object_or_404(Patients, user=request.user.id)
         serializer = self.get_serializer(data=request.data)
+        print(serializer)
         serializer.is_valid(raise_exception=True)
-        serializer.save(patient=patient, booking_date=timezone.now().date())
+        serializer.save(patient=patient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -340,6 +341,86 @@ class HospitalPaymentMethodViewSet(viewsets.ModelViewSet):
         print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # serializer = UserSerializer(request.user)
+        patient = get_object_or_404(Patients,user=request.user)
+        return Response({
+                'result':{
+                    'id': request.user.id,
+                    'username': request.user.username,
+                    'email': request.user.email,
+                    "mobile_number": 781270655,
+                    "birth_date":patient.birth_date,
+                    "gender":patient.gender,
+                    "weight":patient.weight,
+                    "height":patient.height,
+                    "age":patient.age,
+                    "blood_group":patient.blood_group,
+                    "first_name":request.user.first_name,
+                    "last_name":request.user.last_name,
+                    "address":request.user.address,
+                    "city":request.user.city,
+                    "state":request.user.state,
+                    'join_date':patient.created_at
+                },
+                
+            }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+# class PaymentViewSet(viewsets.ModelViewSet):
+#     serializer_class = PaymentSerializer
+#     permission_classes = [IsAuthenticated]
+#     pagination_class = CustomPagination
+
+#     def get_queryset(self):
+#         return Payment.objects.filter(user=self.request.user)
+
+#     def perform_create(self, serializer):
+#         serializer.save(user=self.request.user)
+
+#     @action(detail=False, methods=['post'])
+#     def make_payment(self, request):
+#         data = request.data
+#         required_fields = ['booking_id', 'payment_method_id', 'payment_subtotal', 'payment_currency', 'payment_type']
+
+#         for field in required_fields:
+#             if not data.get(field):
+#                 return Response({'error': f'{field} is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             booking = Booking.objects.get(id=data['booking_id'])
+#         except Booking.DoesNotExist:
+#             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         try:
+#             payment_method = HospitalPaymentMethod.objects.get(id=data['payment_method_id'])
+#         except HospitalPaymentMethod.DoesNotExist:
+#             return Response({'error': 'Payment method not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         payment = Payment.objects.create(
+#             booking=booking,
+#             user=request.user,
+#             payment_method=payment_method,
+#             payment_subtotal=data['payment_subtotal'],
+#             payment_discount=data.get('payment_discount', 0),
+#             payment_currency=data['payment_currency'],
+#             payment_type=data['payment_type'],
+#             transfer_image=request.FILES.get('transfer_image'),
+#             payment_note=data.get('payment_note', ''),
+#             payment_status=0  
+#         )
+
+#         serializer = self.get_serializer(payment)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 
