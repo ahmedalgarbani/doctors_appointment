@@ -19,6 +19,9 @@ urlpatterns = [
     path('patient-dashboard/',views.patient_dashboard, name='patient_dashboard'),
     # path('doctor_dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
 
+    path('change-password/', views.change_password_view, name='change_password'),
+
+
     # path('signup/', views.SignUpView.as_view(), name='signup'),
     # path('', views.IndexView.as_view(), name='index'),  # المسار الرئيسي
     # path('doctor-register/', views.doctor_register, name='doctor_register'),  # تسجيل الأطباء (مثال)

@@ -152,33 +152,3 @@ def invoice_view(request, payment_id):
     # الحصول على الفاتورة المحددة
     payment = get_object_or_404(Payment, id=payment_id)
     return render(request, 'frontend/dashboard/patient/sections/invoice_view.html', {'payment': payment})
-
-
-import logging
-
-logger = logging.getLogger(__name__)
-
-def change_password_view(request):
-    if request.method == 'POST':
-        old_password = request.POST.get('old_password')
-        new_password = request.POST.get('new_password')
-        
-        # التحقق من كلمة المرور القديمة
-        if not request.user.check_password(old_password):
-            messages.error(request, 'كلمة المرور القديمة غير صحيحة.')
-            return redirect('patients:change_password')
-
-        # التحقق من تطابق كلمة المرور الجديدة مع تأكيد كلمة المرور
-        if new_password != request.POST.get('confirm_password'):
-            messages.error(request, 'كلمة المرور الجديدة وتأكيد كلمة المرور لا يتطابقان.')
-            return redirect('patients:change_password')
-
-        # تحديث كلمة المرور الجديدة
-        logger.info(f'Changing password for user {request.user.username}')
-        request.user.set_password(new_password)
-        request.user.save()
-        update_session_auth_hash(request, request.user)
-
-        logger.info(f'Password successfully changed for user {request.user.username}')
-        messages.success(request, 'تم تغيير كلمة المرور بنجاح.')
-        return redirect('patients:patient_dashboard')

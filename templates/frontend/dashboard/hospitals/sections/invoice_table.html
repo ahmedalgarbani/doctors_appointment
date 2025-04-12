@@ -1,7 +1,58 @@
+{% load static %}
 
 <div class="col-md-7 col-lg-8 col-xl-9 section invoices_table d-none">
     <div class="row">
         <div class="col-sm-12">
+            <form id="filter-form" method="get" class="mb-4">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">من تاريخ</label>
+                        <input type="date" id="date_from" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">إلى تاريخ</label>
+                        <input type="date" id="date_to" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label"></label>
+
+                        <input type="text" name="patient_name" class="form-control" placeholder="اسم المريض" value="{{ request.GET.patient_name }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label"> </label>
+
+                        <select name="payment_status" class="form-select">
+                            <option value="">حالة الدفع</option>
+                            {% for value, label in payment_statuses %}
+                                <option value="{{ value }}" {% if request.GET.payment_status == value|stringformat:"s" %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" name="amount_min" class="form-control" placeholder="الحد الأدنى للمبلغ" value="{{ request.GET.amount_min }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" name="amount_max" class="form-control" placeholder="الحد الأعلى للمبلغ" value="{{ request.GET.amount_max }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="payment_method" class="form-select">
+                            <option value="">طريقة الدفع</option>
+                            {% for method in payment_methods %}
+                                <option value="{{ method.id }}" {% if request.GET.payment_method == method.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ method.payment_option.method_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center">
+                        <button type="submit" class="btn btn-primary w-100">فلترة</button>
+                    </div>
+                </div>
+            </form>
+            
             <div class="card">
                 <div class="card-body">
                     <table class="table table-hover table-center mb-0">
@@ -16,51 +67,68 @@
                                 <th>الإجراء</th>
                             </tr>						
                         </thead>
-                        <tbody>
+                        <tbody id="invoice-table-body">
                             {% for payment in invoices %}
                             <tr>
                                 <td>
-                                    <a href="{% if payment.slug %}{% url 'patients:invoice_view' payment.slug %}{% else %}#{% endif %}">
+                                    <a href="{% url 'hospitals:invoice_view' payment.id %}">
                                         #INV-{{ payment.id }}
                                     </a>
                                 </td>
                                 <td>
                                     <h2 class="table-avatar">
-                                        <a href="patients-profile.html" class="avatar avatar-sm me-2">
+                                        <a href="#" class="avatar avatar-sm me-2">
+                                            {% if payment.booking.patient.user.profile_picture %}
                                             <img class="avatar-img rounded-circle"
                                                 src="{{ payment.booking.patient.user.profile_picture.url }}"
-                                                alt="patients Image">
+                                                alt="صورة المريض">
+                                            {% else %}
+                                            <img class="avatar-img rounded-circle"
+                                                src="{% static 'path/to/default/image.jpg' %}"
+                                                alt="صورة المريض">
+                                            {% endif %}
                                         </a>
-                                        <a href="patients-profile.html">
-                                            {{ payment.booking.patient.user.get_full_name|default:"Unknown patients" }}
+                                        <a href="#">
+                                            {{ payment.booking.patient.user.get_full_name|default:"مريض غير معروف" }}
                                         </a>
                                     </h2>
+                                </td>
                                 <td>
                                     <h2 class="table-avatar">
-                                        <a href="doctor-profile.html" class="avatar avatar-sm me-2">
+                                        <a href="#" class="avatar avatar-sm me-2">
+                                            {% if payment.booking.doctor.photo %}
                                             <img class="avatar-img rounded-circle"
-                                                src="{% if payment.booking.doctor.photo %}{{ payment.booking.doctor.photo.url }}{% else %}/static/path/to/default/image.jpg{% endif %}"
-                                                alt="Doctor Image">
+                                                src="{{ payment.booking.doctor.photo.url }}"
+                                                alt="صورة الدكتور">
+                                            {% else %}
+                                            <img class="avatar-img rounded-circle"
+                                                src="{% static 'path/to/default/image.jpg' %}"
+                                                alt="صورة الدكتور">
+                                            {% endif %}
                                         </a>
-                                        <a href="doctor-profile.html">
-                                            {{ payment.booking.doctor.full_name|default:"Unknown Doctor" }}
-                                            <span>{{ payment.booking.doctor.specialty|default:"No Specialty" }}</span>
+                                        <a href="#">
+                                            {{ payment.booking.doctor.full_name|default:"طبيب غير معروف" }}
+                                            <span>{{ payment.booking.doctor.specialty|default:"لا يوجد تخصص" }}</span>
                                         </a>
                                     </h2>
                                 </td>
                                 <td>{{ payment.payment_totalamount|default:"0.00" }} ريال</td>
                                 <td>
-                                    <span class="badge {% if payment.payment_status == 1 %}bg-success{% else %}bg-warning{% endif %}">
+                                    <span class="badge 
+                                        {% if payment.payment_status == 1 %}bg-success
+                                        {% elif payment.payment_status == 2 %}bg-danger
+                                        {% elif payment.payment_status == 3 %}bg-info
+                                        {% else %}bg-warning{% endif %}">
                                         {{ payment.get_status_display }}
                                     </span>
                                 </td>
-                                <td>{{ payment.payment_date|date:"d M Y"|default:"N/A" }}</td>
+                                <td>{{ payment.payment_date|date:"d M Y"|default:"غير متوفر" }}</td>
                                 <td>
                                     <div class="table-action">
                                         <a href="{% url 'hospitals:invoice_view' payment.id %}" class="btn btn-sm bg-info-light">
                                             <i class="far fa-eye"></i> عرض
                                         </a>
-                                        <a href="javascript:void(0);" class="btn btn-sm bg-primary-light">
+                                        <a href="javascript:void(0);" class="btn btn-sm bg-primary-light print-invoice" data-invoice-id="{{ payment.id }}">
                                             <i class="fas fa-print"></i> طباعة
                                         </a>
                                     </div>
@@ -68,7 +136,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center">لا توجد مدفوعات لعرضها.</td>
+                                <td colspan="7" class="text-center">لا توجد مدفوعات لعرضها.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -79,3 +147,79 @@
     </div>
 </div>
 
+<script>
+$(document).ready(function() {
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{% url 'hospitals:filter_invoices' %}",
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+    var invoicesHtml = '';
+    
+    if (response.invoices.length > 0) {
+        $.each(response.invoices, function(index, invoice) {
+            // Determine badge class based on status
+            var badgeClass = 'bg-warning';
+            if (invoice.status_code == 1) badgeClass = 'bg-success';
+            else if (invoice.status_code == 2) badgeClass = 'bg-danger';
+            else if (invoice.status_code == 3) badgeClass = 'bg-info';
+            
+            invoicesHtml += `
+                <tr>
+                    <td><a href="/hospital/invoice/${invoice.id}/">#INV-${invoice.id}</a></td>
+                    <td>
+                        <h2 class="table-avatar">
+                            <a href="#" class="avatar avatar-sm me-2">
+                                <img class="avatar-img rounded-circle" src="${invoice.patient_photo}" alt="صورة المريض">
+                            </a>
+                            <a href="#">${invoice.patient_name}</a>
+                        </h2>
+                    </td>
+                    <td>
+                        <h2 class="table-avatar">
+                            <a href="#" class="avatar avatar-sm me-2">
+                                <img class="avatar-img rounded-circle" src="${invoice.doctor_photo}" alt="صورة الدكتور">
+                            </a>
+                            <a href="#">${invoice.doctor_name}</a>
+                        </h2>
+                    </td>
+                    <td>${invoice.amount} ريال</td>
+                    <td><span class="badge ${badgeClass}">${invoice.status}</span></td>
+                    <td>${invoice.date}</td>
+                    <td>
+                        <div class="table-action">
+                            <a href="/hospital/invoice/${invoice.id}/" class="btn btn-sm bg-info-light">
+                                <i class="far fa-eye"></i> عرض
+                            </a>
+                            <a href="#" class="btn btn-sm bg-primary-light print-invoice" data-invoice-id="${invoice.id}">
+                                <i class="fas fa-print"></i> طباعة
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    } else {
+        invoicesHtml = '<tr><td colspan="7" class="text-center">لا توجد مدفوعات لعرضها.</td></tr>';
+    }
+    
+    $('#invoice-table-body').html(invoicesHtml);
+},
+           
+            error: function(xhr, status, error) {
+                console.error(error);
+                alert('حدث خطأ أثناء الفلترة. الرجاء المحاولة مرة أخرى.');
+            }
+        });
+    });
+
+    // Print invoice handler
+    $(document).on('click', '.print-invoice', function() {
+        var invoiceId = $(this).data('invoice-id');
+        window.open('/hospital/invoice/' + invoiceId + '/print/', '_blank');
+    });
+});
+</script>

@@ -21,7 +21,17 @@
                 <div class="booking-header">
                     <h4 class="booking-title">طرق الدفع المتاحة</h4>
                 </div>
-                <form id="payment-form" action="{% url 'payments:process' doctor.id %}" method="POST">
+                <div class="payment-type-selector mb-4">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="payment_type" id="payment_type_transfer" value="transfer" checked>
+                        <label class="form-check-label" for="payment_type_transfer">حوالة</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="payment_type" id="payment_type_account" value="account">
+                        <label class="form-check-label" for="payment_type_account">حساب</label>
+                    </div>
+                </div>
+                <form id="payment-form" action="{% url 'payments:process' doctor.id %}" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="day" value="{{ selected_schedule.id }}">
                     <input type="hidden" name="date" value="{{ selected_shift.id }}">
@@ -53,10 +63,19 @@
                             {% endfor %}
                         </div>
                         <div class="form-group mb-4">
-                            <label for="transfer_number" class="form-label">رقم الحوالة</label>
-                            <input type="text" id="transfer_number" name="transfer_number" class="form-control" required pattern="[0-9]{5,}" title="يجب أن يكون رقم الحوالة 5 أرقام على الأقل" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                            <div class="invalid-feedback">
-                                يجب أن يكون رقم الحوالة 5 أرقام على الأقل
+                            <div id="transfer_input" class="payment-input">
+                                <label for="transfer_number" class="form-label">رقم الحوالة</label>
+                                <input type="text" id="transfer_number" name="transfer_number" class="form-control" required pattern="[0-9]{5,}" title="يجب أن يكون رقم الحوالة 5 أرقام على الأقل" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                <div class="invalid-feedback">
+                                    يرجى إدخال رقم الحوالة
+                                </div>
+                            </div>
+                            <div id="account_input" class="payment-input" style="display: none;">
+                                <label for="account_image" class="form-label">صورة سند الحساب</label>
+                                <input type="file" id="account_image" name="account_image" class="form-control" accept="image/*">
+                                <div class="invalid-feedback">
+                                    يرجى إرفاق صورة الحساب
+                                </div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">تأكيد الحجز</button>
@@ -116,6 +135,25 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
+    // عند تغيير نوع الدفع
+    $('input[name="payment_type"]').change(function() {
+        const selectedType = $(this).val();
+        
+        // إخفاء جميع حقول الإدخال
+        $('.payment-input').hide();
+        
+        // إظهار حقل الإدخال المحدد
+        if (selectedType === 'transfer') {
+            $('#transfer_input').show();
+            $('#account_image').prop('required', false);
+            $('#transfer_number').prop('required', true);
+        } else {
+            $('#account_input').show();
+            $('#account_image').prop('required', true);
+            $('#transfer_number').prop('required', false);
+        }
+    });
+
     // عند تغيير طريقة الدفع
     $('input[name="payment_method"]').change(function() {
         // إخفاء جميع التفاصيل
@@ -127,12 +165,35 @@ $(document).ready(function() {
         $(this).closest('label').addClass('active')
             .find('.payment-details').show();
     });
+
+    // تأكد من إظهار القسم الصحيح عند تحميل الصفحة
+    $('input[name="payment_type"]:checked').trigger('change');
 });
 </script>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    .payment-type-selector {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .payment-type-selector .form-check-inline {
+        margin-right: 2rem;
+    }
+
+    .payment-type-selector .form-check-input:checked {
+        background-color: #20c0f3;
+        border-color: #20c0f3;
+    }
+
+    .payment-type-selector .form-check-label {
+        font-size: 1.1rem;
+        color: #272b41;
+    }
+
     .booking-summary {
         background-color: #f8f9fa;
         padding: 20px;
