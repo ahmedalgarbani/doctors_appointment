@@ -1,7 +1,52 @@
 {% load static %}
 <div class="col-md-7 col-lg-8 col-xl-9 section patient_dashboard">
-    <!-- المحتوى الحالي للكود -->
-    <div class="card">
+	<div class="row">
+		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
+			<div class="card">
+				<div class="card-body text-center">
+					<div class="mb-3">
+						<img src="{% static 'img/icon-03.png' %}" alt="hospital-equipment" width="55">
+					</div>
+					<h5>عدد الحجوزات</h5>
+					<h6>{{ bookings_count }}</h6>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
+			<div class="card">
+				<div class="card-body text-center">
+					<div class="mb-3">
+						<img src="{% static 'img/specialities/weight.png' %}" alt="heart-image" width="55">
+					</div>
+					<h5>الوزن</h5>
+					<h6>{{ patient.weight }} <sub>kg</sub></h6>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
+			<div class="card">
+				<div class="card-body text-center">
+					<div class="mb-3">
+						<img src="{% static 'img/specialities/age.png' %}" alt="thermometer-image" width="55">
+					</div>
+					<h5>العمر</h5>
+					<h6>{{ patient.age }}<sub> سنة</sub></h6>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
+			<div class="card">
+				<div class="card-body text-center">
+					<div class="mb-3">
+						<img src="{% static 'img/specialities/blood_group.png' %}" alt="hospital-equipment" width="55">
+					</div>
+					<h5>فصيلة الدم</h5>
+					<h6>{{ patient.blood_group }}</h6>
+				</div>
+			</div>
+		</div>
+	</div>
+        <div class="card">
         <div class="card-body pt-0">
             <!-- Tab Menu -->
             <nav class="user-tabs mb-4">

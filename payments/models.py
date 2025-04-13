@@ -4,6 +4,8 @@ from hospitals.models import BaseModel, Hospital
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+    
+from notifications.models import Notifications
 
 
 
@@ -130,3 +132,38 @@ class Payment(models.Model):
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
         super().save(*args, **kwargs)
+
+
+    def save(self, *args, **kwargs):
+        # احسب المبلغ الكلي
+        if self.payment_subtotal and self.payment_discount:
+            self.payment_totalamount = self.payment_subtotal - self.payment_discount
+
+        super().save(*args, **kwargs)
+
+        # إذا تم الدفع بنجاح
+        if self.payment_status == 1:
+            booking = self.booking
+            patient_user = booking.patient.user
+            doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
+            method_name = self.payment_method.payment_option.method_name
+
+            # إنشاء رسالة الإشعار
+            message = _(
+                f"💳 *تم تأكيد الدفع*\n\n"
+                f"عزيزي العميل،\n"
+                f"تم استلام مبلغ *{self.payment_totalamount} {self.payment_currency}* بنجاح.\n"
+                f"🧾 نوع الدفع: {self.get_payment_type_display()} عبر {method_name}\n"
+                f"👨‍⚕️ الموعد مع الدكتور: *{doctor_name}*\n"
+                f"📅 بتاريخ: {booking.booking_date}\n\n"
+                f"شكرًا لاستخدامك خدمتنا، ونتطلع لخدمتك!"
+            )
+
+            # إرسال الإشعار
+            Notifications.objects.create(
+                sender=booking.hospital.admin_user if hasattr(booking.hospital, 'admin_user') else None,
+                user=patient_user,
+                message=message,
+                notification_type='6'
+            )
+

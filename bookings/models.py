@@ -5,6 +5,11 @@ from hospitals.models import Hospital
 from payments.models import HospitalPaymentMethod
 from patients.models import Patients
 from django.core.validators import MinLengthValidator
+from django.utils import timezone
+from notifications.models import Notifications
+from django.utils.translation import gettext_lazy as _
+from datetime import timedelta
+
 
 User = get_user_model()
 
@@ -118,6 +123,9 @@ class Booking(models.Model):
             self.status = 'confirmed'
         super().save(*args, **kwargs)
 
+
+
+
 class BookingStatusHistory(models.Model):
     booking = models.ForeignKey(
         Booking,
@@ -151,3 +159,127 @@ class BookingStatusHistory(models.Model):
 
     def __str__(self):
         return f"{self.booking} - {self.status} - {self.created_at}"
+
+
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        self.booking.status = self.status
+        self.booking.save()
+
+        doctor_name = self.booking.doctor.user.get_full_name() if hasattr(self.booking.doctor, 'user') else str(self.booking.doctor)
+        hospital_name = self.booking.hospital.name if self.booking.hospital else "المستشفى"
+
+        day_display = self.booking.appointment_date.get_day_display() if hasattr(self.booking.appointment_date, 'get_day_display') else str(self.booking.appointment_date)
+
+        appointment_time = self.booking.appointment_time
+        if hasattr(appointment_time, 'start_time') and hasattr(appointment_time, 'end_time'):
+            start = appointment_time.start_time.strftime('%I:%M %p').replace('AM', 'صباحًا').replace('PM', 'مساءً')
+            end = appointment_time.end_time.strftime('%I:%M %p').replace('AM', 'صباحًا').replace('PM', 'مساءً')
+            time_range = f"من {start} إلى {end}"
+        else:
+            time_range = str(appointment_time)
+
+        booking_date = self.booking.booking_date
+
+        if self.status == 'confirmed':
+            message = _(
+                f"✅ *تأكيد الحجز - {hospital_name}*\n\n"
+                f"عزيزي العميل،\n"
+                f"تم تأكيد حجزك مع الدكتور: *{doctor_name}*.\n"
+                f"📅 التاريخ: {booking_date.strftime('%Y-%m-%d')}\n"
+                f"🗓️ اليوم: {day_display}\n"
+                f"⏰ الموعد: {time_range}\n\n"
+                f"نتطلع لرؤيتك في {hospital_name}!"
+            )
+            notif_type = '2'
+
+        elif self.status == 'completed':
+            message = _(
+                f"🎉 *تم إكمال الموعد - {hospital_name}*\n\n"
+                f"عزيزي العميل،\n"
+                f"انتهى موعدك مع الدكتور: *{doctor_name}*.\n"
+                f"نتمنى لك دوام الصحة والعافية 🌟"
+            )
+            notif_type = '1'
+
+        elif self.status == 'cancelled':
+            message = _(
+                f"❌ *إلغاء الحجز - {hospital_name}*\n\n"
+                f"عزيزي العميل،\n"
+                f"تم إلغاء حجزك مع الدكتور: *{doctor_name}*.\n"
+                f"📅 التاريخ: {booking_date.strftime('%Y-%m-%d')}\n"
+                f"🗓️ اليوم: {day_display}\n"
+                f"⏰ الموعد: {time_range}\n"
+                f"نأمل أن نراك قريبًا في {hospital_name} 🤝"
+            )
+            notif_type = '3'
+
+        else:
+            message = None
+
+        if message:
+            Notifications.objects.create(
+                sender=self.created_by if self.created_by else None,
+                user=self.booking.patient.user,
+                message=message,
+                notification_type=notif_type
+            )
+
+
+    def send_upcoming_appointment_notifications():
+        today = timezone.localdate()
+        tomorrow = today + timedelta(days=1)
+
+        bookings = Booking.objects.filter(
+            booking_date__in=[today, tomorrow],
+            status='confirmed'
+        )
+
+        for booking in bookings:
+            doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
+            hospital_name = booking.hospital.name if booking.hospital else "المستشفى"
+
+            day_display = booking.appointment_date.get_day_display() if hasattr(booking.appointment_date, 'get_day_display') else str(booking.appointment_date)
+
+            appointment_time = booking.appointment_time
+            if hasattr(appointment_time, 'start_time') and hasattr(appointment_time, 'end_time'):
+                start = appointment_time.start_time.strftime('%I:%M %p').replace('AM', 'صباحًا').replace('PM', 'مساءً')
+                end = appointment_time.end_time.strftime('%I:%M %p').replace('AM', 'صباحًا').replace('PM', 'مساءً')
+                time_range = f"من {start} إلى {end}"
+            else:
+                time_range = str(appointment_time)
+
+            if booking.booking_date == tomorrow:
+                message = _(
+                    f"🔔 *تذكير بموعد الغد - {hospital_name}*\n\n"
+                    f"عزيزي العميل،\n"
+                    f"نذكّرك أن لديك موعد غدًا مع الدكتور: *{doctor_name}*.\n"
+                    f"🗓️ اليوم: {day_display}\n"
+                    f"📅 التاريخ: {booking.booking_date}\n"
+                    f"⏰ الموعد: {time_range}\n\n"
+                    f"نتمنى لك وقتًا صحيًا ومميزًا في {hospital_name} 🌟"
+                )
+                notif_type = '4'
+
+            elif booking.booking_date == today:
+                message = _(
+                    f"⏰ *موعدك اليوم - {hospital_name}*\n\n"
+                    f"عزيزي العميل،\n"
+                    f"لديك موعد اليوم مع الدكتور: *{doctor_name}*.\n"
+                    f"📅 التاريخ: {booking.booking_date}\n"
+                    f"🕒 الموعد: {time_range}\n\n"
+                    f"يرجى الحضور في {hospital_name} في الوقت المحدد. نتمنى لك دوام الصحة 🌿"
+                )
+                notif_type = '5'
+
+            else:
+                continue
+
+            Notifications.objects.create(
+                sender=booking.hospital.admin_user if hasattr(booking.hospital, 'admin_user') else None,
+                user=booking.patient.user,
+                message=message,
+                notification_type=notif_type
+            )

@@ -26,13 +26,26 @@
                <div class="booking-header">
                    <h4 class="booking-title">حجز موعد مع د. {{ doctor.full_name }}</h4>
                    <div class="hospital-links">
-                       {% for hospital in doctor.hospitals.all %}
-                           <a href="?hospital_id={{ hospital.id }}" 
-                              class="hospital-link {% if hospital.id|stringformat:'s' == request.GET.hospital_id %}active{% endif %}">
-                              {{ hospital.name }}
-                           </a>
-                           {% if not forloop.last %} • {% endif %}
-                       {% endfor %}
+                    <div class="hospital-selection">
+                        <div class="hospital-selection">
+                            {% for hospital in doctor.hospitals.all %}
+                                <div class="hospital-card {% if hospital.id|stringformat:'s' == request.GET.hospital_id %}active{% endif %}">
+                                    <a href="?hospital_id={{ hospital.id }}">
+                                        <div class="hospital-logo">
+                                            {% if hospital.logo %}
+                                                <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" loading="lazy">
+                                            {% else %}
+                                                <img src="{% static 'img/logo.png' %}" alt="Hospital Icon" loading="lazy">
+                                            {% endif %}
+                                        </div>
+                                        <div class="hospital-name">{{ hospital.name }}</div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                    </div>
+                    
                    </div>
                    <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
                    </div>
@@ -325,5 +338,57 @@ $(document).ready(function () {
     font-weight: 600;
     margin: 0;
 }
+.hospital-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+    justify-content: flex-start;
+}
+
+.hospital-card {
+    width: 110px;
+    text-align: center;
+    padding: 10px;
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.hospital-card:hover {
+    border-color: #20c0f3;
+    background-color: #f0fbff;
+}
+
+.hospital-card.active {
+    border-color: #20c0f3;
+    background-color: #e6f7ff;
+    box-shadow: 0 0 8px rgba(32, 192, 243, 0.3);
+}
+
+.hospital-card a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.hospital-logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+.hospital-name {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+@media (max-width: 576px) {
+    .hospital-card {
+        width: 45%;
+    }
+}
+
 </style>
 {% endblock %}
