@@ -7,10 +7,10 @@ User = get_user_model()
 
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'status') 
-    prepopulated_fields = {'slug': ('name',)} 
-    list_filter = ('status',)  
-    search_fields = ('name', 'slug')  
+    list_display = ('name', 'slug', 'status')
+    prepopulated_fields = {'slug': ('name',)}
+    list_filter = ('status',)
+    search_fields = ('name', 'slug')
 
 @admin.register(HospitalAccountRequest)
 class HospitalAccountRequestAdmin(admin.ModelAdmin):
@@ -19,7 +19,7 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
     search_fields = ['hospital_name', 'manager_full_name', 'manager_email']
     readonly_fields = ['created_at', 'created_by']
     actions = ['approve_requests', 'reject_requests']
-    # prepopulated_fields = {'slug': ('hospital_name',)} 
+    # prepopulated_fields = {'slug': ('hospital_name',)}
 
     def view_documents(self, obj):
         links = []
@@ -60,12 +60,12 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
             # إرسال بريد إلكتروني بمعلومات تسجيل الدخول
             subject = 'تمت الموافقة على طلب تسجيل المستشفى'
             message = f'''مرحباً {hospital_request.manager_full_name}،
-            
+
             تمت الموافقة على طلب تسجيل المستشفى الخاص بكم. يمكنكم الآن تسجيل الدخول باستخدام المعلومات التالية:
-            
+
             اسم المستخدم: {user.username}
             كلمة المرور: {hospital_request.manager_password}
-            
+
             يرجى تغيير كلمة المرور بعد تسجيل الدخول لأول مرة.
             '''
             try:
@@ -95,9 +95,9 @@ class HospitalUpdateRequestAdmin(admin.ModelAdmin):
     def approve_requests(self, request, queryset):
         for update_request in queryset.filter(status='pending'):
              update_request.approve_request(request.user)
-           
+
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
-        
+
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 
     def reject_requests(self, request, queryset):

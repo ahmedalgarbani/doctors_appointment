@@ -34,9 +34,9 @@ class BaseModel(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        
+
     )
-  
+
 
     class Meta:
         abstract = True
@@ -63,7 +63,7 @@ class Hospital(BaseModel):
         on_delete=models.CASCADE,
         related_name='hospital',
         verbose_name=_("حساب المستخدم"),
-        limit_choices_to={'user_type': 'hospital_manager'}, 
+        limit_choices_to={'user_type': 'hospital_manager'},
     )
     city = models.ForeignKey(
         City,
@@ -111,9 +111,9 @@ class Hospital(BaseModel):
 
 # أرقام الهواتف
 class PhoneNumber(BaseModel):
-    number = models.CharField(max_length=14,verbose_name=_("رقم الهاتف"))  
+    number = models.CharField(max_length=14,verbose_name=_("رقم الهاتف"))
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='phone_numbers',verbose_name=_("المستشفى"))
-    phone_type = models.CharField(  
+    phone_type = models.CharField(
         max_length=50,
         choices=[
             ('landline', _("هاتف أرضي")),
@@ -270,7 +270,7 @@ class HospitalUpdateRequest(BaseModel):
       self.status = 'approved'
       self.reviewed_by = reviewed_by
       self.reviewed_at = timezone.now()
-      
+
       # تحديث بيانات المستشفى
       hospital = self.hospital
       if self.name:
@@ -279,7 +279,7 @@ class HospitalUpdateRequest(BaseModel):
         hospital.location = self.location
       if self.description:
         hospital.description = self.description
-      
+
       if self.photo:
         hospital.photo = self.photo
       if self.sub_title:
@@ -289,7 +289,7 @@ class HospitalUpdateRequest(BaseModel):
       hospital.save()
 
       self.save()
-    
+
     def reject_request(self, reviewed_by, notes=None):
         from django.utils import timezone
         self.status = 'rejected'

@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', _('System Admin')),
         ('hospital_manager', _('Hospital Manager')),
+        ('hospital_staff', _('Hospital Staff')),
         ('patient', _('Patient')),
     ]
 

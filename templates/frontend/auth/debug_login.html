@@ -1,0 +1,68 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">تصحيح تسجيل الدخول</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        <h5>حدث خطأ:</h5>
+                        <p>{{ error }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user_exists %}
+                    <div class="alert alert-info">
+                        <h5>معلومات المستخدم:</h5>
+                        <ul>
+                            <li><strong>البريد الإلكتروني:</strong> {{ user_email }}</li>
+                            <li><strong>نوع المستخدم:</strong> {{ user_type }}</li>
+                            <li><strong>معرف المستخدم:</strong> {{ user_id }}</li>
+                            <li><strong>كلمة المرور صحيحة:</strong> {% if password_correct %}نعم{% else %}لا{% endif %}</li>
+                        </ul>
+                        
+                        {% if user_type == 'hospital_staff' %}
+                        <h5>معلومات الموظف:</h5>
+                        {% if staff_exists %}
+                        <ul>
+                            <li><strong>معرف الموظف:</strong> {{ staff_id }}</li>
+                            <li><strong>المستشفى:</strong> {{ staff_hospital }}</li>
+                            <li><strong>الدور الوظيفي:</strong> {{ staff_role }}</li>
+                        </ul>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <p>لا يوجد سجل موظف مرتبط بهذا المستخدم!</p>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% elif user_exists is False %}
+                    <div class="alert alert-warning">
+                        <p>المستخدم غير موجود!</p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" name="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">كلمة المرور</label>
+                            <input type="password" name="password" id="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">فحص</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
