@@ -228,6 +228,7 @@ class BookingStatusHistory(models.Model):
             )
 
 
+    @staticmethod
     def send_upcoming_appointment_notifications():
         today = timezone.localdate()
         tomorrow = today + timedelta(days=1)
@@ -240,6 +241,7 @@ class BookingStatusHistory(models.Model):
         for booking in bookings:
             doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
             hospital_name = booking.hospital.name if booking.hospital else "المستشفى"
+            patient_user = booking.patient.user
 
             day_display = booking.appointment_date.get_day_display() if hasattr(booking.appointment_date, 'get_day_display') else str(booking.appointment_date)
 
@@ -279,7 +281,7 @@ class BookingStatusHistory(models.Model):
 
             Notifications.objects.create(
                 sender=booking.hospital.admin_user if hasattr(booking.hospital, 'admin_user') else None,
-                user=booking.patient.user,
+                user=patient_user,
                 message=message,
                 notification_type=notif_type
             )
