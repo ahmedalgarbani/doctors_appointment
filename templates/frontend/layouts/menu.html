@@ -282,6 +282,9 @@
                             {% elif request.user.user_type == 'hospital_manager' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
                                 <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                            {% elif request.user.user_type == 'hospital_staff' %}
+                                <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
 
                             {% else %}
                                 <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>

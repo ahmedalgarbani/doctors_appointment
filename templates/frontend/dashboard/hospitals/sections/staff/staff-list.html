@@ -1,0 +1,196 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="col-md-7 col-lg-8 col-xl-9 staff_list section d-none">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">إدارة الموظفين</h4>
+                    <div class="float-end">
+                        <a href="/hospital/staff/add/" class="btn btn-primary me-2">
+                            <i class="fas fa-plus"></i> إضافة موظف جديد
+                        </a>
+                        <a href="javascript:;" class="btn btn-success" onclick="refreshStaffList()">
+                            <i class="fas fa-sync"></i> تحديث القائمة
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-center mb-0 datatable">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>المسمى الوظيفي</th>
+                                    <th>الدور الوظيفي</th>
+                                    <th>تاريخ التعيين</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in staff_list %}
+                                <tr>
+                                    <td>
+                                        <h2 class="table-avatar">
+                                            <a href="{% url 'hospital_staff:edit_staff' staff.id %}" class="avatar avatar-sm me-2" target="_blank">
+                                                {% if staff.user.profile_picture %}
+                                                <img class="avatar-img rounded-circle" src="{{ staff.user.profile_picture.url }}" alt="صورة الموظف">
+                                                {% else %}
+                                                <img class="avatar-img rounded-circle" src="{% static 'img/default-avatar.png' %}" alt="صورة الموظف">
+                                                {% endif %}
+                                            </a>
+                                            <a href="{% url 'hospital_staff:edit_staff' staff.id %}" target="_blank">{{ staff.user.get_full_name }}</a>
+                                        </h2>
+                                    </td>
+                                    <td>{{ staff.job_title }}</td>
+                                    <td>{{ staff.role.name|default:"غير محدد" }}</td>
+                                    <td>{{ staff.hire_date }}</td>
+                                    <td>
+                                        {% if staff.status == 'active' %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% elif staff.status == 'inactive' %}
+                                        <span class="badge bg-danger">غير نشط</span>
+                                        {% elif staff.status == 'suspended' %}
+                                        <span class="badge bg-warning">موقوف</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="actions">
+                                            <a href="/hospital/staff/edit/{{ staff.id }}/" class="btn btn-sm bg-info-light">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </a>
+                                            <a href="/hospital/staff/delete/{{ staff.id }}/" class="btn btn-sm bg-danger-light">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">لا يوجد موظفين حتى الآن</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">إدارة الأدوار الوظيفية</h4>
+                    <a href="/hospital/staff/roles/" class="btn btn-primary float-end">
+                        <i class="fas fa-cog"></i> إدارة الأدوار
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p>يمكنك إدارة الأدوار الوظيفية وتحديد الصلاحيات لكل دور من خلال الضغط على زر "إدارة الأدوار".</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Files -->
+<script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/feather.min.js' %}"></script>
+<script src="{% static 'js/moment.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{% static 'js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'js/slick.js' %}"></script>
+<script src="{% static 'js/aos.js' %}"></script>
+<script src="{% static 'js/counter.js' %}"></script>
+<script src="{% static 'js/backToTop.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // تهيئة جدول البيانات
+        initDataTable();
+    });
+
+    // وظيفة تهيئة جدول البيانات
+    function initDataTable() {
+        $('.datatable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+            }
+        });
+    }
+
+    // وظيفة تحديث قائمة الموظفين
+    function refreshStaffList() {
+        // عرض رسالة تحميل
+        $('.staff_list .card-body').prepend('<div class="alert alert-info refresh-alert">جاري تحديث القائمة...</div>');
+
+        // إعادة تحميل الصفحة
+        $.ajax({
+            url: '{% url "hospital_staff:staff_list" %}',
+            type: 'GET',
+            success: function(data) {
+                // استخراج الجدول من البيانات
+                var newTable = $(data).find('.datatable');
+
+                // تحديث الجدول
+                $('.datatable').html(newTable.html());
+
+                // إعادة تهيئة جدول البيانات
+                $('.datatable').DataTable().destroy();
+                initDataTable();
+
+                // إزالة رسالة التحميل
+                $('.refresh-alert').remove();
+
+                // عرض رسالة نجاح
+                $('.staff_list .card-body').prepend('<div class="alert alert-success refresh-alert">تم تحديث القائمة بنجاح</div>');
+
+                // إخفاء رسالة النجاح بعد 3 ثواني
+                setTimeout(function() {
+                    $('.refresh-alert').fadeOut('slow', function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            },
+            error: function() {
+                // إزالة رسالة التحميل
+                $('.refresh-alert').remove();
+
+                // عرض رسالة خطأ
+                $('.staff_list .card-body').prepend('<div class="alert alert-danger refresh-alert">حدث خطأ أثناء تحديث القائمة</div>');
+
+                // إخفاء رسالة الخطأ بعد 3 ثواني
+                setTimeout(function() {
+                    $('.refresh-alert').fadeOut('slow', function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+        });
+    }
+</script>

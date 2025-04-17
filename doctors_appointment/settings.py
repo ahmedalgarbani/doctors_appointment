@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
 DEBUG = True
-ALLOWED_HOSTS = ["0.0.0.0","127.0.0.1", "localhost", "10.0.2.2", "192.168.1.151"] 
+ALLOWED_HOSTS = ["0.0.0.0","127.0.0.1", "localhost", "10.0.2.2", "192.168.1.151"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'dashboard',
     'home',
     'blog',
+    'hospital_staff',
     'menu_generator',
     'ckeditor',
     'widget_tweaks',
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.RoleBasedAccessMiddleware',
+    'hospital_staff.middleware.StaffPermissionMiddleware',
 ]
 
 ROOT_URLCONF = 'doctors_appointment.urls'
@@ -123,7 +125,7 @@ AUTH_USER_MODEL='users.CustomUser'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-   
+
 ]
 
 
@@ -181,7 +183,7 @@ NAV_MENU_TOP = [
     {
         "name": "Pages",
         "url": "/",
-        
+
         "submenu": [
             {
                 "name": "About Us",

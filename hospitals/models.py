@@ -34,7 +34,9 @@ class BaseModel(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
+        
     )
+  
 
     class Meta:
         abstract = True
@@ -121,9 +123,9 @@ class Hospital(BaseModel):
 
 
 class PhoneNumber(BaseModel):
-    number = models.CharField(max_length=14,verbose_name=_("رقم الهاتف"))
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='phone_numbers', verbose_name=_("المستشفى"))
-    phone_type = models.CharField(
+    number = models.CharField(max_length=14,verbose_name=_("رقم الهاتف"))  
+    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='phone_numbers',verbose_name=_("المستشفى"))
+    phone_type = models.CharField(  
         max_length=50,
         choices=[
             ('landline', _("هاتف أرضي")),
@@ -299,30 +301,30 @@ class HospitalUpdateRequest(BaseModel):
         return f"{self.hospital.name} - {self.get_status_display()}"
 
     def approve_request(self, reviewed_by):
-        from django.utils import timezone
-        self.status = 'approved'
-        self.reviewed_by = reviewed_by
-        self.reviewed_at = timezone.now()
+      from django.utils import timezone
+      self.status = 'approved'
+      self.reviewed_by = reviewed_by
+      self.reviewed_at = timezone.now()
       
-        # تحديث بيانات المستشفى
-        hospital = self.hospital
-        if self.name:
-            hospital.name = self.name
-        if self.location:
-            hospital.location = self.location
-        if self.description:
-            hospital.description = self.description
-        
-        if self.photo:
-            hospital.photo = self.photo
-        if self.sub_title:
-            hospital.sub_title = self.sub_title
-        if self.about:
-            hospital.about = self.about
-        hospital.save()
+      # تحديث بيانات المستشفى
+      hospital = self.hospital
+      if self.name:
+        hospital.name = self.name
+      if self.location:
+        hospital.location = self.location
+      if self.description:
+        hospital.description = self.description
+      
+      if self.photo:
+        hospital.photo = self.photo
+      if self.sub_title:
+        hospital.sub_title = self.sub_title
+      if self.about:
+        hospital.about = self.about
+      hospital.save()
 
-        self.save()
-
+      self.save()
+    
     def reject_request(self, reviewed_by, notes=None):
         from django.utils import timezone
         self.status = 'rejected'
