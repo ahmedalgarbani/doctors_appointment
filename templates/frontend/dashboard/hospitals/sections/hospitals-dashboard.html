@@ -1,67 +1,93 @@
 {% load static %}
+<style>
+    .dash-widget {
+        background: #fff;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: 0.3s ease-in-out;
+        text-align: center;
+        min-height: 210px;
+    }
+
+    .dash-widget:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    .dash-icon {
+        font-size: 40px;
+        margin-bottom: 15px;
+    }
+
+    .dash-widget h6 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .dash-widget h3 {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .dash-widget p {
+        font-size: 14px;
+        color: #888;
+    }
+</style>
 <div class="col-md-7 col-lg-8 col-xl-9 section hospital_dashboard ">
     <div class="row">
         <div class="col-md-12">
             <div class="card card-table mb-0">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-12 col-lg-3">
-                            <div class="dash-widget dct-border-rht">
-                                <div class="circle-bar circle-bar1">
-                                    <div class="circle-graph1" data-percent="75">
-                                        <img src="{% static 'img/icon-01.png' %}" class="img-fluid" alt="Doctors">
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6>الأطباء</h6>
-                                    <h3>{{ hospital.doctors.count }}</h3>
-                                    <p class="text-muted">إجمالي الأطباء في المستشفى</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-12 col-lg-3">
-                            <div class="dash-widget dct-border-rht">
-                                <div class="circle-bar circle-bar2">
-                                    <div class="circle-graph2" data-percent="{{ specialties_count_percentage }}">
-                                        <img src="{% static 'img/icon-02.png' %}" class="img-fluid" alt="التخصصات">
-                                    </div>
-                                </div>
-                                <div class="dash-widget-info">
-                                    <h6>التخصصات</h6>
-                                    <h3>{{ specialties.count }}</h3>
-                                    <p class="text-muted">التخصصات المتوفرة</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-12 col-lg-3">
+                        <!-- الأطباء -->
+                        <div class="col-md-12 col-lg-3 mb-4">
                             <div class="dash-widget">
-                                <div class="circle-bar circle-bar3">
-                                    <div class="circle-graph3" data-percent="{{ revenue_percentage }}">
-                                        <img src="{% static 'img/icon-03.png' %}" class="img-fluid" alt="الإيرادات">
-                                    </div>
+                                <div class="dash-icon text-primary">
+                                    <i class="fas fa-user-doctor"></i>
                                 </div>
-                                <div class="dash-widget-info">
-                                    <h6>الإيرادات</h6>
-                                    <h3>{{ total_revenue|floatformat:2 }} ر.ي</h3>
-                                    <p class="text-muted">{{ current_month_name }}</p>
-                                </div>
+                                <h6>الأطباء</h6>
+                                <h3>{{ hospital.doctors.count }}</h3>
+                                <p>إجمالي الأطباء في المستشفى</p>
                             </div>
                         </div>
-
-                        <div class="col-md-12 col-lg-3">
+                    
+                        <!-- التخصصات -->
+                        <div class="col-md-12 col-lg-3 mb-4">
                             <div class="dash-widget">
-                                <div class="circle-bar circle-bar4">
-                                    <div class="circle-graph4" data-percent="{{ appointments_percentage }}">
-                                        <img src="{% static 'img/icon-03.png' %}" class="img-fluid" alt="المواعيد">
-                                    </div>
+                                <div class="dash-icon text-success">
+                                    <i class="fas fa-notes-medical"></i>
                                 </div>
-                                <div class="dash-widget-info">
-                                    <h6>المواعيد</h6>
-                                    <h3>{{ total_appointments }}</h3>
-                                    <p class="text-muted">{{ current_month_name }}</p>
+                                <h6>التخصصات</h6>
+                                <h3>{{ specialties.count }}</h3>
+                                <p>التخصصات المتوفرة</p>
+                            </div>
+                        </div>
+                    
+                        <!-- الإيرادات -->
+                        <div class="col-md-12 col-lg-3 mb-4">
+                            <div class="dash-widget">
+                                <div class="dash-icon text-warning">
+                                    <i class="fas fa-sack-dollar"></i>
                                 </div>
+                                <h6>الإيرادات</h6>
+                                <h3>{{ total_revenue|floatformat:2 }} ر.ي</h3>
+                                <p>{{ current_month_name }}</p>
+                            </div>
+                        </div>
+                    
+                        <!-- المواعيد -->
+                        <div class="col-md-12 col-lg-3 mb-4">
+                            <div class="dash-widget">
+                                <div class="dash-icon text-danger">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <h6>المواعيد</h6>
+                                <h3>{{ total_appointments }}</h3>
+                                <p>{{ current_month_name }}</p>
                             </div>
                         </div>
                     </div>

@@ -229,19 +229,24 @@
                                     {% endfor %}
                                 </ul>
                             </div>
-                            <div class="dropdown-footer text-center border-top p-3" style="background-color: #f8fafc;">
-                                <a href="
-                                    {% if request.user.user_type == 'patient' %}
-                                        {% url 'patients:patient_dashboard' %}?section=notifications_list
-                                    {% elif request.user.user_type == 'hospital_manager' %}
-                                        {% url 'hospitals:index' %}?section=notifications_list
-                                    {% else %}
-                                        #notifications-list
-                                    {% endif %}" 
-                                    class="btn btn-primary btn-sm px-4" style="color: white !important;">
+                            <div class="dropdown-footer d-flex justify-content-between align-items-center border-top p-3" style="background-color: #f8fafc;">
+                                <button class="btn btn-warning btn-sm text-white" onclick="markAllAsRead()">
+                                    <i class="fas fa-check-double me-1"></i> تمييز الكل كمقروء
+                                </button>
+                            
+                                <a href="{% if request.user.user_type == 'patient' %}
+                                            {% url 'patients:patient_dashboard' %}?section=notifications_list
+                                        {% elif request.user.user_type == 'hospital_manager' %}
+                                            {% url 'hospitals:index' %}?section=notifications_list
+                                        {% else %}
+                                            #notifications-list
+                                        {% endif %}" 
+                                    class="btn btn-primary btn-sm px-4 text-white">
                                     مشاهدة جميع الإشعارات <i class="fas fa-chevron-left ms-2"></i>
                                 </a>
                             </div>
+                            
+                            
                         </div>
                     </li>
                 </div>
@@ -315,4 +320,30 @@
         notificationContainer.style.maxHeight = `${maxHeight}px`;
         notificationContainer.style.overflowY = 'auto';
     });
+</script>
+<script>
+    function markAllAsRead() {
+        if (confirm("هل تريد تمييز جميع الإشعارات كمقروءة؟")) {
+            fetch("{% url 'notifications:mark_all_as_read' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("تم تمييز جميع الإشعارات كمقروءة.");
+                    location.reload();
+                } else {
+                    alert(data.error || "حدث خطأ أثناء العملية.");
+                }
+            })
+            .catch(error => {
+                console.error("خطأ:", error);
+                alert("حدث خطأ أثناء الاتصال بالخادم.");
+            });
+        }
+    }
 </script>

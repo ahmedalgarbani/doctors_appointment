@@ -64,3 +64,16 @@ def mark_as_unread(request, notification_id):
     except Notifications.DoesNotExist:
         messages.error(request, 'Notification not found.')
     return redirect('hospitals:index')
+
+
+from django.http import JsonResponse
+
+@login_required(login_url='/user/login')
+def mark_all_as_read(request):
+    if request.method == 'POST':
+        try:
+            Notifications.objects.filter(user=request.user, status='0').update(status='1')
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

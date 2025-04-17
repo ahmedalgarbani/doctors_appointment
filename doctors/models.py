@@ -4,15 +4,20 @@ from django.urls import reverse
 from django.utils.text import slugify
 from ckeditor.fields import RichTextField
 import uuid
+
 # نموذج التخصصات
 class Specialty(BaseModel):
-    name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='specialty/', blank=True, null=True)
-    show_at_home = models.BooleanField(default=True)
-    status = models.BooleanField(default=True)
+    name = models.CharField(max_length=255, verbose_name="الاسم")
+    image = models.ImageField(upload_to='specialty/', blank=True, null=True, verbose_name="الصورة")
+    show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
+    status = models.BooleanField(default=True, verbose_name="الحالة")
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "التخصص"
+        verbose_name_plural = "التخصصات"
 
 
 # نموذج الأطباء
@@ -21,8 +26,8 @@ class Doctor(BaseModel):
     STATUS_MALE = 1
 
     STATUS_CHOICES = [
-        (STATUS_MALE, 'Male'),
-        (STATUS_FEMALE, 'Female'),
+        (STATUS_MALE, 'ذكر'),
+        (STATUS_FEMALE, 'أنثى'),
     ]
 
     full_name = models.CharField(max_length=255, verbose_name="الاسم الكامل")
@@ -36,7 +41,7 @@ class Doctor(BaseModel):
     experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
-    about = RichTextField()
+    about = RichTextField(verbose_name="عن الطبيب")
     status = models.BooleanField(default=True, verbose_name="الحالة")
     show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
 
@@ -46,7 +51,7 @@ class Doctor(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.full_name)
-        
+
         # Handle slug duplication
         from django.db.models import Q
         unique_slug = self.slug
@@ -60,6 +65,10 @@ class Doctor(BaseModel):
 
     def get_absolute_url(self):
         return reverse('home:blog:post_detail', args=[self.slug])
+
+    class Meta:
+        verbose_name = "الطبيب"
+        verbose_name_plural = "الأطباء"
 
 
 # نموذج مواعيد الأطباء
@@ -96,23 +105,23 @@ class DoctorShifts(models.Model):
 
     def __str__(self):
         return f"{self.doctor_schedule} - {self.hospital.name} ({self.start_time} - {self.end_time})"
-    
+
     @property
     def is_available(self):
         return self.available_slots > self.booked_slots
-    
+
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.start_time >= self.end_time:
             raise ValidationError('وقت البداية يجب أن يكون قبل وقت النهاية')
-        
+
         if self.available_slots < self.booked_slots:
             raise ValidationError('عدد المواعيد المتاحة لا يمكن أن يكون أقل من المواعيد المحجوزة')
-        
+
         # التحقق من أن المستشفى مرتبط بالطبيب
         if not self.doctor_schedule.doctor.hospitals.filter(id=self.hospital.id).exists():
             raise ValidationError('هذا الطبيب لا يعمل في هذا المستشفى')
-    
+
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
@@ -121,29 +130,29 @@ class DoctorShifts(models.Model):
         ordering = ['doctor_schedule', 'hospital', 'start_time']
         verbose_name = "موعد"
         verbose_name_plural = "المواعيد"
-        unique_together = ['doctor_schedule', 'hospital', 'start_time']  # لا يمكن أن يكون هناك موعدان بنفس وقت البداية لنفس الجدول والمستشفى
+        unique_together = ['doctor_schedule', 'hospital', 'start_time']
 
 
 class DoctorPricing(models.Model):
     doctor = models.ForeignKey(
-        'doctors.Doctor', 
-        on_delete=models.CASCADE, 
+        'doctors.Doctor',
+        on_delete=models.CASCADE,
         related_name='pricing'
     )
     hospital = models.ForeignKey(
-        'hospitals.Hospital', 
-        on_delete=models.SET_NULL, 
-        related_name='doctor_prices', 
-        null=True, 
+        'hospitals.Hospital',
+        on_delete=models.SET_NULL,
+        related_name='doctor_prices',
+        null=True,
         blank=True
     )
     amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         verbose_name="السعر"
     )
     transaction_number = models.CharField(
-        max_length=256, 
+        max_length=256,
         default=uuid.uuid4,
         editable=False,
         verbose_name="رقم العملية"
@@ -171,7 +180,7 @@ class DoctorPricing(models.Model):
                 hospital=self.hospital,
                 amount=self.amount
             )
-        
+
         super().save(*args, **kwargs)
 
     class Meta:
@@ -181,26 +190,26 @@ class DoctorPricing(models.Model):
 
 class DoctorPricingHistory(BaseModel):
     doctor = models.ForeignKey(
-        'doctors.Doctor', 
-        on_delete=models.CASCADE, 
+        'doctors.Doctor',
+        on_delete=models.CASCADE,
         related_name='pricing_history'
     )
     hospital = models.ForeignKey(
-        'hospitals.Hospital', 
-        on_delete=models.SET_NULL, 
-        related_name='doctor_price_history', 
-        null=True, 
+        'hospitals.Hospital',
+        on_delete=models.SET_NULL,
+        related_name='doctor_price_history',
+        null=True,
         blank=True
     )
     amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         verbose_name="السعر"
     )
     change_date = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التغيير")
     previous_amount = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         verbose_name="السعر السابق",
         null=True,
         blank=True
