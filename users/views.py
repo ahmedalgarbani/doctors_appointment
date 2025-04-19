@@ -168,11 +168,10 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
+        next_url = request.POST.get('next') or request.GET.get('next')
 
-        # إضافة طباعة للتصحيح
         print(f"\n\nمحاولة تسجيل دخول: {email}, {password}\n\n")
 
-        # التحقق من وجود المستخدم
         try:
             user_exists = CustomUser.objects.filter(email=email).exists()
             if user_exists:
@@ -185,16 +184,13 @@ def login_view(request):
 
         user = authenticate(request, username=email, password=password)
 
-        # إضافة طباعة للتصحيح
         print(f"\n\nنتيجة المصادقة: {user}\n\n")
 
         if user is not None:
             login(request, user)
-
-            # إضافة طباعة للتصحيح
             print(f"\n\nنوع المستخدم: {user.user_type}\n\n")
 
-            # التحقق من أن المستخدم هو موظف مستشفى وهذا أول تسجيل دخول
+            # أول تسجيل دخول لموظف المستشفى
             if user.user_type == 'hospital_staff':
                 try:
                     from hospital_staff.models import HospitalStaff
@@ -204,24 +200,22 @@ def login_view(request):
                 except Exception as e:
                     print(f"\n\nخطأ في التحقق من أول تسجيل دخول: {str(e)}\n\n")
 
-            next_url = request.GET.get('next', None)
+            # توجيه بناء على `next`
             if next_url:
                 return redirect(next_url)
 
+            # توجيه حسب نوع المستخدم
             if user.user_type == 'admin':
                 return redirect(reverse('users:admin_dashboard'))
             elif user.user_type == 'hospital_manager':
                 return redirect(reverse('hospitals:index'))
             elif user.user_type == 'hospital_staff':
-                # توجيه موظف المستشفى إلى لوحة تحكم المستشفى التي ينتمي إليها
                 try:
                     from hospital_staff.models import HospitalStaff
                     staff = HospitalStaff.objects.get(user=user)
-                    # طباعة للتصحيح
                     print(f"\n\nتم توجيه الموظف إلى لوحة تحكم المستشفى: {staff.hospital.name}\n\n")
                     return redirect(reverse('hospitals:index'))
                 except Exception as e:
-                    # في حالة حدوث خطأ، توجيه المستخدم إلى صفحة تسجيل الخروج
                     print(f"\n\nخطأ في توجيه الموظف: {str(e)}\n\n")
                     messages.error(request, _("حدث خطأ في توجيهك إلى لوحة التحكم. يرجى التواصل مع مدير النظام."))
                     return redirect(reverse('users:logout'))
@@ -231,7 +225,6 @@ def login_view(request):
                 messages.error(request, "User type is not recognized.")
                 return redirect(reverse('users:login'))
         else:
-            # رسالة خطأ أكثر تفصيلاً
             try:
                 user_exists = CustomUser.objects.filter(email=email).exists()
                 if user_exists:
@@ -245,8 +238,6 @@ def login_view(request):
             return redirect(reverse('users:login'))
 
     return render(request, 'frontend/auth/login.html')
-
-
 
 def user_logout(request):
     logout(request)
