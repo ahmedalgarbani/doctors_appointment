@@ -4,8 +4,9 @@ from rest_framework import viewsets
 from bookings.models import Booking
 from doctors.models import Doctor,Specialty
 from hospitals.models import Hospital
+from notifications.models import Notifications
 from payments.models import HospitalPaymentMethod, Payment
-from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, PaymentSerializer, RegisterSerializer, SpecialtiesSerializer, UserSerializer
+from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer, UserSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +21,10 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .serializers import NotificationSerializer
 
 User = get_user_model()
 
@@ -373,6 +377,37 @@ class UserProfileView(APIView):
 
 
 
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notifications.objects.filter(user=self.request.user, is_active=True)
+
+
+class MarkNotificationReadView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Notifications.objects.filter(is_active=True)
+    serializer_class = NotificationSerializer
+
+    def update(self, request, *args, **kwargs):
+        notification = self.get_object()
+        if notification.user != request.user:
+            return Response({"detail": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
+        notification.mark_as_read()
+        return Response({"detail": "Marked as read."})
+
+
+class MarkAllNotificationsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        updated_count = Notifications.objects.filter(user=user, status='0').update(status='1')
+        return Response(
+            {"detail": f"{updated_count} notifications marked as read."},
+            status=status.HTTP_200_OK
+        )
 
 
 

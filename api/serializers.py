@@ -5,6 +5,7 @@ from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts,
 from hospitals.models import Hospital
 from django.contrib.auth import get_user_model
 from django.db.models import Min, Max, Avg
+from notifications.models import Notifications
 from patients.models import Favourites
 from payments.models import HospitalPaymentMethod, Payment, PaymentOption
 from reviews.models import Review
@@ -236,7 +237,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
+class NotificationSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = Notifications
+        fields = [
+            'message',  'status', 'notification_type'
+        ]
 
 
 
