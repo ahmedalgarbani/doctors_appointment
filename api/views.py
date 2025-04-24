@@ -25,6 +25,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import NotificationSerializer
+from rest_framework.filters import SearchFilter
 
 User = get_user_model()
 
@@ -45,10 +46,53 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-
+from django.db.models import Avg
 class DoctorsViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.filter(status=True)
     serializer_class = DoctorSerializer
+    filter_backends = [SearchFilter]
+    filterset_fields = ['gender', 'specialty__name']
+    search_fields = ['full_name', 'specialty__name'] 
+
+    @action(detail=False, methods=['post'], url_path='filter')
+    def filter_doctors(self, request):
+        genders_raw = request.data.get('gender', '')
+        specialties_raw = request.data.get('specialties__name', '')
+        stars = request.data.get('starts', None)
+
+        if isinstance(genders_raw, str):
+            genders = [g.strip() for g in genders_raw.split(',') if g.strip()]
+        else:
+            genders = genders_raw or []
+
+
+        if isinstance(specialties_raw, str):
+            specialties = [s.strip() for s in specialties_raw.split(',') if s.strip()]
+        else:
+            specialties = specialties_raw or []
+
+        gender_map = {'Male': 1, 'Female': 0}
+        gender_values = [gender_map.get(g) for g in genders if gender_map.get(g) is not None]
+
+        doctors = Doctor.objects.filter(status=True)
+
+        if gender_values:
+            doctors = doctors.filter(gender__in=gender_values)
+
+        
+        if specialties:
+            doctors = doctors.filter(specialty__name__in=specialties,status=True)
+
+       
+        if stars is not None:
+            try:
+                stars = int(stars)
+                doctors = doctors.annotate(avg_rating=Avg('reviews__rating')).filter(avg_rating__gte=stars, avg_rating__lt=stars+1)
+            except ValueError:
+                return Response({"error": "Invalid stars value"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(doctors, many=True)
+        return Response(serializer.data)
 
 
 class SpecialtiesViewSet(viewsets.ModelViewSet):
