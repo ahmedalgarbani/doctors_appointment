@@ -39,7 +39,7 @@ def payment_process(request, doctor_id):
             return HttpResponseBadRequest('المستشفى المختار غير مرتبط بالطبيب')
             
         # Get doctor's price for this hospital
-        doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
+        doctor_price = DoctorPricing.objects.filter(DoctorPricing, doctor=doctor, hospital=selected_hospital)
         
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
