@@ -4,11 +4,6 @@ from bookings.models import Booking
 from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts,Specialty
 from hospitals.models import Hospital
 from django.contrib.auth import get_user_model
-from django.db.models import Min, Max, Avg
-from patients.models import Favourites
-from payments.models import HospitalPaymentMethod, Payment, PaymentOption
-from reviews.models import Review
-from datetime import date
 
 User = get_user_model()
 
@@ -148,121 +143,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
-    
-
-
-
-
-class FavouritesSerializer(serializers.ModelSerializer):
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
-    doctor_data = DoctorSerializer(source='doctor', read_only=True)
-    class Meta:
-        model = Favourites
-        fields = ['id','doctor','doctor_data']
-
-
-
-from django.conf import settings
-class BookingSerializer(serializers.ModelSerializer):
-    doctor_name = serializers.CharField(source="doctor.full_name", read_only=True)
-    doctorimg = serializers.SerializerMethodField()
-    patient_name = serializers.CharField(source="patient.get_full_name", read_only=True)
-    hospital_name = serializers.CharField(source="hospital.name", read_only=True)
-    patient = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Booking
-        fields = [
-            "id", "doctor", "doctorimg", "doctor_name", "patient", "patient_name",
-            "hospital", "hospital_name", "appointment_date", "appointment_time",
-            "booking_date", "amount", "status", "created_at", "updated_at",
-            "payment_method", "transfer_number", "payment_verified", "payment_notes"
-        ]
-        read_only_fields = ["status", "created_at", "updated_at"]
-
-    def validate(self, data):
-        if data.get("amount") and data["amount"] <= 0:
-            raise serializers.ValidationError("Amount must be greater than 0.")
-        return data
-
-    def get_doctorimg(self, obj):
-        request = self.context.get("request")
-        if obj.doctor.photo:
-            if request:
-                return request.build_absolute_uri(obj.doctor.photo.url)
-            return f"{settings.MEDIA_URL}{obj.doctor.photo.url}"
-        return None
-
-
-
-
-
-
-class PaymentOptionSerializer(serializers.ModelSerializer):
-    logo = serializers.SerializerMethodField()
-
-    class Meta:
-        model = PaymentOption
-        fields = ['id', 'logo', 'method_name']
-
-    def get_logo(self, obj):
-        if obj.logo:
-            request = self.context.get("request")
-            print(request)
-            if request:
-                return request.build_absolute_uri(obj.logo.url)  
-            
-            return f"http://192.168.1.151:8000{obj.logo.url}"
-        
-        return None
-
-
-
-class HospitalPaymentMethodSerializer(serializers.ModelSerializer):
-    payment_option = PaymentOptionSerializer()
-    
-    class Meta:
-        model = HospitalPaymentMethod
-        fields = ['id','hospital','payment_option','account_name','account_number','iban','description']   
-
-
-
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
-
-
-
-
-
-
-
-# class PaymentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Payment
-#         fields = [
-#             'id', 'user', 'booking', 'payment_method', 'transfer_image',
-#             'payment_status', 'payment_date', 'payment_subtotal',
-#             'payment_discount', 'payment_totalamount', 'payment_currency',
-#             'payment_type', 'payment_note'
-#         ]
-#         extra_kwargs = {
-#             'transfer_image': {'required': False, 'allow_null': True},
-#             'user': {'read_only': True},
-#             'payment_date': {'read_only': True},
-#             'payment_status': {'read_only': True}
-#         }
-
-
-
-
-
-
-
-
 # ------------test-----------------
 #     {
 #     "username": "ya0ar932",
