@@ -4,7 +4,7 @@ from bookings.models import Booking
 from doctors.models import Doctor, DoctorSchedules, DoctorShifts
 from reviews.models import Review
 from notifications.models import Notifications
-from django.db.models import Avg, Prefetch 
+from django.db.models import Avg, Prefetch ,Sum
 from datetime import datetime
 from django.http import JsonResponse
 import json
@@ -29,7 +29,7 @@ def patient_dashboard(request):
     user = request.user
     patient = get_object_or_404(Patients, user_id=user)
 
-    # التحقق إذا كان تم إرسال تحديث للملف الشخصي
+    # التحقق إذا تم إرسال تحديث للملف الشخصي
     if request.method == 'POST' and 'update_profile' in request.POST:
         return update_patient_profile(request, patient)
     
@@ -41,20 +41,25 @@ def patient_dashboard(request):
         result = delete_notification(notification_id, user)
         return JsonResponse(result)
 
-    # الحصول على الإشعارات الخاصة بالمريض
-    notifications = get_notifications_for_user(user_id=user)
-    unread_notifications_count = notifications.filter(status='0').count()
-
-    # الحصول على الأطباء المفضلين والتقييمات
+    # جلب الأطباء المفضلين والتقييمات
     favourite_doctors, ratings_context = get_favourites_and_ratings(patient)
     for doctor in favourite_doctors:
         average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
         doctor.average_rating = average_rating if average_rating is not None else 0
 
+    # عدد الحجوزات
     bookings_count = Booking.objects.filter(patient=patient).count()
 
     # جلب المدفوعات الخاصة بالمريض
     payments = Payment.objects.select_related('booking__doctor').filter(booking__patient=patient)
+
+    # حساب مجموع المدفوعات المكتملة
+    total_paid = payments.filter(payment_status=1).aggregate(
+        total=Sum('payment_totalamount')
+    )['total'] or 0
+
+    # تحديد العملة (إذا لا توجد دفعات، تعيين عملة افتراضية)
+    currency = payments.filter(payment_status=1).first().payment_currency if total_paid > 0 else 'RYL'
 
     context = {
         'patient': patient,
@@ -63,10 +68,10 @@ def patient_dashboard(request):
         'bookings': Booking.objects.filter(patient=patient),
         'favourite_doctors': favourite_doctors,
         'ratings_context': ratings_context,
-        'notifications': notifications,
-        'unread_notifications_count': unread_notifications_count,
         'bookings_count': bookings_count,
-        'payments': payments, 
+        'payments': payments,
+        'total_paid': total_paid,
+        'currency': currency,
     }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
@@ -97,12 +102,7 @@ def get_favourites_and_ratings(patient):
 
     return favourite_doctors, ratings_context
 
-def get_notifications_for_user(user_id):
-    """
-    دالة لجلب الإشعارات الخاصة بالمستخدم الذي يمتلك id معين.
-    """
-    notifications = Notifications.objects.filter(user_id=user_id, is_active=True).order_by('-send_time')
-    return notifications
+
 
 def delete_notification(notification_id, user):
     """
@@ -119,30 +119,35 @@ def delete_notification(notification_id, user):
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 def update_patient_profile(request, patient):
-    # تحديث البيانات بناءً على الحقول المدخلة
-    patient.user.first_name = request.POST.get('first_name')
-    patient.user.last_name = request.POST.get('last_name')
-    patient.user.email = request.POST.get('email')
-    patient.user.mobile_number = request.POST.get('mobile_number')
-    patient.user.address = request.POST.get('address')
-    patient.user.city = request.POST.get('city')
-    patient.user.state = request.POST.get('state')
-    patient.birth_date = request.POST.get('birth_date')
-    patient.gender = request.POST.get('gender')
-    patient.weight = request.POST.get('weight')
-    patient.height = request.POST.get('height')
-    patient.age = request.POST.get('age')
-    patient.blood_group = request.POST.get('blood_group')
-    patient.notes = request.POST.get('notes')
-    
-    # تحديث الصورة الشخصية إذا تم رفع صورة جديدة
-    if request.FILES.get('profile_picture'):
-        patient.user.profile_picture = request.FILES['profile_picture']
-    
-    # حفظ البيانات بعد التعديل
-    patient.user.save()
-    patient.save()
+    user = patient.user
+    user.first_name = request.POST.get('first_name')
+    user.last_name = request.POST.get('last_name')
+    user.email = request.POST.get('email')
+    user.mobile_number = request.POST.get('mobile_number')
+    user.address = request.POST.get('address')
+    user.city = request.POST.get('city')
+    user.state = request.POST.get('state')
 
+    if request.FILES.get('profile_picture'):
+        user.profile_picture = request.FILES['profile_picture']
+    user.save()
+
+    patient.birth_date = request.POST.get('birth_date') or None
+    patient.gender = request.POST.get('gender') or None
+
+    weight = request.POST.get('weight')
+    patient.weight = float(weight) if weight and weight.lower() != 'none' else None
+
+    height = request.POST.get('height')
+    patient.height = float(height) if height and height.lower() != 'none' else None
+
+    age = request.POST.get('age')
+    patient.age = int(age) if age and age.lower() != 'none' else None
+
+    patient.blood_group = request.POST.get('blood_group') or None
+    patient.notes = request.POST.get('notes') or ''
+
+    patient.save()
     return redirect('patients:patient_dashboard')
 
 

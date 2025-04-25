@@ -1,0 +1,91 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="d-flex justify-content-center">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <div class="card mx-auto" style="margin-top: 20px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title m-0">إضافة دور وظيفي جديد</h4>
+          <a href="/hospital/?section=staff_list" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> العودة إلى قائمة الأدوار الوظيفية
+          </a>
+        </div>
+
+        <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">اسم الدور <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">دور افتراضي</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="is_default" id="is_default">
+                                        <label class="form-check-label" for="is_default">تعيين كدور افتراضي للموظفين الجدد</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">وصف الدور</label>
+                                    <textarea name="description" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="card-title">الصلاحيات</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="permission_{{ permission.id }}" id="permission_{{ permission.id }}" class="form-check-input">
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">{{ permission.name }}</label>
+                                            <p class="text-muted small">{{ permission.description }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="submit-section mt-4">
+                            <button type="submit" class="btn btn-primary submit-btn">إضافة الدور</button>
+                            <a href="/hospital/?section=staff_list" class="btn btn-secondary submit-btn">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -26,26 +26,37 @@
                <div class="booking-header">
                    <h4 class="booking-title">حجز موعد مع د. {{ doctor.full_name }}</h4>
                    <div class="hospital-links">
-                       {% for hospital in doctor.hospitals.all %}
-                           <a href="?hospital_id={{ hospital.id }}" 
-                              class="hospital-link {% if hospital.id|stringformat:'s' == request.GET.hospital_id %}active{% endif %}">
-                              {{ hospital.name }}
-                           </a>
-                           {% if not forloop.last %} • {% endif %}
-                       {% endfor %}
+                    <div class="hospital-selection">
+                        <div class="hospital-selection">
+                            {% for hospital in doctor.hospitals.all %}
+                                <div class="hospital-card {% if hospital.id|stringformat:'s' == request.GET.hospital_id %}active{% endif %}">
+                                    <a href="?hospital_id={{ hospital.id }}">
+                                        <div class="hospital-logo">
+                                            {% if hospital.logo %}
+                                                <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" loading="lazy">
+                                            {% else %}
+                                                <img src="{% static 'img/logo.png' %}" alt="Hospital Icon" loading="lazy">
+                                            {% endif %}
+                                        </div>
+                                        <div class="hospital-name">{{ hospital.name }}</div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                    </div>
+                    
                    </div>
                    <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
                    </div>
                    <div class="booking-date choose-date-book">
                    <p>Choose a Date</p>
-                   <div class="booking-range">
-                       <div class="bookingrange btn">
-                           <img src="{% static 'img/icons/today-icon.svg' %}" alt="calendar-image">
-                           <span></span>
-                           <input id="datepicker" class="form-control" name="booking_date" placeholder="Select a date">
-                           <i class="fas fa-chevron-down"></i>
-                       </div>
-                   </div>
+                    <div class="col-md-6 mb-3 px-0">
+                        <label class="mb-2 fw-bold">تاريخ الحجز</label>
+                        <input type="date" class="form-control" name="booking_date" id="datepicker" value="{{ form.booking_date }}">
+                    </div>
+                
+                
                </div>
                <div class="card booking-card">
                    <div class="card-body time-slot-card-body">
@@ -105,7 +116,7 @@
                                    {% if doctor_price %}
                                    <div class="booking-price">
                                        <h5>Consultation Fee:</h5>
-                                       <p class="price-amount">{{ doctor_price.amount }} $</p>
+                                       <p class="price-amount">{{ doctor_price.amount }}  ريال يمني </p>
                                    </div>
                                    {% endif %}
                                </div>
@@ -138,31 +149,23 @@
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
+
 <script>
 $(document).ready(function () {
-    // تهيئة التقويم
-    $("#datepicker").datepicker({
-        dateFormat: "yy-mm-dd",
-        minDate: 0,
-        onSelect: function (dateText) {
-            $("#booking_date_input").val(dateText);
-            checkFormCompletion();
-            updateTimeSlots();
-        }
+    // عند تغيير التاريخ من input
+    $("#datepicker").on("change", function () {
+        const dateText = $(this).val();
+        $("#booking_date_input").val(dateText);
+        checkFormCompletion();
+        updateTimeSlots();
     });
 
     // عند النقر على زر المستشفى
     $('.hospital-btn').on('click', function() {
-        // إزالة الفئة النشطة من جميع الأزرار
         $('.hospital-btn').removeClass('active');
-        // إضافة الفئة النشطة للزر المحدد
         $(this).addClass('active');
-        
-        // تحديث معرف المستشفى المختار
         const hospitalId = $(this).data('hospital-id');
         $('#hospital_id').val(hospitalId);
-        
-        // تحديث المواعيد المتاحة
         updateTimeSlots();
     });
 
@@ -170,30 +173,23 @@ $(document).ready(function () {
     $('.date-slider li').on('click', function () {
         const selectedScheduleId = $(this).data('schedule');
         const doctorId = {{ doctor.id }};
-        
-        // تحديث الواجهة
         $('.date-slider li').removeClass('active');
         $(this).addClass('active');
         $('#day_id').val(selectedScheduleId);
-        
         updateTimeSlots();
     });
 
-    // دالة تحديث المواعيد المتاحة
+    // تحديث المواعيد
     function updateTimeSlots() {
         const selectedScheduleId = $('#day_id').val();
         const doctorId = {{ doctor.id }};
         const hospitalId = $('#hospital_id').val();
         const bookingDate = $('#booking_date_input').val();
-        
-        if (!selectedScheduleId || !hospitalId || !bookingDate) {
-            return;
-        }
-        
-        // إظهار رسالة تحميل
+
+        if (!selectedScheduleId || !hospitalId || !bookingDate) return;
+
         $('#time-details').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المواعيد...</div>');
-        
-        // جلب المواعيد المتاحة
+
         $.ajax({
             url: `/get-time-slots/${selectedScheduleId}/${doctorId}/`,
             method: 'GET',
@@ -213,7 +209,7 @@ $(document).ready(function () {
         });
     }
 
-    // عند النقر على وقت
+    // عند اختيار وقت
     $(document).on('click', '.timing.available', function() {
         const scheduleId = $(this).data('schedule');
         $('.timing').removeClass('selected');
@@ -221,22 +217,22 @@ $(document).ready(function () {
         $('#date_id').val(scheduleId);
         checkFormCompletion();
     });
-    
+
     // التحقق من اكتمال النموذج
     function checkFormCompletion() {
         const dayId = $('#day_id').val();
         const dateId = $('#date_id').val();
         const bookingDate = $('#booking_date_input').val();
         const hospitalId = $('#hospital_id').val();
-        
+
         if (dayId && dateId && bookingDate && hospitalId) {
             $('#next-btn').prop('disabled', false);
         } else {
             $('#next-btn').prop('disabled', true);
         }
     }
-    
-    // التحقق من النموذج قبل الإرسال
+
+    // تحقق قبل الإرسال
     $('#booking-form').on('submit', function(e) {
         const dayId = $('#day_id').val();
         const dateId = $('#date_id').val();
@@ -250,14 +246,14 @@ $(document).ready(function () {
             if (!dateId) missingFields.push('وقت الموعد');
             if (!bookingDate) missingFields.push('تاريخ الحجز');
             if (!hospitalId) missingFields.push('المستشفى');
-            
+
             alert('الرجاء اختيار:\n- ' + missingFields.join('\n- '));
             return false;
         }
         return true;
     });
-    
-    // تحديث حالة الزر عند تحميل الصفحة
+
+    // تشغيل التحقق المبدئي
     checkFormCompletion();
 });
 </script>
@@ -325,5 +321,57 @@ $(document).ready(function () {
     font-weight: 600;
     margin: 0;
 }
+.hospital-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+    justify-content: flex-start;
+}
+
+.hospital-card {
+    width: 110px;
+    text-align: center;
+    padding: 10px;
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.hospital-card:hover {
+    border-color: #20c0f3;
+    background-color: #f0fbff;
+}
+
+.hospital-card.active {
+    border-color: #20c0f3;
+    background-color: #e6f7ff;
+    box-shadow: 0 0 8px rgba(32, 192, 243, 0.3);
+}
+
+.hospital-card a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.hospital-logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+.hospital-name {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+@media (max-width: 576px) {
+    .hospital-card {
+        width: 45%;
+    }
+}
+
 </style>
 {% endblock %}

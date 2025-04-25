@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from pydantic import ValidationError, validate_email
+from django.utils.translation import gettext_lazy as _
 
 from hospitals.models import HospitalAccountRequest
 from .models import CustomUser
@@ -23,6 +24,24 @@ def patient_signup(request):
         email = request.POST.get('email')
         mobile_number = request.POST.get('mobile_number')
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # تحقق من تطابق كلمتي المرور
+        if password != confirm_password:
+            return render(request, 'frontend/auth/patient-signup.html', {
+                'error': 'كلمتا المرور غير متطابقتين.'
+            })
+
+        # التحقق من أن اسم المستخدم والبريد غير مستخدمين مسبقًا
+        if CustomUser.objects.filter(username=username).exists():
+            return render(request, 'frontend/auth/patient-signup.html', {
+                'error': 'اسم المستخدم مستخدم بالفعل.'
+            })
+
+        if CustomUser.objects.filter(email=email).exists():
+            return render(request, 'frontend/auth/patient-signup.html', {
+                'error': 'البريد الإلكتروني مستخدم بالفعل.'
+            })
 
         # تخزين البيانات في الجلسة
         request.session['username'] = username
@@ -32,7 +51,7 @@ def patient_signup(request):
         request.session['mobile_number'] = mobile_number
         request.session['password'] = password
 
-        return redirect('users:register_step1')  
+        return redirect('users:register_step1')
 
     return render(request, 'frontend/auth/patient-signup.html')
 
@@ -45,10 +64,15 @@ def register_step1(request):
             path = default_storage.save(f'uploads/profile_pictures/{profile_image.name}', ContentFile(profile_image.read()))
             request.session['profile_image'] = path
 
+        birth_date = request.POST.get('birth_date')
+        gender = request.POST.get('gender')
         address = request.POST.get('address')
         city = request.POST.get('city')
         state = request.POST.get('state')
 
+        # حفظ البيانات في الجلسة
+        request.session['birth_date'] = birth_date
+        request.session['gender'] = gender
         request.session['address'] = address
         request.session['city'] = city
         request.session['state'] = state
@@ -80,13 +104,15 @@ def register_step2(request):
         address = request.session.get('address')
         city = request.session.get('city')
         state = request.session.get('state')
+        birth_date = request.session.get('birth_date')
+        gender = request.session.get('gender')
 
         # التحقق من أن جميع البيانات موجودة
         if not all([username, first_name, last_name, email, mobile_number, password, profile_picture, address, city, state]):
-            return render(request, 'frontend/auth/patient-register-step2.html', {
+            return render(request, 'frontend/auth/patient-register-step1.html', {
                 'error': 'حدث خطأ في البيانات. تأكد من إدخال جميع البيانات.'
             })
-       
+
         # إنشاء المستخدم
         user = CustomUser.objects.create_user(
             username=username,
@@ -101,16 +127,12 @@ def register_step2(request):
             state=state,
             user_type='patient',
         )
+
         # إنشاء سجل مريض في جدول Patients
         Patients.objects.create(
             user=user,
             birth_date=birth_date,
             gender=gender,
-            weight=weight,
-            height=height,
-            age=age,
-            blood_group=blood_group,
-            notes=notes,
         )
 
         # مسح الجلسة بعد التسجيل
@@ -122,8 +144,7 @@ def register_step2(request):
         # التوجه إلى لوحة تحكم المريض
         return redirect('patients:patient_dashboard')
 
-    return render(request, 'frontend/auth/patient-register-step2.html')
-
+    return render(request, 'frontend/auth/patient-register-step1.html')
 
 
 def patient_dashboard(request):
@@ -147,31 +168,76 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
+        next_url = request.POST.get('next') or request.GET.get('next')
+
+        print(f"\n\nمحاولة تسجيل دخول: {email}, {password}\n\n")
+
+        try:
+            user_exists = CustomUser.objects.filter(email=email).exists()
+            if user_exists:
+                user_obj = CustomUser.objects.get(email=email)
+                print(f"\n\nالمستخدم موجود: {user_obj.email}, نوع المستخدم: {user_obj.user_type}\n\n")
+            else:
+                print(f"\n\nالمستخدم غير موجود: {email}\n\n")
+        except Exception as e:
+            print(f"\n\nخطأ في التحقق من وجود المستخدم: {str(e)}\n\n")
+
         user = authenticate(request, username=email, password=password)
+
+        print(f"\n\nنتيجة المصادقة: {user}\n\n")
+
         if user is not None:
-            login(request, user) 
-           
-            
-            next_url = request.GET.get('next', None)
+            login(request, user)
+            print(f"\n\nنوع المستخدم: {user.user_type}\n\n")
+
+            # أول تسجيل دخول لموظف المستشفى
+            if user.user_type == 'hospital_staff':
+                try:
+                    from hospital_staff.models import HospitalStaff
+                    staff = HospitalStaff.objects.get(user=user)
+                    if staff.is_first_login:
+                        return redirect('hospital_staff:first_login_change_password')
+                except Exception as e:
+                    print(f"\n\nخطأ في التحقق من أول تسجيل دخول: {str(e)}\n\n")
+
+            # توجيه بناء على `next`
             if next_url:
                 return redirect(next_url)
-            
+
+            # توجيه حسب نوع المستخدم
             if user.user_type == 'admin':
                 return redirect(reverse('users:admin_dashboard'))
             elif user.user_type == 'hospital_manager':
                 return redirect(reverse('hospitals:index'))
+            elif user.user_type == 'hospital_staff':
+                try:
+                    from hospital_staff.models import HospitalStaff
+                    staff = HospitalStaff.objects.get(user=user)
+                    print(f"\n\nتم توجيه الموظف إلى لوحة تحكم المستشفى: {staff.hospital.name}\n\n")
+                    return redirect(reverse('hospitals:index'))
+                except Exception as e:
+                    print(f"\n\nخطأ في توجيه الموظف: {str(e)}\n\n")
+                    messages.error(request, _("حدث خطأ في توجيهك إلى لوحة التحكم. يرجى التواصل مع مدير النظام."))
+                    return redirect(reverse('users:logout'))
             elif user.user_type == 'patient':
                 return redirect(reverse('patients:patient_dashboard'))
             else:
                 messages.error(request, "User type is not recognized.")
                 return redirect(reverse('users:login'))
         else:
-            messages.error(request, "Invalid email or password.")
+            try:
+                user_exists = CustomUser.objects.filter(email=email).exists()
+                if user_exists:
+                    messages.error(request, "كلمة المرور غير صحيحة. الرجاء المحاولة مرة أخرى.")
+                else:
+                    messages.error(request, "البريد الإلكتروني غير مسجل في النظام.")
+            except Exception as e:
+                print(f"\n\nخطأ في التحقق من رسالة الخطأ: {str(e)}\n\n")
+                messages.error(request, "حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة مرة أخرى.")
+
             return redirect(reverse('users:login'))
 
     return render(request, 'frontend/auth/login.html')
-
-
 
 def user_logout(request):
     logout(request)
@@ -193,7 +259,7 @@ def hospital_account_request(request):
             notes = request.POST.get('notes', '')
             commercial_record = request.FILES.get('commercial_record')
             medical_license = request.FILES.get('medical_license')
-            
+
             # 1. التحقق من الحقول المطلوبة
             if not all([hospital_name, manager_full_name, manager_email, manager_phone,logo, password, confirm_password, hospital_location]):
                 messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
@@ -210,12 +276,12 @@ def hospital_account_request(request):
             if password != confirm_password:
                 messages.error(request, 'كلمتا المرور غير متطابقتين.')
                 return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
-            
+
             # # 4. التحقق من صحة رقم الهاتف (يمكنك إضافة شروط أكثر تعقيدًا إذا لزم الأمر)
             # if not manager_phone.isdigit() or len(manager_phone) < 9:
             #      messages.error(request, 'رقم الهاتف غير صالح.')
             #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
-            
+
             #  # 5. التحقق من حجم الملفات (يمكنك تعديل الحجم الأقصى حسب الحاجة)
             # max_file_size = settings.MAX_UPLOAD_SIZE
             # if commercial_record and commercial_record.size > max_file_size:
@@ -237,7 +303,7 @@ def hospital_account_request(request):
                 notes=notes,
                 created_by=request.user if request.user.is_authenticated else None
             )
-            
+
             # معالجة الملفات المرفقة
             if commercial_record:
                 hospital_request.commercial_record = commercial_record

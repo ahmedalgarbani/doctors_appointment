@@ -42,9 +42,10 @@ class BaseModel(models.Model):
         abstract = True
 
 class City(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)
-    status = models.BooleanField(default=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name=_("اسم المدينة"))
+    slug = models.SlugField(unique=True, blank=True, verbose_name=_("الرمز المميز"))
+    status = models.BooleanField(default=True, verbose_name=_("الحالة"))
+    
     def __str__(self):
         return self.name
 
@@ -53,17 +54,18 @@ class City(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = _("مدينة")
+        verbose_name_plural = _("مدينة")
 
-# نموذج المستشفيات
 
 class Hospital(BaseModel):
-
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
         related_name='hospital',
         verbose_name=_("حساب المستخدم"),
-        limit_choices_to={'user_type': 'hospital_manager'}, 
+        limit_choices_to={'user_type': 'hospital_manager'},
     )
     city = models.ForeignKey(
         City,
@@ -115,8 +117,11 @@ class Hospital(BaseModel):
     def get_absolute_url(self):
         return reverse('home:hospitals:hospital_detail', args=[self.slug])
 
+    class Meta:
+        verbose_name = _("مستشفى")
+        verbose_name_plural = _("مستشفيات")
 
-# أرقام الهواتف
+
 class PhoneNumber(BaseModel):
     number = models.CharField(max_length=14,verbose_name=_("رقم الهاتف"))  
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='phone_numbers',verbose_name=_("المستشفى"))
@@ -132,7 +137,12 @@ class PhoneNumber(BaseModel):
 
     def __str__(self):
         return f"{self.number} ({self.phone_type}) - {self.hospital.name}"
-# طلبات فتح حساب المستشفى
+
+    class Meta:
+        verbose_name = _("رقم هاتف")
+        verbose_name_plural = _("أرقام الهواتف")
+
+
 class HospitalAccountRequest(BaseModel):
     STATUS_CHOICES = [
         ('pending', _('قيد الانتظار')),
@@ -148,7 +158,6 @@ class HospitalAccountRequest(BaseModel):
         max_length=255,
         verbose_name=_("اسم مدير المستشفى")
     )
-
     logo = models.ImageField(
         upload_to='hospital_logos/',
         null=True,
@@ -156,7 +165,6 @@ class HospitalAccountRequest(BaseModel):
         verbose_name=_("شعار المستشفى"),
         help_text=_(" .رفع شعار المستشفى")
     )
-
     manager_email = models.EmailField(
         verbose_name=_("البريد الإلكتروني للمدير")
     )
@@ -232,7 +240,12 @@ class HospitalAccountRequest(BaseModel):
         if notes:
             self.notes = notes
         self.save()
-# طلبات تعديل بيانات المستشفى
+
+    class Meta:
+        verbose_name = _("طلب فتح حساب مستشفى")
+        verbose_name_plural = _("طلبات فتح حساب مستشفى")
+
+
 class HospitalUpdateRequest(BaseModel):
     STATUS_CHOICES = [
         ('pending', _('قيد الانتظار')),

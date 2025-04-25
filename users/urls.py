@@ -1,13 +1,14 @@
 from django.urls import path
 from django.views.generic import TemplateView
 from . import views
+from .debug_views import debug_login
 
 app_name = 'users'
 
 urlpatterns = [
     path('login/', views.login_view , name='login'),
     path('logout/', views.user_logout, name='logout'),
-    
+
     path('signup/', TemplateView.as_view(template_name='frontend/auth/signup.html'), name='signup'),
     path('hospital-signup/', views.hospital_account_request, name='hospital_account_request'),
 
@@ -21,6 +22,8 @@ urlpatterns = [
 
     path('change-password/', views.change_password_view, name='change_password'),
 
+    # وظيفة تصحيح تسجيل الدخول
+    path('debug-login/', debug_login, name='debug_login'),
 
     # path('signup/', views.SignUpView.as_view(), name='signup'),
     # path('', views.IndexView.as_view(), name='index'),  # المسار الرئيسي

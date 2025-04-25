@@ -1,13 +1,10 @@
 from django.db import models
 from hospitals.models import BaseModel
 from django.conf import settings
-from hospitals.models import BaseModel
 from users.models import CustomUser
 from django.utils.translation import gettext_lazy as _
 
-
 class Patients(BaseModel):
-
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
@@ -18,7 +15,7 @@ class Patients(BaseModel):
     birth_date = models.DateField(verbose_name=_("تاريخ الميلاد"))
     gender = models.CharField(
         max_length=10,
-        choices=[('Male', _('Male')), ('Female', _('Female'))],
+        choices=[('Male', _('ذكر')), ('Female', _('أنثى'))],
         verbose_name=_("الجنس"),
     )
     weight = models.FloatField(null=True, blank=True, verbose_name=_("الوزن (كجم)"))
@@ -41,23 +38,28 @@ class Patients(BaseModel):
     def __str__(self):
         return f"{self.user.username} ({self.user.email})"
 
+    class Meta:
+        verbose_name = _("المرضى")
+        verbose_name_plural = _("المرضى")
+
+
 class Favourites(BaseModel):
     patient = models.ForeignKey( 
         Patients,
         on_delete=models.CASCADE,
         related_name='favourites',
-        verbose_name="المريض"
+        verbose_name=_("المريض")
     )
     doctor = models.ForeignKey(
         'doctors.Doctor',
         on_delete=models.CASCADE,
         related_name='favourited_by',
-        verbose_name="الطبيب"
+        verbose_name=_("الطبيب")
     )
 
     class Meta:
-        verbose_name = "المفضلات"
-        verbose_name_plural = "المفضلات"
+        verbose_name = _("المفضلة")
+        verbose_name_plural = _("المفضلات")
         constraints = [
             models.UniqueConstraint(fields=['patient', 'doctor'], name='unique_patient_doctor')
         ]

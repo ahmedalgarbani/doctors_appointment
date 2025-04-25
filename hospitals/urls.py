@@ -5,7 +5,7 @@ from django.contrib.auth.views import LogoutView
 app_name = 'hospitals'
 
 urlpatterns = [
-    
+
     path('logout/', views.logout_view, name='logout'),
     path('', views.index, name='index'),
     path('add-doctor-form/', views.add_doctor_form, name='add_doctor_form'),
@@ -32,14 +32,17 @@ urlpatterns = [
     path('invoice/<int:payment_id>/', views.invoice_view, name='invoice_view'),
 
 
-    
+
 
     # URLs الخاصة بطلبات فتح حساب المستشفى
     path('account/request/success/', views.hospital_request_success, name='hospital_request_success'),
     path('account/request/<int:request_id>/status/', views.hospital_request_status, name='hospital_request_status'),
+
+
     path('hospital/<slug:slug>', views.hospital_detail, name='hospital_detail'),
-    path('accept-appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
+    path('accept_appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
     path('completed_appointment/<int:booking_id>/', views.completed_appointment, name='completed_appointment'),
+    path('cancel_appointment/<int:booking_id>/', views.cancel_appointment, name='cancel_appointment'),
     path('booking-history/<int:booking_id>/', views.booking_history, name='booking_history'),
     path('delete-booking/<int:booking_id>/', views.delete_booking, name='delete_booking'),
     path('edit-booking/<int:booking_id>/', views.edit_booking, name='edit_booking'),
@@ -49,8 +52,8 @@ urlpatterns = [
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
     path('update-hospital-profile/', views.update_hospital_profile, name='update_hospital_profile'),
     path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
-   
-    
+
+
 
 
 ]

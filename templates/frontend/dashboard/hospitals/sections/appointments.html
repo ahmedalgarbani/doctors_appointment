@@ -113,8 +113,8 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover table-center mb-0" id="appointments-table">
+                    <div class="table-container" style="overflow-x: auto; width: 100%;">
+                        <table class="table table-hover table-center mb-0" id="appointments-table" style="min-width: 1100px; width: 100%;">
                             <thead>
                                 <tr>
                                     <th>المريض</th>
@@ -133,7 +133,7 @@
                                     <td>
                                         <h2 class="table-avatar">
                                             {% if booking.patient.user.profile_picture %}
-                                                <img src="{{ booking.patient.user.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
+                                                <img class="avatar-img rounded-circle" src="{{ booking.patient.user.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
                                                 {{ booking.patient.user.get_full_name }}
@@ -146,7 +146,7 @@
                                     <td>
                                         <h2 class="table-avatar">
                                             {% if booking.doctor.photo %}
-                                                <img src="{{ booking.doctor.photo.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
+                                                <img class="avatar-img rounded-circle" src="{{ booking.doctor.photo.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
                                                 د. {{ booking.doctor.full_name }}
@@ -208,12 +208,15 @@
                                             <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-history"></i> عرض الحالات
                                             </button>
-                                            <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
+                                            <!-- <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-edit"></i> تعديل
-                                            </button>
-                                            <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
-                                                <i class="fas fa-trash"></i> حذف
-                                            </button>
+                                            </button> -->
+                                            {% if booking.status != 'completed' and booking.status != 'cancelled' %}
+                                                <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
+                                                    <i class="fas fa-trash"></i> الغاء
+                                                </button>
+                                            {% endif %}
+
                                         </div>
                                     </td>
                                 </tr>

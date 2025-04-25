@@ -1,0 +1,83 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="row justify-content-center my-4 delete_staff section">
+    <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="card mx-auto">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">حذف موظف</h4>
+                <a href="/hospital/?section=staff_list" class="btn btn-light">
+                    <i class="fas fa-arrow-left"></i> العودة إلى قائمة الموظفين
+                </a>
+            </div>
+            <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">تحذير!</h5>
+                        <p>أنت على وشك حذف الموظف <strong>{{ staff.user.get_full_name }}</strong> وحساب المستخدم الخاص به.</p>
+                        <p>هذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد من رغبتك في الاستمرار؟</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">معلومات الموظف</h5>
+                                    <div class="profile-img-wrap text-center mb-3">
+                                        {% if staff.user.profile_picture %}
+                                        <img class="avatar-img rounded-circle" src="{{ staff.user.profile_picture.url }}" alt="صورة الموظف" style="width: 100px; height: 100px;">
+                                        {% else %}
+                                        <img class="avatar-img rounded-circle" src="{% static 'img/default-avatar.png' %}" alt="صورة الموظف" style="width: 100px; height: 100px;">
+                                        {% endif %}
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item"><strong>الاسم:</strong> {{ staff.user.get_full_name }}</li>
+                                        <li class="list-group-item"><strong>البريد الإلكتروني:</strong> {{ staff.user.email }}</li>
+                                        <li class="list-group-item"><strong>رقم الهاتف:</strong> {{ staff.user.mobile_number }}</li>
+                                        <li class="list-group-item"><strong>المسمى الوظيفي:</strong> {{ staff.job_title }}</li>
+                                        <li class="list-group-item"><strong>الدور الوظيفي:</strong> {{ staff.role.name|default:"غير محدد" }}</li>
+                                        <li class="list-group-item"><strong>تاريخ التعيين:</strong> {{ staff.hire_date }}</li>
+                                        <li class="list-group-item"><strong>الحالة:</strong>
+                                            {% if staff.status == 'active' %}
+                                            <span class="badge bg-success">نشط</span>
+                                            {% elif staff.status == 'inactive' %}
+                                            <span class="badge bg-danger">غير نشط</span>
+                                            {% elif staff.status == 'suspended' %}
+                                            <span class="badge bg-warning">موقوف</span>
+                                            {% endif %}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="submit-section">
+                            <button type="submit" class="btn btn-danger submit-btn">تأكيد الحذف</button>
+                            <a href="/hospital/?section=staff_list" class="btn btn-secondary submit-btn">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

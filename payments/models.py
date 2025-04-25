@@ -4,6 +4,8 @@ from hospitals.models import BaseModel, Hospital
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+    
+from notifications.models import Notifications
 
 
 
@@ -42,7 +44,6 @@ class HospitalPaymentMethod(models.Model):
 
 # ------------Payment-------------
 
-
 class Payment(models.Model):
     Type_choices = [
         ('cash', _('نقدي')),
@@ -55,19 +56,18 @@ class Payment(models.Model):
         (2, _('فشل')),
         (3, _('مسترد')),
     ]
-    
+
     payment_method = models.ForeignKey(
         'HospitalPaymentMethod',
         on_delete=models.CASCADE,
         verbose_name=_("طريقة الدفع"),
         related_name='payments'
     )
-    payment_status = models.IntegerField(  
+    payment_status = models.IntegerField(
         choices=PaymentStatus_choices,
         verbose_name=_("حالة الدفع"),
-        default='pending'
+        default=0
     )
-
     payment_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("تاريخ الدفع")
@@ -111,8 +111,6 @@ class Payment(models.Model):
         verbose_name=_("نوع الدفع"),
         default='cash'
     )
-    
-
 
     class Meta:
         verbose_name = _("فاتورة دفع")
@@ -124,16 +122,39 @@ class Payment(models.Model):
         return dict(self.PaymentStatus_choices).get(self.payment_status, _("غير معروف"))
 
     def __str__(self):
-        return f"فاتورة رقم {self.id} - {self.booking.patient.user.get_full_name} - {self.payment_totalamount} {self.payment_currency}"
+        return f"فاتورة رقم {self.id} - {self.booking.patient.user.get_full_name()} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
+        # احسب المبلغ الكلي قبل الحفظ
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
+
         super().save(*args, **kwargs)
 
+        # إذا تم الدفع بنجاح
+        if self.payment_status == 1:
+            booking = self.booking
+            patient_user = booking.patient.user
+            doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
+            method_name = self.payment_method.payment_option.method_name
 
+            # نص الإشعار
+            message = _(
+                f"💳 *تم تأكيد الدفع*\n\n"
+                f"عزيزي العميل،\n"
+                f"تم استلام مبلغ *{self.payment_totalamount} {self.payment_currency}* بنجاح.\n"
+                f"🧾 نوع الدفع: {self.get_payment_type_display()} عبر {method_name}\n"
+                f"👨‍⚕️ الموعد مع الدكتور: *{doctor_name}*\n"
+                f"📅 بتاريخ: {booking.booking_date}\n\n"
+                f"شكرًا لاستخدامك خدمتنا، ونتطلع لخدمتك!"
+            )
 
-
-
-
-
+            # التأكد من وجود admin_user
+            admin_user = getattr(booking.hospital, 'admin_user', None)
+            if admin_user:
+                Notifications.objects.create(
+                    sender=admin_user,
+                    user=patient_user,
+                    message=message,
+                    notification_type='6'
+                )
