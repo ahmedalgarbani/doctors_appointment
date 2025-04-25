@@ -387,6 +387,7 @@ def edit_blog(request, blog_id):
 
 
 
+
 #الاشعارات
 def get_notifications_for_user(user):
     """
