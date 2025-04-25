@@ -8,7 +8,8 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-@login_required
+@login_required(login_url='/user/login')
+
 def send_notification(request):
     if request.method == 'POST':
         recipients = request.POST.get('recipients')
@@ -42,7 +43,8 @@ def send_notification(request):
 
     return redirect('hospitals:index')
 
-@login_required
+@login_required(login_url='/user/login')
+
 def mark_as_read(request, notification_id):
     try:
         notification = Notifications.objects.get(id=notification_id, user=request.user)
@@ -52,7 +54,8 @@ def mark_as_read(request, notification_id):
         messages.error(request, 'Notification not found.')
     return redirect('hospitals:index')
 
-@login_required
+@login_required(login_url='/user/login')
+
 def mark_as_unread(request, notification_id):
     try:
         notification = Notifications.objects.get(id=notification_id, user=request.user)
@@ -61,3 +64,16 @@ def mark_as_unread(request, notification_id):
     except Notifications.DoesNotExist:
         messages.error(request, 'Notification not found.')
     return redirect('hospitals:index')
+
+
+from django.http import JsonResponse
+
+@login_required(login_url='/user/login')
+def mark_all_as_read(request):
+    if request.method == 'POST':
+        try:
+            Notifications.objects.filter(user=request.user, status='0').update(status='1')
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

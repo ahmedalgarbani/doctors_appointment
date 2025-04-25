@@ -6,4 +6,8 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['name', 'mobile_number', 'password']
+        fields = [
+            'first_name', 'last_name', 'mobile_number', 'password',
+            'address', 'city', 'state', 'profile_picture', 'user_type'
+        ]
+

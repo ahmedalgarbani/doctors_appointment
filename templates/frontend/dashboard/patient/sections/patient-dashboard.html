@@ -1,199 +1,220 @@
 {% load static %}
-<div class="col-md-7 col-lg-8 col-xl-9 section patient_dashboard">
 
+<div class="col-md-7 col-lg-8 col-xl-9 section patient_dashboard">
 	<div class="row">
 		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
 			<div class="card">
 				<div class="card-body text-center">
-					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-01.png' %}" alt="heart-image" width="55">
-					</div>
-					<h5>Heart Rate</h5>
-					<h6>12 <sub>bpm</sub></h6>
-				</div>
+                    <div class="mb-3">
+                      <i class="fa fa-calendar-check fa-3x text-primary"></i>
+                    </div>
+                    <h5>عدد الحجوزات</h5>
+                    <h6>{{ bookings_count }}</h6>
+                  </div>
+                  
 			</div>
 		</div>
 		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
 			<div class="card">
 				<div class="card-body text-center">
-					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-02.png' %}" alt="thermometer-image" width="55">
-					</div>
-					<h5>Body Temperature</h5>
-					<h6>18 <sub>C</sub></h6>
+					<div class="mt-3">
+                        <i class="fas fa-money-bill-wave fa-2x text-primary"></i>
+                        <p class="mt-2 mb-1">الإيرادات المدفوعة</p>
+                        <h6>{{ total_paid }} <sub>{{ currency }}</sub></h6>
+                      </div>
+                     
 				</div>
 			</div>
 		</div>
 		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
-			<div class="card">
-				<div class="card-body text-center">
-					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-03.png' %}" alt="hospital-equipment" width="55">
-					</div>
-					<h5>Glucose Level</h5>
-					<h6>70 - 90</h6>
-				</div>
-			</div>
-		</div>
-		<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
-			<div class="card">
-				<div class="card-body text-center">
-					<div class="mb-3">
-						<img src="{% static 'img/specialities/pt-dashboard-04.png' %}" alt="hospital-equipment" width="55">
-					</div>
-					<h5>Blood Pressure</h5>
-					<h6>202/90 <sub>mg/dl</sub></h6>
-				</div>
-			</div>
-		</div>
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="mb-3">
+                  <i class="fas fa-user-md fa-3x text-info"></i>
+                </div>
+                <h5>الأطباء المفضلين</h5>
+                <h6>{{ favourites.count }}</h6>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-dashboard-top">
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="mb-3">
+                  <i class="fas fa-bell fa-3x text-warning"></i> <!-- أيقونة إشعارات -->
+                </div>
+                <h5>الإشعارات غير المقروءة</h5>
+                <h6>{{ unread_notifications_count }}<sub> إشعار</sub></h6>
+              </div>
+            </div>
+          </div>
+          
 	</div>
-	
-	<div class="row patient-graph-col">
-		<div class="col-12">
-			<div class="card">
-				<div class="card-header">
-					<h4 class="card-title">Graph Status</h4>
-				</div>
-				<div class="card-body pt-2 pb-2 mt-1 mb-1">
-					<div class="row">
-						<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-graph-box">
-							<a href="#" class="graph-box" data-bs-toggle="modal" data-bs-target="#graph1">
-								<div>
-									<h4>BMI Status</h4>
-								</div>
-								<div class="graph-img">
-									<img src="{% static 'img/shapes/graph-01.png' %}" alt="shapes-icon">
-								</div>
-								<div class="graph-status-result mt-3">
-									<span class="graph-update-date">Last Update 6d</span>
-								</div>
-							</a>
-						</div>
-						<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-graph-box">
-								<a href="#" class="graph-box pink-graph" data-bs-toggle="modal" data-bs-target="#graph2">
-									<div>
-										<h4>Heart Rate Status</h4>
-									</div>
-									<div class="graph-img">
-										<img src="{% static 'img/shapes/graph-02.png' %}" alt="graph-icon">
-									</div>
-									<div class="graph-status-result mt-3">
-										<span class="graph-update-date">Last Update 2d</span>
-									</div>
-								</a>
-						</div>
-						<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-graph-box">
-							<a href="#" class="graph-box sky-blue-graph" data-bs-toggle="modal" data-bs-target="#graph3">
-								<div>
-									<h4>FBC Status</h4>
-								</div>
-								<div class="graph-img">
-									<img src="{% static 'img/shapes/graph-03.png' %}" alt="chart-icon">
-								</div>
-								<div class="graph-status-result mt-3">
-									<span class="graph-update-date">Last Update 5d</span>
-								</div>
-							</a>
-						</div>
-						<div class="col-12 col-md-6 col-lg-4 col-xl-3 patient-graph-box">
-							<a href="#" class="graph-box orange-graph" data-bs-toggle="modal" data-bs-target="#graph4">
-								<div>
-									<h4>Weight Status</h4>
-								</div>
-								<div class="graph-img">
-									<img src="{% static 'img/shapes/graph-04.png' %}" alt="chart-icon">
-								</div>
-								<div class="graph-status-result mt-3">
-									<span class="graph-update-date">Last Update 3d</span>
-								</div>
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+        <div class="card">
+        <div class="card-body pt-0">
+            <!-- Tab Menu -->
+            <nav class="user-tabs mb-4">
+                <ul class="nav nav-tabs nav-tabs-bottom nav-justified">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#pat_appointments" data-bs-toggle="tab">المواعيد</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pat_billing" data-bs-toggle="tab">الفواتير</a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- /Tab Menu -->
+            
+            <!-- Tab Content -->
+            <div class="tab-content pt-0">
+                <!-- Appointment Tab -->
+                <div id="pat_appointments" class="tab-pane fade show active">
+                    <div class="card card-table mb-0">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-center mb-0">
+                                    <thead>
+                                        <th>الطبيب</th>
+                                        <th>تاريخ الموعد</th>
+                                        <th>تاريخ الحجز</th>
+                                        <th>المبلغ</th>
+                                        <th>المتابعة</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراء</th>
+                                    </thead>
+                                    <tbody>
+                                        {% for booking in bookings %}
+                                        <tr>
+                                            <td>
+                                                <h2 class="table-avatar">
+                                                    <a href="#" class="avatar avatar-sm me-2">
+                                                        <img class="avatar-img rounded-circle" 
+                                                        src="{% if booking.doctor.photo %}{{ booking.doctor.photo.url }}{% else %}/static/path/to/default/image.jpg{% endif %}" 
+                                                        alt="Doctor Image">
+                                                    </a>
+                                                    <a href="{% url 'home:doctor_profile' doctor_id=booking.doctor.id %}">
+                                                        {{ booking.doctor.full_name }}
+                                                        <span>{{ booking.doctor.specialty }}</span>
+                                                    </a>
+                                                </h2>
+                                            </td>
+                                            <td>
+                                                {{ booking.appointment_date.get_day_display }}
 
-	<div class="card">
-		<div class="card-body pt-0">
-		
-			<!-- Tab Menu -->
-			<nav class="user-tabs mb-4">
-				<ul class="nav nav-tabs nav-tabs-bottom nav-justified">
-					<li class="nav-item">
-						<a class="nav-link active" href="#pat_appointments" data-bs-toggle="tab">Appointments</a>
-					</li>
-					<!-- <li class="nav-item">
-						<a class="nav-link" href="#pat_medical_records" data-bs-toggle="tab"><span class="med-records">Medical Records</span></a>
-					</li> -->
-					<li class="nav-item">
-						<a class="nav-link" href="#pat_billing" data-bs-toggle="tab">Billing</a>
-					</li>
-				</ul>
-			</nav>
-			<!-- /Tab Menu -->
-			
-			<!-- Tab Content -->
-			<div class="tab-content pt-0">
-				
-			<!-- Appointment Tab -->
-			<div id="pat_appointments" class="tab-pane fade show active">
+                                                <span class="d-block text-info">
+                                                    {{ booking.appointment_time.start_time|time:"h:i A" }} - {{ booking.appointment_time.end_time|time:"h:i A" }}
+                                                </span>
+                                            </td>
+                                            <td>{{ booking.booking_date|date:"Y/m/d" }}</td>
+                                            <td>{{ booking.amount }} ريال</td>
+                                            <td>{{ booking.follow_up }}</td>
+                                            <td>
+                                                <span class="badge rounded-pill 
+                                                    {% if booking.status == 'confirmed' %}bg-success-light
+                                                    {% elif booking.status == 'pending' %}bg-warning-light
+                                                    {% elif booking.status == 'completed' %}bg-info-light
+                                                    {% else %}bg-danger-light{% endif %}">
+                                                    {{ booking.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="table-action">
+                                                    <a href="{% url 'patients:appointment_details' booking.id %}" class="btn btn-sm bg-info-light">
+                                                        <i class="far fa-eye"></i> عرض
+                                                    </a>
+                                                    <a href="" class="btn btn-sm bg-primary-light">
+                                                        <i class="fas fa-print"></i> طباعة
+                                                    </a>
+                                                    {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+                                                    <button class="btn btn-sm bg-danger-light delete-doctor-btn"
+                                                            data-id="{{ booking.id }}"
+                                                            data-booking-date="{{ booking.booking_date }}"
+                                                            onclick="cancelBooking({{ booking.id }})">
+                                                        <i class="fas fa-times-circle"></i> إلغاء الحجز
+                                                    </button>
+                                                    {% endif %}
+                                                    {% if booking.status != 'cancelled' and booking.status != 'completed' %}
+                                                    <a href="{% url 'patients:edit_booking' booking.id %}" 
+                                                    class="btn btn-sm bg-success-light edit-booking-btn" 
+                                                    data-booking-date="{{ booking.booking_date }}">
+                                                        <i class="far fa-edit"></i> تعديل
+                                                    </a>
+                                                    {% endif %}
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7">لا توجد مواعيد متاحة.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Appointment Tab -->
+                 <!-- Billing Tab -->
+			<div id="pat_billing" class="tab-pane fade">
 				<div class="card card-table mb-0">
 					<div class="card-body">
 						<div class="table-responsive">
 							<table class="table table-hover table-center mb-0">
 								<thead>
-									<th>الطبيب</th>
-									<th>تاريخ الموعد</th>
-									<th>تاريخ الحجز</th>
-									<th>المبلغ</th>
-									<th>المتابعة</th>
-									<th>الحالة</th>
-									<th>الإجراء</th>
+									<tr>
+										<th>رقم الفاتورة</th>
+										<th>اسم الدكتور</th>
+										<th>المبلغ</th>
+										<th>الحالة</th>
+										<th>تاريخ الدفع</th>
+										<th>الإجراء</th>
+									</tr>						
 								</thead>
 								<tbody>
-									{% for booking in bookings %}
+									{% for payment in payments %}
 									<tr>
 										<td>
+											<a href="{% if payment.slug %}{% url 'patients:invoice_view' payment.slug %}{% else %}#{% endif %}">
+												#INV-{{ payment.id }}
+											</a>
+										</td>
+										<td>
 											<h2 class="table-avatar">
-												<a href="#" class="avatar avatar-sm me-2">
-													<img class="avatar-img rounded-circle" 
-													src="{% if booking.doctor.photo %}{{ booking.doctor.photo.url }}{% else %}/static/path/to/default/image.jpg{% endif %}" 
-													alt="Doctor Image">												
+												<a href="doctor-profile.html" class="avatar avatar-sm me-2">
+													<img class="avatar-img rounded-circle"
+														src="{% if payment.booking.doctor.photo %}{{ payment.booking.doctor.photo.url }}{% else %}/static/path/to/default/image.jpg{% endif %}"
+														alt="Doctor Image">
 												</a>
-												<a href="{% url 'home:doctor_profile' doctor_id=booking.doctor.id %}">
-													{{ booking.doctor.full_name }}
-													<span>{{ booking.doctor.specialty }}</span>
+												<a href="doctor-profile.html">
+													{{ payment.booking.doctor.full_name|default:"Unknown Doctor" }}
+													<span>{{ payment.booking.doctor.specialty|default:"No Specialty" }}</span>
 												</a>
 											</h2>
 										</td>
-										<td>{{ booking.appointment_date }} <span class="d-block text-info">{{ booking.appointment_time }}</span></td>
-										<td>{{ booking.booking_date }}</td>
-										<td>${{ booking.amount }}</td>
-										<td>{{ booking.follow_up }}</td>
+										<td>{{ payment.payment_totalamount|default:"0.00" }} ريال</td>
 										<td>
-											<span class="badge rounded-pill 
-												{% if booking.status == 'confirmed' %}bg-success-light
-												{% elif booking.status == 'pending' %}bg-warning-light
-												{% elif booking.status == 'completed' %}bg-info-light
-												{% else %}bg-danger-light{% endif %}">
-												{{ booking.get_status_display }}
+											<span class="badge {% if payment.payment_status == 1 %}bg-success{% else %}bg-warning{% endif %}">
+												{{ payment.get_status_display }}
 											</span>
 										</td>
+										<td>{{ payment.payment_date|date:"d M Y"|default:"N/A" }}</td>
 										<td>
 											<div class="table-action">
+												<a href="{% url 'patients:invoice_view' payment.id %}" class="btn btn-sm bg-info-light">
+													<i class="far fa-eye"></i> عرض
+												</a>
 												<a href="javascript:void(0);" class="btn btn-sm bg-primary-light">
 													<i class="fas fa-print"></i> طباعة
-												</a>
-												<a href="javascript:void(0);" class="btn btn-sm bg-info-light">
-													<i class="far fa-eye"></i> عرض
 												</a>
 											</div>
 										</td>
 									</tr>
 									{% empty %}
 									<tr>
-										<td colspan="7">لا توجد مواعيد متاحة.</td>
+										<td colspan="6" class="text-center">لا توجد مدفوعات لعرضها.</td>
 									</tr>
 									{% endfor %}
 								</tbody>
@@ -202,61 +223,112 @@
 					</div>
 				</div>
 			</div>
-			<!-- /Appointment Tab -->
-			
-				<!-- Billing Tab -->
-				<div id="pat_billing" class="tab-pane fade">
-					<div class="card card-table mb-0">
-						<div class="card-body">
-							<div class="table-responsive">
-								<table class="table table-hover table-center mb-0">
-									<thead>
-										<tr>
-											<th>Invoice No</th>
-											<th>Doctor</th>
-											<th>Amount</th>
-											<th>Paid On</th>
-											<th>Action</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td>
-												<a href="invoice-view.html">#INV-0010</a>
-											</td>
-											<td>
-												<h2 class="table-avatar">
-													<a href="doctor-profile.html" class="avatar avatar-sm me-2">
-														<img class="avatar-img rounded-circle" src="assets/img/doctors/doctor-thumb-01.jpg" alt="User Image">
-													</a>
-													<a href="doctor-profile.html">Ruby Perrin <span>Dental</span></a>
-												</h2>
-											</td>
-											<td>$450</td>
-											<td>14 Nov 2023</td>
-											<td>
-												<div class="table-action">
-													<a href="invoice-view.html" class="btn btn-sm bg-info-light">
-														<i class="far fa-eye"></i> View
-													</a>
-													<a href="javascript:void(0);" class="btn btn-sm bg-primary-light">
-														<i class="fas fa-print"></i> Print
-													</a>
-												</div>
-											</td>
-										</tr>
-										
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- /Billing Tab -->
-				  
-			</div>
-			<!-- Tab Content -->
-			
-		</div>
-	</div>
+			<!-- /Billing Tab -->
+            </div>
+            <!-- Tab Content -->
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// وظيفة لإلغاء الحجز
+function cancelBooking(bookingId) {
+    const row = document.querySelector(`button[data-id="${bookingId}"]`).closest('tr');
+    const button = row.querySelector('.delete-doctor-btn');
+    const statusBadge = row.querySelector('.badge');
+    
+    Swal.fire({
+        title: 'هل أنت متأكد؟',
+        text: "لن تتمكن من التراجع عن هذا الإجراء!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'نعم، ألغِ الحجز',
+        cancelButtonText: 'تراجع'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإلغاء...';
+            button.disabled = true;
+            
+            fetch(`{% url 'patients:cancel_booking' 0 %}`.replace('0', bookingId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    statusBadge.className = 'badge rounded-pill bg-danger-light';
+                    statusBadge.textContent = data.status_display;
+                    button.remove();
+                    
+                    Swal.fire(
+                        'تم الإلغاء!',
+                        data.message,
+                        'success'
+                    );
+                } else {
+                    throw new Error(data.message || 'فشل في إلغاء الحجز');
+                }
+            })
+            .catch(error => {
+                button.innerHTML = '<i class="fas fa-times-circle"></i> إلغاء الحجز';
+                button.disabled = false;
+                
+                Swal.fire(
+                    'خطأ!',
+                    error.message,
+                    'error'
+                );
+                console.error('Error:', error);
+            });
+        }
+    });
+}
+
+
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // تصفير الوقت لضمان دقة المقارنة
+        const oneDayMs = 24 * 60 * 60 * 1000;
+
+        // أزرار الإلغاء
+        document.querySelectorAll('.delete-doctor-btn').forEach(btn => {
+            const bookingDateStr = btn.getAttribute('data-booking-date');
+            const bookingDate = new Date(bookingDateStr);
+            bookingDate.setHours(0, 0, 0, 0); // تصفير الوقت
+
+            const diffTime = bookingDate - today;
+
+            if (diffTime <= oneDayMs) {
+                btn.style.display = 'none';
+            }
+        });
+
+        // أزرار التعديل
+        document.querySelectorAll('.edit-booking-btn').forEach(btn => {
+            const bookingDateStr = btn.getAttribute('data-booking-date');
+            const bookingDate = new Date(bookingDateStr);
+            bookingDate.setHours(0, 0, 0, 0); // تصفير الوقت
+
+            const diffTime = bookingDate - today;
+
+            if (diffTime <= oneDayMs) {
+                btn.style.display = 'none';
+            }
+        });
+    });
+</script>

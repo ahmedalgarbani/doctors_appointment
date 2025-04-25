@@ -1,89 +1,111 @@
 {% load static %}
 {% load menu_generator %}
 {% get_menu "NAV_MENU_TOP" as top_menu %}
+
 <style>
-    /* الألوان حسب نوع الإشعار */
-    .notification-message.info {
-        background-color: #b0d3f5;
-        color: #000000;
-        border-left: 5px solid #3178c6;
+    /* تحسين وضوح النص */
+    .text-dark {
+        color: #212529 !important;
     }
-
-    .notification-message.warning {
-        background-color: #eeca99;
-        color: #000000;
-        border-left: 5px solid #d6822c; 
+    
+    .text-secondary {
+        color: #6c757d !important;
     }
-
-    .notification-message.success {
-        background-color: #adf5ad;
-        color: #000000;
-        border-left: 5px solid #28a745;
+    
+    .text-muted {
+        color: #868e96 !important;
     }
-
-    .notification-message.error {
-        background-color: #efa9a1;
-        color: #000000;
-        border-left: 5px solid #dc3545;
-    }
-
-    /* تحسين عرض الإشعارات */
-    .notification-container .noti-content {
-        max-height: 300px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .notification-container .notification-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .notification-container .notification-message {
-        border-bottom: 1px solid #f0f0f0;
-        padding: 10px 15px;
-    }
-
-    .notification-time {
-        font-size: 12px;
-        color: #888;
-    }
-
-    .notification-title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .noti-details {
-        color: #555;
-        font-size: 14px;
-    }
-
-    .notify-block {
-        display: flex;
+    
+    /* تنسيقات البادجات */
+    .notification-badge {
+        display: inline-flex;
         align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 500;
     }
-
-    .avatar {
-        margin-right: 10px;
+    
+    .badge-info {
+        background-color: #e7f2fd;
+        color: #0d6efd;
+        border: 1px solid #b3d1ff;
     }
-
+    
+    .badge-warning {
+        background-color: #fff3cd;
+        color: #664d03;
+        border: 1px solid #ffecb5;
+    }
+    
+    .badge-success {
+        background-color: #d1e7dd;
+        color: #0a3622;
+        border: 1px solid #a3cfbb;
+    }
+    
+    .badge-error {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f1aeb5;
+    }
+    
+    /* تحسينات التنسيق العام */
+    .hover-bg:hover {
+        background-color: #f0f2f5 !important;
+    }
+    
+    .notification-message {
+        transition: background-color 0.2s;
+    }
+    
     .avatar-img {
-        width: 30px;
-        height: 30px;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
         object-fit: cover;
+        border: 2px solid #f1f1f1;
     }
-
-    /* تهيئة البادج للإشعارات */
-    .badge.bg-danger {
-        font-size: 12px;
-        padding: 4px 7px;
-        position: absolute;
-        top: 10px;
-        right: 10px;
+    
+    .noti-details {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* تحسينات القائمة المنسدلة */
+    #notification-dropdown {
+        width: 420px;
+        border: 1px solid #e9ecef !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+    }
+    
+    .noti-content {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    /* شريط التمرير */
+    .noti-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .noti-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .noti-content::-webkit-scrollbar-thumb {
+        background: #ced4da;
+        border-radius: 4px;
+    }
+    
+    /* التكيف مع الشاشات الصغيرة */
+    @media (max-width: 576px) {
+        #notification-dropdown {
+            width: 320px;
+            right: -50px !important;
+        }
     }
 </style>
 <!-- Header -->
@@ -139,69 +161,153 @@
                             </form>
                         </div>
                     </li>
-                    
-                    <!-- Notifications -->
-                    <div class="notification-container">
-                        <li class="nav-item dropdown noti-nav me-3 pe-0">
-                            <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
-                                <i class="fa-solid fa-bell"></i>
-                                {% if unread_notifications_count > 0 %}
-                                <span class="badge bg-danger" id="notification-count">{{ unread_notifications_count }}</span>
-                                {% endif %}
-                            </a>
-                            <div class="dropdown-menu notifications dropdown-menu-end" id="notification-dropdown">
-                                <div class="topnav-dropdown-header">
-                                    <span class="notification-title">الإشعارات</span>
-                                </div>
-                                <div class="noti-content">
-                                    <ul class="notification-list" id="notification-list">
-                                        {% for notification in notifications %}
-                                            {% if notification.status == '0' %}
-                                            <li class="notification-message 
-                                                {% if notification.notification_type == '0' %}info{% endif %}
-                                                {% if notification.notification_type == '1' %}warning{% endif %}
-                                                {% if notification.notification_type == '2' %}success{% endif %}
-                                                {% if notification.notification_type == '3' %}error{% endif %}">
-                                                <a href="#">
-                                                    <div class="notify-block d-flex">
-                                                        {% if notification.image %}
-                                                        <span class="avatar">
-                                                            <img class="avatar-img" alt="Notification Image" src="{{ notification.image.url }}">
-                                                        </span>
-                                                        {% endif %}
-                                                        <div class="media-body">
-                                                            <p class="noti-details">
-                                                                {{ notification.message }}
-                                                            </p>
-                                                            <h6>{{ notification.sender.name }} 
-                                                                <span class="notification-time">
-                                                                    {{ notification.send_time|date:"H:i A" }}
-                                                                    <br>
-                                                                <small>من: {{ notification.sender.username }}</small>
-                                                                </span>
-                                                            </h6>
-                                                            
-                                                        </div>
+                    {% if request.user.is_authenticated %}
+                  <!-- Notifications -->
+                  <div>
+                    <li class="nav-item dropdown noti-nav me-3 pe-0 position-relative">
+                        <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                            <span class="badge bg-danger position-absolute" id="notification-count">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu notifications dropdown-menu-end p-0" id="notification-dropdown">
+                            <div class="topnav-dropdown-header border-bottom p-3" style="background-color: #f8fafc;">
+                                <span class="notification-title d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-dark">الإشعارات</span>
+                                    <span class="badge bg-primary rounded-pill">{{ notifications|length }}</span>
+                                </span>
+                            </div>
+                            <div class="noti-content" style="background-color: #f9fafb;">
+                                <ul class="notification-list">
+                                    {% for notification in notifications %}
+                                        {% if notification.status == '0' %}
+                                        <li class="notification-message border-bottom" style="background-color: #ffffff;">
+                                            <a href="#" class="d-block p-3 text-decoration-none text-dark hover-bg">
+                                                <div class="notify-block d-flex align-items-start">
+                                                    {% if notification.image %}
+                                                    <div class="avatar flex-shrink-0 me-3">
+                                                        <img class="avatar-img" alt="Notification Image" src="{{ notification.profile_picture.url }}">
                                                     </div>
-                                                </a>
-                                            </li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </ul>
+                                                    {% endif %}
+                                                    <div class="media-body flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <div class="d-flex align-items-center">
+                                                                <h6 class="mb-0 fw-semibold me-2 text-dark">{{ notification.sender.name }}</h6>
+                                                                <span class="notification-badge 
+                                                                    {% if notification.notification_type == '0' %}badge-info{% endif %}
+                                                                    {% if notification.notification_type == '1' %}badge-warning{% endif %}
+                                                                    {% if notification.notification_type == '2' %}badge-success{% endif %}
+                                                                    {% if notification.notification_type == '3' %}badge-error{% endif %}">
+                                                                    <i class="notification-icon 
+                                                                        {% if notification.notification_type == '0' %}fas fa-info-circle{% endif %}
+                                                                        {% if notification.notification_type == '1' %}fas fa-exclamation-triangle{% endif %}
+                                                                        {% if notification.notification_type == '2' %}fas fa-check-circle{% endif %}
+                                                                        {% if notification.notification_type == '3' %}fas fa-times-circle{% endif %} me-1"></i>
+                                                                    {% if notification.notification_type == '0' %}معلومة{% endif %}
+                                                                    {% if notification.notification_type == '1' %}تحذير{% endif %}
+                                                                    {% if notification.notification_type == '2' %}نجاح{% endif %}
+                                                                    {% if notification.notification_type == '3' %}خطأ{% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <span class="notification-time text-muted small">
+                                                                {{ notification.send_time|date:"Y-m-d" }}
+                                                                <br>
+                                                                {{ notification.send_time|date:"H:i A" }}
+                                                            </span>
+                                                        </div>
+                                                        <p class="noti-details mb-2 text-dark">{{ notification.message }}</p>
+                                                        <small class="text-secondary">من: {{ notification.sender.get_full_name }}</small><br>
+                                                        <small class="text-secondary">{{ notification.sender.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="dropdown-footer d-flex justify-content-between align-items-center border-top p-3" style="background-color: #f8fafc;">
+                                <button class="btn btn-warning btn-sm text-white" onclick="markAllAsRead()">
+                                    <i class="fas fa-check-double me-1"></i> تمييز الكل كمقروء
+                                </button>
+                            
+                                <a href="{% if request.user.user_type == 'patient' %}
+                                            {% url 'patients:patient_dashboard' %}?section=notifications_list
+                                        {% elif request.user.user_type == 'hospital_manager' %}
+                                            {% url 'hospitals:index' %}?section=notifications_list
+                                        {% else %}
+                                            #notifications-list
+                                        {% endif %}" 
+                                    class="btn btn-primary btn-sm px-4 text-white">
+                                    مشاهدة جميع الإشعارات <i class="fas fa-chevron-left ms-2"></i>
+                                </a>
+                            </div>
+                            
+                            
+                        </div>
+                    </li>
+                </div>
+                
+                    <!-- /Notifications -->
+                    <!-- User Menu -->
+                                            
+                    <li class="nav-item dropdown has-arrow logged-item">
+                        <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                            {% if request.user.profile_picture %} 
+
+                            <span class="user-img">
+                                <img class="rounded-circle" src="{{ request.user.profile_picture.url }}" width="31" alt="{{ request.user.first_name }}">
+                            </span>
+                            {% endif %}
+
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <div class="user-header">
+                                {% if request.user.profile_picture %} 
+                                <div class="avatar avatar-sm">
+                                    <img src="{{ request.user.profile_picture.url }}" alt="User Image" class="avatar-img rounded-circle">
+                                </div>
+                                {% endif %}
+                                <div class="user-text">
+                                    <h6>{{ request.user.first_name }}</h6>
+                                    <p class="text-muted mb-0">{{request.user.user_type}}</p>
                                 </div>
                             </div>
+                            {% if request.user.user_type == 'patient' %}
+                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">Profile Settings</a>
+                            {% elif request.user.user_type == 'hospital_manager' %}
+                                <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                            {% elif request.user.user_type == 'hospital_staff' %}
+                                <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+
+                            {% else %}
+                                <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>
+                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+
+                            {% endif %}
+                            <a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a>
+                        </div>
+                    </li>
+                    <!-- /User Menu -->
+                    {% endif %}
+
+                    {% if not request.user.is_authenticated %}                        
+                       
+                        <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
+                        <li class="register-btn">
+                            <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
                         </li>
-                    </div>
-                    <!-- /Notifications -->
-
-
-                    <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
-                    <li class="register-btn">
-                        <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
-                    </li>
-                    <li class="register-btn">
-                        <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
-                    </li>
+                        <li class="register-btn">
+                            <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
+                        </li>
+                    
+                        {% endif %}
                 </ul>
             </div>
         </nav>
@@ -213,8 +319,34 @@
         const notificationList = document.getElementById("notification-list");
         const notificationContainer = document.querySelector(".noti-content");
         
-        const maxHeight = 300; 
+        const maxHeight = 300;
         notificationContainer.style.maxHeight = `${maxHeight}px`;
-        notificationContainer.style.overflowY = 'auto'; 
+        notificationContainer.style.overflowY = 'auto';
     });
+</script>
+<script>
+    function markAllAsRead() {
+        if (confirm("هل تريد تمييز جميع الإشعارات كمقروءة؟")) {
+            fetch("{% url 'notifications:mark_all_as_read' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("تم تمييز جميع الإشعارات كمقروءة.");
+                    location.reload();
+                } else {
+                    alert(data.error || "حدث خطأ أثناء العملية.");
+                }
+            })
+            .catch(error => {
+                console.error("خطأ:", error);
+                alert("حدث خطأ أثناء الاتصال بالخادم.");
+            });
+        }
+    }
 </script>

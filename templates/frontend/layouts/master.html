@@ -28,6 +28,11 @@
       content="{{setting.footer_logo.url}}"
     />
     
+    <link rel="icon" href="{% static 'images/favicon.png' %}" />
+
+    <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" />
+  
 
    <!-- Favicon -->
 		<link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
@@ -104,6 +109,14 @@
 
     {% block extra_js %}
     {% endblock extra_js %}
+
+
+    <!-- في head -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+<!-- قبل نهاية body -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<!-- jQuery -->
     <!-- JS Libraies -->
     <script src="{% static 'modules/summernote/summernote-bs4.js' %}"></script>
@@ -142,6 +155,8 @@
   <script src="{% static 'js/script.js' %}"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
   <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+
+  <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
 
   
   </body>

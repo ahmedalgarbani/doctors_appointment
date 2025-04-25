@@ -1,0 +1,78 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="d-flex justify-content-center">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <div class="card mx-auto" style="margin-top: 20px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title m-0">قائمة الصلاحيات المتاحة</h4>
+          <a href="/hospital/?section=staff_list" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> العودة إلى قائمة الموظفين
+          </a>
+        </div>
+
+        <div class="card-body">
+                    {% if messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-center mb-0 datatable">
+                            <thead>
+                                <tr>
+                                    <th>اسم الصلاحية</th>
+                                    <th>الاسم الرمزي</th>
+                                    <th>الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for permission in permissions %}
+                                <tr>
+                                    <td>{{ permission.name }}</td>
+                                    <td><code>{{ permission.codename }}</code></td>
+                                    <td>{{ permission.description }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">لا توجد صلاحيات حتى الآن</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h5 class="alert-heading">ملاحظة</h5>
+                        <p>هذه الصلاحيات هي الصلاحيات الافتراضية في النظام. يمكنك استخدامها في الأدوار الوظيفية لتحديد صلاحيات الموظفين.</p>
+                        <p>لإضافة صلاحيات جديدة، يرجى التواصل مع مدير النظام.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // تهيئة جدول البيانات
+        $('.datatable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+            }
+        });
+    });
+</script>

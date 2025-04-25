@@ -1,7 +1,6 @@
 
 {% csrf_token %}
 
-{% csrf_token %}
 <div class="col-md-7 col-lg-8 col-xl-9 appointments section d-none">
 <div class="row mb-4">
     <div class="col-xl-3 col-sm-6 col-12">
@@ -106,18 +105,16 @@
                         </div>
                     </div>
                 </div>
-                </div>
-
 
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
                             <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
-                            
                         </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-center mb-0" id="appointments-table">
+
+                    <div class="table-container" style="overflow-x: auto; width: 100%;">
+                        <table class="table table-hover table-center mb-0" id="appointments-table" style="min-width: 1100px; width: 100%;">
                             <thead>
                                 <tr>
                                     <th>المريض</th>
@@ -135,21 +132,21 @@
                                 <tr>
                                     <td>
                                         <h2 class="table-avatar">
-                                            {% if booking.patient.profile_picture %}
-                                                <img src="{{ booking.patient.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
+                                            {% if booking.patient.user.profile_picture %}
+                                                <img class="avatar-img rounded-circle" src="{{ booking.patient.user.profile_picture.url }}" alt="صورة المريض" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
-                                                {{ booking.patient.full_name }}
+                                                {{ booking.patient.user.get_full_name }}
                                                 <small class="d-block text-muted">
-                                                    {{ booking.patient.mobile_number }}
+                                                    {{ booking.patient.user.mobile_number }}
                                                 </small>
                                             </a>
                                         </h2>
                                     </td>
                                     <td>
                                         <h2 class="table-avatar">
-                                            {% if booking.doctor.profile_image %}
-                                                <img src="{{ booking.doctor.profile_image.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
+                                            {% if booking.doctor.photo %}
+                                                <img class="avatar-img rounded-circle" src="{{ booking.doctor.photo.url }}" alt="صورة الطبيب" class="avatar avatar-sm">
                                             {% endif %}
                                             <a href="javascript:void(0);" class="ms-2">
                                                 د. {{ booking.doctor.full_name }}
@@ -211,12 +208,15 @@
                                             <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-history"></i> عرض الحالات
                                             </button>
-                                            <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
+                                            <!-- <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-edit"></i> تعديل
-                                            </button>
-                                            <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
-                                                <i class="fas fa-trash"></i> حذف
-                                            </button>
+                                            </button> -->
+                                            {% if booking.status != 'completed' and booking.status != 'cancelled' %}
+                                                <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
+                                                    <i class="fas fa-trash"></i> الغاء
+                                                </button>
+                                            {% endif %}
+
                                         </div>
                                     </td>
                                 </tr>
@@ -266,70 +266,69 @@
                     </div>
                 </div>
             </div>
-             <div class="pagination mb-3">
+
+            <!-- Pagination Section -->
+            <div class="pagination mb-3">
                 <button id="prev-page" class="btn btn-secondary" onclick="changePage(-1)">الصفحة السابقة</button>
                 <button id="next-page" class="btn btn-secondary" onclick="changePage(1)">الصفحة التالية</button>
             </div>
+
         </div>
     </div>
 </div>
-          
 
-                <!-- قسم تعديل الحجز -->
-                <div id="edit-section" class="mt-4 d-none">
-                    <div class="card">
-                        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">تعديل الحجز</h5>
-                            <button type="button" class="btn-close text-white" id="close-edit"></button>
-                        </div>
-                        <div class="card-body">
-                            <form id="editBookingForm" class="row">
-                                <input type="hidden" id="edit-booking-id">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">المريض</label>
-                                    <input type="text" class="form-control" id="edit-patient-name" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">الطبيب</label>
-                                    <input type="text" class="form-control" id="edit-doctor-name" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">اليوم</label>
-                                    <input type="text" class="form-control" id="edit-appointment-date" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">الوقت</label>
-                                    <input type="text" class="form-control" id="edit-appointment-time" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">المبلغ</label>
-                                    <input type="number" class="form-control" id="edit-amount" step="0.01" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="form-check mt-4">
-                                        <input type="checkbox" class="form-check-input" id="edit-is-online">
-                                        <label class="form-check-label">استشارة عن بعد</label>
-                                    </div>
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <label class="form-label">ملاحظات الدفع</label>
-                                    <textarea class="form-control" id="edit-payment-notes" rows="3"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <button type="button" class="btn btn-primary" id="saveBookingEdit">
-                                        <i class="fas fa-save"></i> حفظ التغييرات
-                                    </button>
-                                    <button type="button" class="btn btn-secondary" id="cancel-edit">
-                                        <i class="fas fa-times"></i> إلغاء
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+<!-- قسم تعديل الحجز -->
+<div id="edit-section" class="mt-4 d-none">
+    <div class="card">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">تعديل الحجز</h5>
+            <button type="button" class="btn-close text-white" id="close-edit"></button>
+        </div>
+        <div class="card-body">
+            <form id="editBookingForm" class="row">
+                <input type="hidden" id="edit-booking-id">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">المريض</label>
+                    <input type="text" class="form-control" id="edit-patient-name" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">الطبيب</label>
+                    <input type="text" class="form-control" id="edit-doctor-name" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">اليوم</label>
+                    <input type="text" class="form-control" id="edit-appointment-date" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">الوقت</label>
+                    <input type="text" class="form-control" id="edit-appointment-time" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">المبلغ</label>
+                    <input type="number" class="form-control" id="edit-amount" step="0.01" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-check mt-4">
+                        <input type="checkbox" class="form-check-input" id="edit-is-online">
+                        <label class="form-check-label">استشارة عن بعد</label>
                     </div>
                 </div>
-
-              
-
+                <div class="col-12 mb-3">
+                    <label class="form-label">ملاحظات الدفع</label>
+                    <textarea class="form-control" id="edit-payment-notes" rows="3"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="button" class="btn btn-primary" id="saveBookingEdit">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% block extra_js %}
 <script>

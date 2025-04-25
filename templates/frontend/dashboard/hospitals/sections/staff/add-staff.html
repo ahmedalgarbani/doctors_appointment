@@ -1,0 +1,154 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="d-flex justify-content-center">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <div class="card mx-auto" style="margin-top: 20px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title m-0">إضافة موظف جديد</h4>
+          <a href="/hospital/?section=staff_list" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> العودة إلى قائمة الموظفين
+          </a>
+        </div>
+
+        <div class="card-body">
+          {% if messages %}
+          <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+            <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الاسم الأول <span class="text-danger">*</span></label>
+                  <input type="text" name="first_name" class="form-control" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الاسم الأخير <span class="text-danger">*</span></label>
+                  <input type="text" name="last_name" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">اسم المستخدم <span class="text-danger">*</span></label>
+                  <input type="text" name="username" class="form-control" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                  <input type="email" name="email" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">رقم الهاتف <span class="text-danger">*</span></label>
+                  <input type="text" name="mobile_number" class="form-control" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">المسمى الوظيفي <span class="text-danger">*</span></label>
+                  <input type="text" name="job_title" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">كلمة المرور <span class="text-danger">*</span></label>
+                  <input type="password" name="password" class="form-control" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">تأكيد كلمة المرور <span class="text-danger">*</span></label>
+                  <input type="password" name="confirm_password" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الدور الوظيفي</label>
+                  <select name="role" class="form-select">
+                    <option value="">-- اختر الدور الوظيفي --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">تاريخ التعيين <span class="text-danger">*</span></label>
+                  <input type="date" name="hire_date" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الحالة</label>
+                  <select name="status" class="form-select">
+                    <option value="active" selected>نشط</option>
+                    <option value="inactive">غير نشط</option>
+                    <option value="suspended">موقوف</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الصورة الشخصية</label>
+                  <input type="file" name="profile_picture" class="form-control">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">ملاحظات</label>
+                  <textarea name="notes" class="form-control" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="submit-section mt-4">
+              <button type="submit" class="btn btn-primary submit-btn">إضافة الموظف</button>
+              <a href="/hospital/?section=staff_list" class="btn btn-secondary submit-btn">إلغاء</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+    </div>
+  </div>

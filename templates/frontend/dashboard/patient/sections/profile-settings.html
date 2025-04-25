@@ -1,8 +1,6 @@
-
 <div class="col-md-7 col-lg-8 col-xl-9 section d-none profile_settings">
     <div class="card">
         <div class="card-body">
-            
             <!-- Profile Settings Form -->
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -11,9 +9,13 @@
                         <div class="mb-3">
                             <div class="change-avatar">
                                 <div class="profile-img">
-                                    <!-- الصورة الحالية للمريض -->
-                                    <img id="profile-image" src="{{ patient.profile_picture.url }}" alt="User Image">
+                                    {% if patient.user.profile_picture and patient.user.profile_picture.name %}
+                                        <img id="profile-image" src="{{ patient.user.profile_picture.url }}" alt="User Image">
+                                    {% else %}
+                                        <img id="profile-image" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Default User Image">
+                                    {% endif %}
                                 </div>
+                                
                                 <div class="upload-img">
                                     <div class="change-photo-btn">
                                         <span><i class="fa fa-upload"></i> تحميل الصوره</span>
@@ -24,93 +26,149 @@
                             </div>
                         </div>
                     </div>
-            
-                    <!-- Full Name -->
+
+                    <!-- الأسم الاول -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
-                            <label class="mb-2">الأسم</label>
-                            <input type="text" class="form-control" name="full_name" value="{{ patient.full_name }}">
+                            <label class="mb-2">الأسم الاول</label>
+                            <input type="text" class="form-control" name="first_name" value="{{ patient.user.first_name }}">
                         </div>
                     </div>
-            
-                    <!-- Date of Birth -->
+                    
+                    <!-- الأسم الاخير -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">الأسم الاخير</label>
+                            <input type="text" class="form-control" name="last_name" value="{{ patient.user.last_name }}">
+                        </div>
+                    </div>
+
+                    <!-- البريد الالكتروني -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">البريد الالكتروني</label>
+                            <input type="email" class="form-control" name="email" value="{{ patient.user.email }}">
+                        </div>
+                    </div>                             
+                    
+                    <!-- رقم الهاتف -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">رقم الهاتف</label>
+                            <input type="text" class="form-control" name="mobile_number" value="{{ patient.user.mobile_number }}">
+                        </div>
+                    </div>
+                    
+                    <!-- العنوان -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">العنوان</label>
+                            <input type="text" class="form-control" name="address" value="{{ patient.user.address }}">
+                        </div>
+                    </div>
+                    
+                    <!-- المدينة -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">المدينة</label>
+                            <input type="text" class="form-control" name="city" value="{{ patient.user.city }}">
+                        </div>
+                    </div>
+
+                    <!-- المديريه -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">المديرية</label>
+                            <input type="text" class="form-control" name="state" value="{{ patient.user.state }}">
+                        </div>
+                    </div>   
+
+                    <!-- تاريخ الميلاد -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
                             <label class="mb-2">تاريخ الميلاد</label>
                             <input type="date" class="form-control" name="birth_date" value="{{ patient.birth_date|date:'Y-m-d' }}">
                         </div>
                     </div>
-            
-                    <!-- Gender -->
+
+                    <!-- الجنس -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
                             <label class="mb-2">الجنس</label>
                             <select class="form-select form-control" name="gender">
-                                <option value="0" {% if patient.gender == '0' %}selected{% endif %}>ذكر</option>
-                                <option value="1" {% if patient.gender == '1' %}selected{% endif %}>أنثى</option>
+                                <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>Female</option>
                             </select>
                         </div>
                     </div>
-            
-                    <!-- Email -->
+                    
+                    <!-- الوزن -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
-                            <label class="mb-2">البريد الالكتروني</label>
-                            <input type="email" class="form-control" name="email" value="{{ patient.email }}">
+                            <label class="mb-2">الوزن</label>
+                            <input type="text" class="form-control" name="weight" value="{{ patient.weight }}">
                         </div>
                     </div>
-            
-                    <!-- Mobile -->
+
+                    <!-- الطول -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
-                            <label class="mb-2">رقم الهاتف</label>
-                            <input type="text" class="form-control" name="phone_number" value="{{ patient.phone_number }}">
+                            <label class="mb-2">الطول</label>
+                            <input type="text" class="form-control" name="height" value="{{ patient.height }}">
                         </div>
                     </div>
-            
-                    <!-- Address -->
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="mb-2">العنوان</label>
-                            <input type="text" class="form-control" name="address" value="{{ patient.address }}">
-                        </div>
-                    </div>
-            
-                    <!-- Notes -->
+
+                    <!-- العمر -->
                     <div class="col-12 col-md-6">
                         <div class="mb-3">
-                            <label class="mb-2">Notes</label>
+                            <label class="mb-2">العمر</label>
+                            <input type="text" class="form-control" name="age" value="{{ patient.age }}">
+                        </div>
+                    </div>
+
+                    <!-- فصيلة الدم -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">فصيلة الدم</label>
+                            <select class="form-select form-control" name="blood_group">
+                                <option value="A-" {% if patient.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                <option value="A+" {% if patient.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                <option value="B-" {% if patient.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                <option value="B+" {% if patient.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                <option value="AB-" {% if patient.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                                <option value="AB+" {% if patient.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                <option value="O-" {% if patient.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                <option value="O+" {% if patient.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ملاحظات -->
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">ملاحظات</label>
                             <textarea class="form-control" name="notes">{{ patient.notes }}</textarea>
                         </div>
                     </div>
-            
-                    <!-- Save Button -->
-                    <div class="submit-section">
-                        <button type="submit" class="btn btn-primary submit-btn">Save Changes</button>
-                    </div>
+                </div>
+
+                <!-- زر حفظ التعديلات -->
+                <div class="col-md-6">
+                    <input type="submit" class="btn btn-primary submit-btn" name="update_profile" value="تحديث الملف الشخصي">
                 </div>
             </form>
-            
-            <!-- /Profile Settings Form -->
-            
         </div>
     </div>
 </div>
 
 <script>
-    // عند اختيار صورة جديدة من المستخدم
+    // وظيفة لتغيير صورة المعاينة عند تحميل صورة جديدة
     document.getElementById('profile_picture').addEventListener('change', function(event) {
         var reader = new FileReader();
-
         reader.onload = function() {
-            // تغيير مصدر الصورة لعرض الصورة المحددة
-            var profileImage = document.getElementById('profile-image');
-            profileImage.src = reader.result;
-        }
-
-        // التأكد من أن المستخدم قد اختار ملفًا
-        if (event.target.files.length > 0) {
-            reader.readAsDataURL(event.target.files[0]);
-        }
+            var image = document.getElementById('profile-image');
+            image.src = reader.result;
+        };
+        reader.readAsDataURL(this.files[0]); 
     });
 </script>

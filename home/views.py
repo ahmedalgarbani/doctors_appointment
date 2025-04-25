@@ -5,7 +5,7 @@ from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
-from hospitals.models import City, Hospital
+from hospitals.models import City
 from reviews.models import Review
 from blog.models import Post
 from datetime import datetime
@@ -13,14 +13,14 @@ from datetime import timedelta
 from django.db.models import Min, Max, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
+from django.contrib.auth.hashers import make_password,check_password
 
 logger = logging.getLogger(__name__)
 
 # Create your views here.
 
 def index(request):
-    request.session.flush()
-
+   
     try:
         homeBanner = HomeBanner.objects.first()  
         logger.info('Retrieved home banner')
@@ -32,6 +32,12 @@ def index(request):
         logger.info('Retrieved specialities')
     except Exception as e:
         logger.error(f'Failed to retrieve specialities: {str(e)}')
+
+    try:
+        doctors = Doctor.objects.filter(show_at_home=True, status=True).select_related('specialty')
+        logger.info('Retrieved doctors')
+    except Exception as e:
+        logger.error(f'Failed to retrieve doctors: {str(e)}')
 
     try:
         workSection = WorkSection.objects.first()
@@ -90,6 +96,7 @@ def index(request):
     ctx = {
         'homeBanner': homeBanner,
         'specialities': specialities,
+        'doctors': doctors,
         'workSection': workSection,
         'appSection': appSection,
         'faqSection': faqSection,
@@ -130,11 +137,11 @@ def terms_condition(request):
 
 from math import floor
 def doctor_profile(request, doctor_id):
-    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals'), id=doctor_id)
+    doctor = get_object_or_404(Doctor.objects.prefetch_related('hospitals', 'pricing'), id=doctor_id)
     reviews = Review.objects.filter(doctor=doctor, status=True)
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     average_rating =  int(floor(average_rating))
-    pricing = doctor.pricing.first() 
+    doctor_prices = doctor.pricing.all().select_related('hospital')
     if request.method == 'POST':
          Review.objects.create(
             doctor_id = doctor_id,
@@ -152,7 +159,7 @@ def doctor_profile(request, doctor_id):
         'doctor': doctor,
         'reviews': reviews,
         'average_rating': round(average_rating, 1),
-        'pricing': pricing,
+        'doctor_prices': doctor_prices,
         'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
         'day_date':day_date,
@@ -197,10 +204,11 @@ def search_view(request):
     fee_range = request.GET.get('fee_range')
     experience = request.GET.get('experience')
     rating = request.GET.get('rating')
+    specialty = request.GET.get('specialty')
     page = request.GET.get('page', 1)
     
     filters = {}
-    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, page: {page}")
+    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
 
     # قائمة الأطباء الأساسية
     doctors = Doctor.objects.all()
@@ -210,9 +218,10 @@ def search_view(request):
         filters['hospitals__name__icontains'] = search_text 
 
     if city_slug:
-        city = City.objects.filter(slug=city_slug).first() 
-        if city:
-            filters['hospitals__city'] = city
+        filters['hospitals__city__slug__in'] = [city_slug]
+
+    if specialty:
+        filters['specialty_id'] = specialty
 
     if gender:
         gender_map = {
@@ -322,6 +331,7 @@ def search_view(request):
         'doctors': doctors_page,
         'page_obj': doctors_page,
         'cities': cities,
+        'specialities': Specialty.objects.all(),
         'selected_filters': {
             'search': search_text,
             'city': city_slug,
@@ -330,7 +340,8 @@ def search_view(request):
             'availability': availability,
             'fee_range': fee_range,
             'experience': experience,
-            'rating': rating
+            'rating': rating,
+            'specialty': specialty
         },
         'price_range': price_range,
         'doctors_with_ratings':doctors_with_ratings,
@@ -346,23 +357,40 @@ def search_view(request):
 
 def booking_view(request, doctor_id):
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
-    request.session['selected_doctor'] = selected_doctor.id    
-    dayes = selected_doctor.schedules.all()  
-    sched = dayes[0]  
+    request.session['selected_doctor'] = selected_doctor.id
     
+    # Get hospital_id from query parameters
+    hospital_id = request.GET.get('hospital_id')
     
-    schedulesShift = sched.shifts.all()
-
-    grouped_slots = group_shifts_by_period(schedulesShift)
+    # If no hospital is selected, use the first hospital
+    if not hospital_id and selected_doctor.hospitals.exists():
+        hospital_id = str(selected_doctor.hospitals.first().id)
+    
+    # Filter schedules by hospital
+    if hospital_id:
+        dayes = selected_doctor.schedules.filter(hospital_id=hospital_id)
+        # Get doctor's price for selected hospital
+        doctor_price = selected_doctor.pricing.filter(hospital_id=hospital_id).first()
+    else:
+        dayes = selected_doctor.schedules.all()
+        doctor_price = None
+    
+    if dayes.exists():
+        sched = dayes[0]
+        schedulesShift = sched.shifts.all()
+        grouped_slots = group_shifts_by_period(schedulesShift)
+    else:
+        sched = None
+        grouped_slots = []
   
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
         'schedules': grouped_slots,
-        'selected_day':sched.id,
-
-
-        
+        'selected_day': sched.id if sched else None,
+        'selected_hospital_id': hospital_id,
+        'doctor_price': doctor_price,
+        'doctor_prices': selected_doctor.pricing.all(),  
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)
@@ -396,5 +424,3 @@ def get_time_slots(request,schedule_id,doctor_id,):
         return JsonResponse({
             'error': str(e)
         }, status=500)
-
-

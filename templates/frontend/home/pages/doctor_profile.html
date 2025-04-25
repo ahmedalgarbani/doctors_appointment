@@ -1,6 +1,20 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    .hospital-link {
+        color: #20c0f3;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    .hospital-link:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 			<!-- Breadcrumb -->
@@ -31,22 +45,31 @@
 						<div class="doctor-widget">
 							<div class="doc-info-left">
 								<div class="doctor-img">
-									<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% if doctor.photo %}
+										<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% else %}
+										<img src="{% static 'img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="{{ doctor.full_name }}">
+									{% endif %}
 								</div>
 								<div class="doc-info-cont">
 									<!-- اسم الدكتور -->
 									<h4 class="doc-name">{{ doctor.full_name }}</h4>
+									<h5 class="doc-name">المستشفيات المتواجد فيها</h5>
 
 									<!-- أسماء المستشفيات المرتبطة -->
 									<p class="doc-speciality">
-										{% for hospital in hospitals %}
-											<span>{{ hospital.name }}</span>{% if not forloop.last %}, {% endif %}
+										{% for hospital in doctor_prices %}
+											<a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital.hospital.id }}" class="hospital-link">
+												{{ hospital.hospital.name }}
+											</a>{% if not forloop.last %}, {% endif %}
 										{% endfor %}
 									</p>
 
 									<!-- قسم الطبيب -->
 									<p class="doc-department">
-										<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
+										{% if doctor.specialty.image %}
+											<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
+										{% endif %}
 										{{ doctor.specialty.name }}
 									</p>
 
@@ -59,7 +82,7 @@
 										<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
 										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
 									</div>
-									
+									 
 									<div class="clinic-details">
 
 
@@ -78,7 +101,7 @@
 									<ul>
 										<li><i class="far fa-comment"></i> {{ reviews.count }} تعليق</li>
 										<li><i class="fas fa-map-marker-alt"></i>العنوان: {{ doctor.sub_title }}  </li>
-										<li><i class="far fa-money-bill-alt"></i> {{ pricing.amount }} $ </li>
+										<li><i class="far fa-money-bill-alt"></i> {% for price in doctor_prices %}{{ price.hospital.name }}: {{ price.amount }} ر.ي {% if not forloop.last %} | {% endif %}{% endfor %}</li>
 									</ul>
 								</div>
 								<div class="doctor-action">
@@ -93,13 +116,11 @@
 						</div>
 					</div>
 				</div>
-				<!-- /Doctor Widget -->
-
+				<!-- /Doctor Widget 
 					
 					<!-- Doctor Details Tab -->
 					<div class="card">
 						<div class="card-body pt-0">
-						
 							<!-- Tab Menu -->
 							<nav class="user-tabs mb-4">
 								<ul class="nav nav-tabs nav-tabs-bottom nav-justified">
@@ -107,7 +128,7 @@
 										<a class="nav-link active" href="#doc_overview" data-bs-toggle="tab">لمحه</a>
 									</li>
 									<li class="nav-item">
-										<a class="nav-link" href="#doc_locations" data-bs-toggle="tab">الموفع</a>
+										<a class="nav-link" href="#doc_locations" data-bs-toggle="tab">الموقع</a>
 									</li>
 									<li class="nav-item">
 										<a class="nav-link" href="#doc_reviews" data-bs-toggle="tab">التقييمات</a>
@@ -118,291 +139,298 @@
 								</ul>
 							</nav>
 							<!-- /Tab Menu -->
-							
+					
 							<!-- Tab Content -->
 							<div class="tab-content pt-0">
-							
+					
 								<!-- Overview Content -->
 								<div role="tabpanel" id="doc_overview" class="tab-pane fade show active">
 									<div class="row">
 										<div class="col-md-12 col-lg-9">
-										
-											<!-- About Details -->
 											<div class="widget about-widget">
-												<h4 class="widget-title">نبذه عن الطبيب</h4>
-												<p>{{doctor.sub_title}}</p>
+												<h4 class="widget-title">نبذة عن الطبيب</h4>
+												<p>{{ doctor.sub_title }}</p>
 												<br>
-												<p>{{doctor.about|safe}}</p>
+												<p>{{ doctor.about|safe }}</p>
 											</div>
-											<!-- /About Details -->
-											
-											<!-- Specializations List -->
+					
 											<div class="service-list">
-												<h4>Hospitals Where He/SHe Works</h4>
+												<h4>المستشفيات التي يعمل بها</h4>
 												<ul class="clearfix">
 													{% for hospital in doctor.hospitals.all %}
-													<li>{{hospital.name}}</li>
+														<li>{{ hospital.name }}</li>
 													{% endfor %}
-													
 												</ul>
 											</div>
-											<!-- /Specializations List -->
-
 										</div>
 									</div>
 								</div>
 								<!-- /Overview Content -->
-								
+					
 								<!-- Locations Content -->
 								<div role="tabpanel" id="doc_locations" class="tab-pane fade">
-								
-									<!-- Location List -->
-									<div class="location-list">
-										<div class="row align-items-start">
-										
+									<div class="container py-4">
+										<div class="row g-4">
+											{% for hospital in doctor.hospitals.all %}
 											<div class="col-md-4">
-												{% for hospital in doctor.hospitals.all %}
-												<div class="clinic-content">
-													<h4 class="clinic-name"><a href="#"><span>{{ hospital.name }}</span></a></h4>
-													<p class="doc-speciality">{{ doctor.specialty.name }}</p>
-
-													<div class="rating">
-														<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
-														<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
-														<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
-														<i class="fas fa-star {% if average_rating >= 4 %}filled{% endif %}"></i>
-														<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
-														<span class="d-inline-block average-rating">({{ reviews.count }})</span>
+												<div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
+													<div class="bg-light p-3 d-flex align-items-center">
+														{% if hospital.logo %}
+														<img src="{{ hospital.logo.url }}" alt="شعار المستشفى" class="rounded-circle me-3" style="width: 70px; height: 70px; object-fit: cover;">
+														{% endif %}
+														<div>
+															<h5 class="mb-1 text-primary fw-bold">{{ hospital.name }}</h5>
+															<p class="mb-0 text-muted small">
+																<i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ hospital.city.name }} - {{ hospital.location }}
+															</p>
+														</div>
 													</div>
-
-													<div class="clinic-details mb-0">
-														<h5 class="clinic-direction"> <i class="fas fa-map-marker-alt"></i> {{ hospital.city.name }} الموقع <br><a href="javascript:void(0);">{{ hospital.location }}</a></h5>
-														<ul>
-															<li>
-																<a href="{% static 'img/features/feature-01.jpg' %}" data-fancybox="gallery2">
-																	<img src="{% static 'img/features/feature-01.jpg' %}" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="{% static 'img/features/feature-02.jpg' %}" data-fancybox="gallery2">
-																	<img src="{% static 'img/features/feature-02.jpg' %}" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="{% static 'img/features/feature-03.jpg' %}" data-fancybox="gallery2">
-																	<img src="{% static 'img/features/feature-03.jpg' %}" alt="Feature Image">
-																</a>
-															</li>
-															<li>
-																<a href="{% static 'img/features/feature-04.jpg' %}" data-fancybox="gallery2">
-																	<img src="{% static 'img/features/feature-04.jpg' %}" alt="Feature Image">
-																</a>
-															</li>
-														</ul>
+													<div class="card-body">
+														<p class="text-muted mb-2">{{ doctor.specialty.name }}</p>
+														<h6 class="fw-bold mb-2">
+															<i class="fas fa-calendar-alt me-2 text-success"></i>المواعيد المتاحة:
+														</h6>
+														{% for schedule in doctor.schedules.all %}
+															{% if schedule.hospital.id == hospital.id %}
+															<div class="mb-2">
+																<strong>{{ schedule.get_day_display }}:</strong><br>
+																<ul class="list-unstyled ms-3 small text-muted">
+																	{% for shift in schedule.shifts.all %}
+																	<li>من {{ shift.start_time|time:"h:i A" }} الى {{ shift.end_time|time:"h:i A" }}</li>
+																	<strong>المواعيد المتاحة:</strong> {{ shift.available_slots }} 
+																	{% endfor %}
+																</ul>
+															</div>
+															{% endif %}
+														{% endfor %}
+														<div class="mt-3">
+															<h6 class="fw-bold text-primary">
+																<i class="fas fa-money-bill-wave me-1 text-success"></i>السعر:
+															</h6>
+															{% with found=False %}
+															{% for price in doctor_prices %}
+																{% if price.hospital.id == hospital.id %}
+																	<p class="text-success fw-bold fs-5">{{ price.amount }} ر.ي</p>
+																	{% with found=True %}{% endwith %}
+																{% endif %}
+															{% endfor %}
+															{% if not found %}
+															{% endif %}
+															{% endwith %}
+														</div>
+														
+													</div>
+												</div>
+											</div>
+											{% endfor %}
+										</div>
+									</div>
+								</div>
+								
+								<!-- /Locations Content -->
+					
+								<!-- Reviews Content -->
+								<div role="tabpanel" id="doc_reviews" class="tab-pane fade active show">
+									<div class="doctor-reviews-container">
+										<!-- Reviews Listing Section -->
+										<div class="reviews-header mb-4">
+											<h3 class="mb-3">تقييمات المرضى</h3>
+											<div class="d-flex align-items-center">
+												<div class="average-rating-badge bg-primary text-white rounded-pill px-3 py-1 me-3">
+													<span class="rating-number">{{ doctor.average_rating|floatformat:1 }}</span>
+													<i class="fas fa-star ms-1"></i>
+												</div>
+												<span class="text-muted">بناءً على {{ reviews.count }} تقييم</span>
+											</div>
+										</div>
+								
+										<div class="reviews-listing">
+											{% if reviews.count > 0 %}
+											<div class="row">
+												{% for review in reviews %}
+												<div class="col-md-12 mb-4">
+													<div class="review-card card border-0 shadow-sm">
+														<div class="card-body">
+															{% if review.user %}
+															<div class="d-flex">
+																<!-- User Avatar -->
+																<div class="flex-shrink-0 me-3">
+																	{% if review.patient.user.profile_picture %}
+																		<img class="avatar rounded-circle" width="60" height="60" 
+																			 alt="صورة المستخدم" 
+																			 src="{{ review.patient.user.profile_picture.url }}">
+																	{% else %}
+																		<div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
+																			 style="width: 60px; height: 60px;">
+																			<i class="fas fa-user text-muted"></i>
+																		</div>
+																	{% endif %}
+																</div>
+																
+																<!-- Review Content -->
+																<div class="flex-grow-1">
+																	<div class="d-flex justify-content-between align-items-start mb-2">
+																			{% if review.patient.user.get_full_name %}
+																				{{ review.patient.user.get_full_name }}
+																			{% else %}
+																				{{ review.patient.user.email|truncatechars:20 }}
+																			{% endif %}
+																		</h5>
+																		<small class="text-muted">
+																			{{ review.created_at|date:"d M Y" }}
+																		</small>
+																	</div>
+																	
+																	<div class="star-rating mb-2">
+																		{% for i in "12345" %}
+																			<i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
+																		{% endfor %}
+																	</div>
+																	
+																	<p class="review-text mb-0">{{ review.review }}</p>
+																</div>
+															</div>
+															{% else %}
+															<div class="anonymous-review">
+																<div class="d-flex">
+																	<div class="flex-shrink-0 me-3">
+																		<div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
+																			 style="width: 60px; height: 60px;">
+																			<i class="fas fa-user-secret text-muted"></i>
+																		</div>
+																	</div>
+																	<div class="flex-grow-1">
+																		<div class="d-flex justify-content-between align-items-start mb-2">
+																			<h5 class="mb-0">مستخدم مجهول</h5>
+																			<small class="text-muted">
+																				{% if review.created_at %}
+																					{{ review.created_at|date:"d M Y" }}
+																				{% endif %}
+																			</small>
+																		</div>
+																		<div class="star-rating mb-2">
+																			{% for i in "12345" %}
+																				<i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
+																			{% endfor %}
+																		</div>
+																		<p class="review-text mb-0">{{ review.review }}</p>
+																	</div>
+																</div>
+															</div>
+															{% endif %}
+														</div>
 													</div>
 												</div>
 												{% endfor %}
 											</div>
-											<!-- /Clinic Content -->
-
-											<div class="col-md-4">
-												<div class="clinic-timing">
-													{% for schedule in doctor.schedules.all %}
-													<div class="schedule-item">
-														<p class="timings-days">
-															<span>{{ schedule.get_day_display }}</span>
-														</p>
+											{% else %}
+											<div class="empty-reviews text-center py-5 bg-light rounded">
+												<i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+												<h5 class="text-muted">لا توجد تقييمات حتى الآن</h5>
+												<p class="text-muted">كن أول من يقيم د. {{ doctor.full_name }}</p>
+											</div>
+											{% endif %}
+										</div>
+								
+										<!-- Add Review Section -->
+										<div class="add-review-section mt-5 pt-4 border-top">
+											<div class="card border-0 shadow-sm">
+												<div class="card-body p-4">
+													<h4 class="mb-4">أضف تقييمك</h4>
+													<p class="text-muted mb-4">شارك تجربتك مع د. {{ doctor.full_name }}</p>
+													
+													<form method="post" action="{% url 'home:doctor_profile' doctor.id %}">
+														{% csrf_token %}
 														
-														<p class="timings-days">
-															<span>مواعيد متاحة</span>:
-															<br>
-															{% for shift in schedule.shifts.all %}
-															<span>{{ shift.start_time }} - {{ shift.end_time }}</span>
-															<br>
-														{% endfor %}
-														</p>
+														<!-- Rating Input -->
+														<div class="mb-4">
+															<label class="form-label mb-2">تقييمك</label>
+															<div class="star-rating-input">
+																{% for i in "54321" %}
+																<input id="star-{{ i }}" type="radio" name="rating" value="{{ i }}" required>
+																<label for="star-{{ i }}" title="{{ i }} نجوم">
+																	<i class="far fa-star"></i>
+																	<i class="fas fa-star"></i>
+																</label>
+																{% endfor %}
+																<div class="clearfix"></div>
+															</div>
+														</div>
 														
-													</div>
-													<hr> <!-- خط فاصل بين المواعيد -->
-													{% endfor %}
+														<!-- Review Text -->
+														<div class="mb-4">
+															<label for="review_desc" class="form-label">التعليق</label>
+															<textarea id="review_desc" name="review" class="form-control" rows="4" 
+																	  maxlength="300" placeholder="اكتب تجربتك مع الطبيب (حد أقصى 300 حرف)" required></textarea>
+															<div class="d-flex justify-content-between mt-2">
+																<small class="text-muted">سيتم نشر تعليقك بعد المراجعة</small>
+																<small class="text-muted"><span id="chars">300</span> حرف متبقي</small>
+															</div>
+														</div>
+														
+														<!-- Submit Button -->
+														<div class="text-end">
+															<button type="submit" class="btn btn-primary px-4 py-2">
+																<i class="fas fa-paper-plane me-2"></i>إرسال التقييم
+															</button>
+														</div>
+													</form>
 												</div>
 											</div>
-											<!-- /Clinic Timing -->
-
-											<div class="col-md-4">
-												<div class="consult-price text-left">
-													<h4>السعر</h4>
-													<p>{{ pricing.amount }} $</p>
-												</div>
-											</div>
-											<!-- /Price -->
 										</div>
 									</div>
-
-									<!-- /Location List -->
-									
-								</div>
-								<!-- /Locations Content -->
-								
-								<!-- Reviews Content -->
-								<div role="tabpanel" id="doc_reviews" class="tab-pane fade">
-								
-									<!-- Review Listing -->
-									<div class="widget review-listing">
-										<ul class="comments-list">
-										{% if reviews.count > 0 %}
-										{% for review in reviews %}
-										<!-- Comment List -->
-										<li>
-											<div class="comment">
-												{% if review.user.profile_picture %}
-												<img class="avatar avatar-sm rounded-circle" alt="User Image" src="{{review.user.profile_picture.url}}">
-												{% endif %}
-												<div class="comment-body">
-													<div class="meta-data">
-														<span class="comment-author">{{ review.user.full_name }}</span>
-														<span class="comment-date">Reviewed {{ review.created_at }}</span>
-														<div class="review-count rating">
-															<i class="fas fa-star {% if review.rating >= 1 %}filled{% endif %}"></i>
-															<i class="fas fa-star {% if review.rating >= 2 %}filled{% endif %}"></i>
-															<i class="fas fa-star {% if review.rating >= 3 %}filled{% endif %}"></i>
-															<i class="fas fa-star {% if review.rating >= 4 %}filled{% endif %}"></i>
-															<i class="fas fa-star {% if review.rating >= 5 %}filled{% endif %}"></i>
-															<span class="d-inline-block average-rating">({{ reviews.count }})</span>
-														</div>
-													</div>
-													{% comment %} <p class="recommended"><i class="far fa-thumbs-up"></i> I recommend the doctor</p> {% endcomment %}
-													<p class="comment-content">
-														{{review.review}}
-													</p>
-													
-												</div>
-											</div>
-											
-											
-										</li>
-										<!-- /Comment List -->
-										{% endfor %}
-										
-										{% endif %}
-											
-											
-										</ul>
-										
-										
-										
-									</div>
-									<!-- /Review Listing -->
-								
-									<!-- Write Review -->
-									<div class="write-review">
-										<h4>Write a review for <strong>Dr. {{ doctor.full_name }}</strong></h4>
-										
-										<!-- Write Review Form -->
-										<form method="post" action='{% url "home:doctor_profile" doctor.id  %}' > 
-											{% csrf_token %}
-
-											<div class="mb-3">
-												<label class="mb-2">Review</label>
-												<div class="star-rating">
-													<input id="star-5" type="radio" name="rating" value="5">
-													<label for="star-5" title="5 stars">
-														<i class="active fa fa-star"></i>
-													</label>
-													<input id="star-4" type="radio" name="rating" value="4">
-													<label for="star-4" title="4 stars">
-														<i class="active fa fa-star"></i>
-													</label>
-													<input id="star-3" type="radio" name="rating" value="3">
-													<label for="star-3" title="3 stars">
-														<i class="active fa fa-star"></i>
-													</label>
-													<input id="star-2" type="radio" name="rating" value="2">
-													<label for="star-2" title="2 stars">
-														<i class="active fa fa-star"></i>
-													</label>
-													<input id="star-1" type="radio" name="rating" value="1">
-													<label for="star-1" title="1 star">
-														<i class="active fa fa-star"></i>
-													</label>
-												</div>
-											</div>
-											
-											<div class="mb-3">
-												<label class="mb-2">Your review</label>
-												<textarea id="review_desc" maxlength="100" name="review" class="form-control"></textarea>
-											  <div class="d-flex justify-content-between mt-3"><small class="text-muted"><span id="chars">100</span> characters remaining</small></div>
-											</div>
-											<hr>
-											<div class="submit-section">
-												<button type="submit" class="btn btn-primary submit-btn">Add Review</button>
-											</div>
-										</form>
-										<!-- /Write Review Form -->
-									</div>
-									<!-- /Write Review -->
 								</div>
 								<!-- /Reviews Content -->
+					
 								<!-- Business Hours Content -->
 								<div role="tabpanel" id="doc_business_hours" class="tab-pane fade">
 									<div class="row">
 										<div class="col-md-6 offset-md-3">
-										
-											<!-- Business Hours Widget -->
 											<div class="widget business-widget">
 												<div class="widget-content">
 													<div class="listing-hours">
 														{% for schedule in doctor.schedules.all %}
-														{% if  day_name == schedule.get_day_display  %}
-														<div class="listing-day current">
-															<div class="day">Today <span>{{day_date}}</span></div>
-															<div class="time-items">
-																<span class="open-status"><span class="badge bg-success-light">Open Now</span></span>
-																{% for shift in schedule.shifts.all %}
-																<span class="time">{{shift.start_time}} - {{shift.end_time}}</span>
-																{% endfor %}
+															{% if day_name == schedule.get_day_display %}
+															<div class="listing-day current">
+																<div class="day">اليوم <span>{{ day_date }}</span></div>
+																<div class="time-items">
+																	<span class="open-status"><span class="badge bg-success-light">مفتوح الآن</span></span>
+																	{% for shift in schedule.shifts.all %}
+																	<span class="time">{{ shift.start_time }} - {{ shift.end_time }}</span>
+																	{% endfor %}
+																</div>
 															</div>
-														</div>
-														{% endif %}
-
+															{% endif %}
 														{% endfor %}
-
-
+					
 														{% for schedule in doctor.schedules.all %}
-														{% if  day_name != schedule.get_day_display  %}
-														<div class="listing-day">
-															<div class="day">{{schedule.get_day_display}}</div>
-															<div class="time-items">
-																<br>
-																{% for shift in schedule.shifts.all %}
-																<span class="time">{{shift.start_time}} - {{shift.end_time}}</span>
-																{% endfor %}
+															{% if day_name != schedule.get_day_display %}
+															<div class="listing-day">
+																<div class="day">{{ schedule.get_day_display }}</div>
+																<div class="time-items">
+																	{% for shift in schedule.shifts.all %}
+																	<span class="time">{{ shift.start_time }} - {{ shift.end_time }}</span>
+																	{% endfor %}
+																</div>
 															</div>
-														</div>
-														{% endif %}
-
+															{% endif %}
 														{% endfor %}
-														{% comment %} <div class="listing-day closed">
-															<div class="day">Sunday</div>
-															<div class="time-items">
-																<span class="time"><span class="badge bg-danger-light">Closed</span></span>
-															</div>
-														</div> {% endcomment %}
 													</div>
 												</div>
 											</div>
 											<!-- /Business Hours Widget -->
-									
 										</div>
 									</div>
 								</div>
 								<!-- /Business Hours Content -->
-								
+					
 							</div>
+							<!-- /Tab Content -->
 						</div>
 					</div>
+					
 					<!-- /Doctor Details Tab -->
-
+					
 				</div>
 			</div>		
 			<!-- /Page Content -->
@@ -449,5 +477,102 @@
 					});
 				});
 			</script>
-									
+			<style>
+				.doctor-reviews-container {
+					font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				}
+				
+				.reviews-header h3 {
+					font-weight: 600;
+					color: #2c3e50;
+				}
+				
+				.average-rating-badge {
+					font-size: 1.2rem;
+					font-weight: bold;
+				}
+				
+				.review-card {
+					transition: transform 0.2s;
+					border-radius: 10px;
+				}
+				
+				.review-card:hover {
+					transform: translateY(-3px);
+					box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+				}
+				
+				.review-text {
+					color: #555;
+					line-height: 1.6;
+				}
+				
+				.star-rating {
+					color: #ffc107;
+					font-size: 0.9rem;
+				}
+				
+				.star-rating-input {
+					direction: rtl;
+					unicode-bidi: bidi-override;
+					display: inline-block;
+				}
+				
+				.star-rating-input input {
+					display: none;
+				}
+				
+				.star-rating-input label {
+					color: #ddd;
+					font-size: 1.5rem;
+					padding: 0 3px;
+					cursor: pointer;
+					transition: color 0.2s;
+				}
+				
+				.star-rating-input label:hover,
+				.star-rating-input label:hover ~ label,
+				.star-rating-input input:checked ~ label {
+					color: #ffc107;
+				}
+				
+				.star-rating-input label .far,
+				.star-rating-input label .fas {
+					display: inline-block;
+				}
+				
+				.star-rating-input label .fas {
+					display: none;
+				}
+				
+				.star-rating-input input:checked ~ label .fas {
+					display: inline-block;
+				}
+				
+				.star-rating-input input:checked ~ label .far {
+					display: none;
+				}
+				
+				.avatar-placeholder {
+					font-size: 1.5rem;
+				}
+				
+				.anonymous-review .avatar-placeholder {
+					font-size: 1.2rem;
+				}
+			</style>
+			
+			<script>
+				document.addEventListener('DOMContentLoaded', function() {
+					// Character counter for review textarea
+					const reviewTextarea = document.getElementById('review_desc');
+					if (reviewTextarea) {
+						reviewTextarea.addEventListener('input', function() {
+							const remaining = 300 - this.value.length;
+							document.getElementById('chars').textContent = remaining;
+						});
+					}
+				});
+			</script>
+									 
             {% endblock %}

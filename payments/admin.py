@@ -1,13 +1,7 @@
 from django.contrib import admin
-from .models import PaymentStatus, Payment, PaymentOption, HospitalPaymentMethod
+from .models import  Payment, PaymentOption, HospitalPaymentMethod
 from django.utils.translation import gettext_lazy as _
 
-# ------------PaymentStatus Admin-------------
-@admin.register(PaymentStatus)
-class PaymentStatusAdmin(admin.ModelAdmin):
-    list_display = ['payment_status_name', 'status_code']
-    search_fields = ['payment_status_name']
-    ordering = ['status_code']
 
 # ------------PaymentOption Admin-------------
 @admin.register(PaymentOption)

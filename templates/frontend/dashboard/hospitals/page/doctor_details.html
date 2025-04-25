@@ -1,0 +1,155 @@
+{% extends 'frontend/layouts/master.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="doctor-widget">
+                            <div class="doc-info-left">
+                                <div class="doctor-img mb-3">
+                                    {% if doctor.photo %}
+                                        <img src="{{ doctor.photo.url }}" class="img-fluid rounded" alt="صورة الطبيب" style="max-width: 150px;">
+                                    {% else %}
+                                        <img src="{% static 'assets/img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid rounded" alt="صورة الطبيب" style="max-width: 150px;">
+                                    {% endif %}
+                                </div>
+                                <div class="doc-info-cont">
+                                    <h4 class="doc-name mb-2">{{ doctor.full_name }}</h4>
+                                    <p class="doc-speciality mb-2">{{ doctor.sub_title }}</p>
+                                    <div class="doc-department d-flex align-items-center mb-3">
+                                        <img src="{% static 'assets/img/specialities/specialities-05.png' %}" class="img-fluid mr-2" alt="التخصص" style="width: 25px; height: 25px;">
+                                        <span class="specialty-name">{{ doctor.specialty.name }}</span>
+                                    </div>
+                                    <div class="clinic-details">
+                                        <div class="clini-infos pt-3">
+                                            <ul class="list-unstyled">
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-envelope mr-2"></i>
+                                                    <span>{{ doctor.email }}</span>
+                                                </li>
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-phone mr-2"></i>
+                                                    <span>{{ doctor.phone_number }}</span>
+                                                </li>
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                                    <span>تاريخ الميلاد: {{ doctor.birthday|date:"Y-m-d" }}</span>
+                                                </li>
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-star mr-2"></i>
+                                                    <span>سنوات الخبرة: {{ doctor.experience_years }} سنوات</span>
+                                                </li>
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-money-bill mr-2"></i>
+                                                    <span>سعر الكشف: {{ doctor_price.amount|default:"غير محدد" }}</span>
+                                                </li>
+                                                <li class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-check-circle mr-2"></i>
+                                                    <span>الحالة: 
+                                                    {% if doctor.status %}
+                                                        <span class="badge badge-success">نشط</span>
+                                                    {% else %}
+                                                        <span class="badge badge-danger">غير نشط</span>
+                                                    {% endif %}
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- نبذة عن الطبيب -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h4 class="card-title">نبذة عن الطبيب</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ doctor.about|default:"لا يوجد وصف متاح" }}</p>
+                            </div>
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="text-center mt-4">
+                            <a href="{% url 'hospitals:index' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right ml-2"></i>عودة للقائمة
+                            </a>
+                        </a>
+                        {% if doctor.id %}
+                            <a href="{% url 'hospitals:edit_doctor' doctor.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit ml-2"></i> تعديل البيانات
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.doctor-widget {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.doctor-img img {
+    border-radius: 5px;
+    height: 150px;
+    width: 150px;
+    object-fit: cover;
+}
+
+.doc-info-cont {
+    margin-top: 20px;
+}
+
+.doc-info-cont h4 {
+    font-size: 22px;
+    margin-bottom: 3px;
+}
+
+.doc-department {
+    padding: 10px 0;
+}
+
+.doc-department img {
+    margin-right: 10px;
+}
+
+.specialty-name {
+    font-size: 16px;
+    color: #272b41;
+}
+
+.clini-infos ul li {
+    margin-bottom: 15px;
+    position: relative;
+    padding-left: 30px;
+}
+
+.clini-infos ul li i {
+    width: 20px;
+    color: #272b41;
+}
+
+.badge {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+</style>
+{% endblock %}

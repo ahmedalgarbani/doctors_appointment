@@ -1,0 +1,160 @@
+{% load static %}
+{% load custom_filters %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="d-flex justify-content-center ">
+    <div class="col-sm-12 col-md-10 col-lg-8">
+      <div class="card mx-auto" style="margin-top: 20px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title m-0">تعديل بيانات الموظف</h4>
+          <a href="/hospital/?section=staff_list" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> العودة إلى قائمة الموظفين
+          </a>
+        </div>
+
+        <div class="card-body">
+          {% if messages %}
+          <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+            <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-12 mb-4 text-center">
+                <div class="profile-img-wrap">
+                  {% if staff.user.profile_picture %}
+                  <img class="avatar-img rounded-circle" src="{{ staff.user.profile_picture.url }}" alt="صورة الموظف" style="width: 120px; height: 120px;">
+                  {% else %}
+                  <img class="avatar-img rounded-circle" src="{% static 'img/default-avatar.png' %}" alt="صورة الموظف" style="width: 120px; height: 120px;">
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- استخدام النموذج الجديد -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الاسم الأول <span class="text-danger">*</span></label>
+                  {{ form.first_name }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الاسم الأخير <span class="text-danger">*</span></label>
+                  {{ form.last_name }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                  {{ form.email }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">رقم الهاتف <span class="text-danger">*</span></label>
+                  {{ form.mobile_number }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">المسمى الوظيفي <span class="text-danger">*</span></label>
+                  {{ form.job_title }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الدور الوظيفي</label>
+                  {{ form.role }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الحالة</label>
+                  {{ form.status }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">الصورة الشخصية</label>
+                  {{ form.profile_picture }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">ملاحظات</label>
+                  {{ form.notes }}
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5 class="card-title">الصلاحيات الإضافية</h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted">هذه الصلاحيات إضافية خارج الدور الوظيفي المحدد للموظف.</p>
+
+                <div class="row">
+                  {% for permission in permissions %}
+                  <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                      <input type="radio" name="permission_{{ permission.id }}" id="permission_{{ permission.id }}_grant" value="grant" class="form-check-input" {% if additional_permissions and additional_permissions|get_item:permission.id %}checked{% endif %}>
+                      <label class="form-check-label" for="permission_{{ permission.id }}_grant">منح</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="radio" name="permission_{{ permission.id }}" id="permission_{{ permission.id }}_deny" value="deny" class="form-check-input" {% if additional_permissions and additional_permissions|get_item:permission.id == False %}checked{% endif %}>
+                      <label class="form-check-label" for="permission_{{ permission.id }}_deny">منع</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="radio" name="permission_{{ permission.id }}" id="permission_{{ permission.id }}_inherit" value="" class="form-check-input" {% if not additional_permissions or permission.id not in additional_permissions %}checked{% endif %}>
+                      <label class="form-check-label" for="permission_{{ permission.id }}_inherit">وراثة من الدور</label>
+                    </div>
+                    <p class="text-primary mb-0">{{ permission.name }}</p>
+                    <p class="text-muted small">{{ permission.description }}</p>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <div class="submit-section mt-4">
+              <button type="submit" class="btn btn-primary submit-btn">حفظ التغييرات</button>
+              <a href="/hospital/?section=staff_list" class="btn btn-secondary submit-btn">إلغاء</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+

@@ -1,0 +1,120 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+    <br><br><br><br><br><br>
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">تعديل الحجز</h5>
+            <a href="{% url 'patients:patient_dashboard' %}" class="btn-close text-white"></a>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="row">
+                {% csrf_token %}
+                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+
+                <!-- معلومات الطبيب والمستشفى -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">المستشفى</label>
+                    <input type="text" class="form-control" value="{{ booking.hospital.hospital_name }}" readonly>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">الطبيب</label>
+                    <input type="text" class="form-control" value="{{ booking.doctor.full_name }}" readonly>
+                    <input type="hidden" name="doctor_id" value="{{ booking.doctor.id }}">
+                </div>
+
+                <!-- تاريخ الحجز -->
+                <div class="col-md-6 mb-3">
+                    <label class="mb-2">تاريخ الحجز</label>
+                    <input type="date" class="form-control" name="booking_date" id="booking_date" value="{{ form.booking_date }}">
+                </div>
+                
+                <!-- اليوم -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">اليوم</label>
+                    <select class="form-select" name="appointment_date" id="appointment-day" required>
+                        <option value="">اختر اليوم</option>
+                        {% for day in days_choices %}
+                            <option value="{{ day.id }}" {% if booking.appointment_date.id == day.id %}selected{% endif %}>
+                                {{ day.get_day_display }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- الوقت -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">الوقت</label>
+                    <select class="form-select" name="appointment_time" id="appointment-time" required>
+                        <option value="">اختر الوقت</option>
+                        {% for time in times %}
+                            <option value="{{ time.id }}" {% if booking.appointment_time.id == time.id %}selected{% endif %}>
+                                {{ time.start_time }} - {{ time.end_time }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- طريقة الدفع -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">طريقة الدفع</label>
+                    <select class="form-select" name="payment_method" required>
+                        <option value="">اختر طريقة الدفع</option>
+                        {% for method in payment_methods %}
+                            <option value="{{ method.id }}" {% if booking.payment_method.id == method.id %}selected{% endif %}>
+                                {{ method.payment_option.method_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- رقم الحوالة -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">رقم الحوالة</label>
+                    <input type="text" name="transfer_number" class="form-control" value="{{ booking.transfer_number }}">
+                </div>
+
+                <!-- أزرار -->
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                    <a href="{% url 'patients:patient_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> إلغاء
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+<!-- سكريبت لجلب الأوقات بناءً على اليوم -->
+<script>
+    $(document).ready(function () {
+        $('#appointment-day').change(function () {
+            var dayId = $(this).val();
+            if (dayId) {
+                $.ajax({
+                    url: '/get-times/' + dayId + '/',  // طلب للحصول على الأوقات بناءً على اليوم
+                    type: 'GET',
+                    success: function (data) {
+                        let options = '<option value="">اختر الوقت</option>';
+                        data.forEach(function (item) {
+                            options += `<option value="${item.id}">${item.start_time} - ${item.end_time}</option>`;
+                        });
+                        $('#appointment-time').html(options);
+                    }
+                });
+            } else {
+                $('#appointment-time').html('<option value="">اختر الوقت</option>');
+            }
+        });
+    });
+</script>
+
+<!-- إضافة مكتبة jQuery -->
+<script src="{% static 'js/jquery.min.js' %}"></script>

@@ -1,6 +1,7 @@
-<div class="col-md-7 col-lg-8 col-xl-9 all_doctor_page section d-none">
-    <!-- Quick Stats Section -->
-    <div class="row mb-4">
+<!-- All Doctors Page -->
+<div class="col-md-7 col-lg-8 col-xl-9 all_doctors_page section d-none">
+     <!-- Quick Stats Section -->
+     <div class="row mb-4">
         <div class="col-xl-3 col-sm-6 col-12">
             <div class="card">
                 <div class="card-body">
@@ -83,7 +84,6 @@
         </div>
     </div>
     <!-- /Quick Stats Section -->
-
     <div class="card card-table">
         <div class="card-body">
             <!-- Filter Section -->
@@ -124,49 +124,352 @@
                         <div class="col-md-12 text-end mt-3">
                             <button type="submit" class="btn btn-primary">تصفية</button>
                             <button type="button" class="btn btn-secondary" id="reset-filter">إعادة تعيين</button>
-                            <a  href="javascript:;" data-method="add_doctor_page" data-section="add_doctor_page" class="btn btn-success">
-                                <i class="fas fa-plus"></i> إضافة طبيب
-                            </a>
+                        
                         </div>
                     </form>
                 </div>
             </div>
-            
-            <!-- Doctors Table -->
-            <div class="table-responsive" id="doctors-table-container">
-                {% include "frontend/dashboard/hospitals/sections/doctor_table.html" %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="card-title">قائمة الأطباء</h4>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <a href="{% url 'hospitals:add_doctor_form' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> إضافة طبيب
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th>الطبيب</th>
+                                    <th>التخصص</th>
+                                    <th>سعر الكشف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctors %}
+                                <tr>
+                                    <td>
+                                        <h2 class="table-avatar">
+                                            {% if doctor.photo %}
+                                            <a href="#" class="avatar avatar-sm mr-2">
+                                                <img class="avatar-img rounded-circle" src="{{ doctor.photo.url }}" alt="Doctor Image">
+                                            </a>
+                                            {% endif %}
+                                            <a href="#">{{ doctor.full_name }}</a>
+                                        </h2>
+                                    </td>
+                                    <td>{{ doctor.specialty.name }}</td>
+                                    <td>{{ doctor.pricing.all.0.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if doctor.status %}
+                                            <span class="badge badge-success">نشط</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">غير نشط</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="actions">
+                                            <a href="{% url 'home:doctor_profile' doctor.id %}" class="btn btn-sm bg-info-light">
+                                                <i class="far fa-eye"></i> عرض
+                                            </a>
+                                            <button onclick="toggleEditForm({{ doctor.id }})" class="btn btn-sm bg-success-light">
+                                                <i class="far fa-edit"></i> تعديل
+                                            </button>
+                                            <button onclick="deleteDoctor({{ doctor.id }})" class="btn btn-sm bg-danger-light">
+                                                <i class="far fa-trash-alt"></i> حذف
+                                            </button>
+                                            <button class="btn btn-sm bg-info-light show-history-btn"
+                                                    data-doctor-id="{{ doctor.id }}"
+                                                    data-doctor-name="{{ doctor.full_name }}"
+                                                    onclick="togglePriceHistory({{ doctor.id }}, '{{ doctor.full_name }}')">
+                                                <i class="far fa-clock"></i> عرض السجل
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Price History Row -->
+                                <tr id="price-history-{{ doctor.id }}" class="price-history-row" style="display: none;">
+                                    <td colspan="5">
+                                        <div class="price-history-content p-3">
+                                            <div class="doctor-info mb-3">
+                                                <h6>السعر الحالي: <span class="current-price-{{ doctor.id }}"></span></h6>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>التاريخ</th>
+                                                            <th>السعر السابق</th>
+                                                            <th>السعر الجديد</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="price-history-body-{{ doctor.id }}">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Edit Form Row -->
+                                <tr id="edit-form-{{ doctor.id }}" style="display: none;">
+                                    <td colspan="5">
+                                        <form id="doctor-form-{{ doctor.id }}" class="edit-doctor-form" onsubmit="updateDoctor(event, {{ doctor.id }})">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>الاسم الكامل <span class="text-danger">*</span></label>
+                                                        <input type="text" name="full_name" class="form-control" value="{{ doctor.full_name }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>التخصص <span class="text-danger">*</span></label>
+                                                        <select name="specialty" class="form-control" required>
+                                                            <option value="">اختر التخصص</option>
+                                                            {% for spec in speciality %}
+                                                                <option value="{{ spec.id }}" {% if spec.id == doctor.specialty.id %}selected{% endif %}>
+                                                                    {{ spec.name }}
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>تاريخ الميلاد <span class="text-danger">*</span></label>
+                                                        <input type="date" name="birthday" class="form-control" value="{{ doctor.birthday|date:'Y-m-d' }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>رقم الهاتف <span class="text-danger">*</span></label>
+                                                        <input type="text" name="phone_number" class="form-control" value="{{ doctor.phone_number }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>البريد الإلكتروني <span class="text-danger">*</span></label>
+                                                        <input type="email" name="email" class="form-control" value="{{ doctor.email }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>الجنس <span class="text-danger">*</span></label>
+                                                        <select name="gender" class="form-control" required>
+                                                            <option value="1" {% if doctor.gender == 1 %}selected{% endif %}>ذكر</option>
+                                                            <option value="0" {% if doctor.gender == 0 %}selected{% endif %}>أنثى</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>سنوات الخبرة</label>
+                                                        <input type="number" name="experience_years" class="form-control" value="{{ doctor.experience_years }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>العنوان الفرعي</label>
+                                                        <input type="text" name="sub_title" class="form-control" value="{{ doctor.sub_title }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <label>نبذة عن الطبيب</label>
+                                                        <textarea name="about" class="form-control" rows="4">{{ doctor.about }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>الصورة الشخصية</label>
+                                                        {% if doctor.photo %}
+                                                            <div class="mb-2">
+                                                                <img src="{{ doctor.photo.url }}" alt="Doctor Photo" class="img-fluid" style="max-height: 100px;">
+                                                            </div>
+                                                        {% endif %}
+                                                        <input type="file" name="photo" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>سعر الكشف <span class="text-danger">*</span></label>
+                                                        <input type="number" name="pricing-0-amount" class="form-control" value="{{ doctor.pricing.all.0.amount }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>الحالة</label>
+                                                        <div class="status-toggle">
+                                                            <input type="checkbox" name="status" id="status-{{ doctor.id }}" class="check" value="1" {% if doctor.status %}checked{% endif %}>
+                                                            <label for="status-{{ doctor.id }}" class="checktoggle">checkbox</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="submit-section">
+                                                <button type="submit" class="btn btn-primary submit-btn">حفظ التغييرات</button>
+                                                <button type="button" class="btn btn-secondary" onclick="toggleEditForm({{ doctor.id }})">إلغاء</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+.action-btn {
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+}
+.action-btn i {
+    font-size: 1.2em !important;
+}
+</style>
+
 <script>
-    $(document).ready(function() {
-        function loadInvoices(formData) {
-            $.ajax({
-                url: '{% url "hospitals:filter_doctors" %}',
-                type: 'GET',
-                data: formData,
-                success: function(response) {
-                    $('#doctors-table-container').html(response);
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error loading invoices:", error);
-                }
-            });
+function toggleEditForm(doctorId) {
+    const formRow = document.getElementById(`edit-form-${doctorId}`);
+    if (formRow.style.display === 'none') {
+        formRow.style.display = 'table-row';
+    } else {
+        formRow.style.display = 'none';
+    }
+}
+
+function deleteDoctor(doctorId) {
+    if (confirm('هل أنت متأكد من حذف هذا الطبيب؟')) {
+        fetch(`/hospital/doctor/${doctorId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم حذف الطبيب بنجاح');
+                window.location.reload();
+            } else {
+                alert(data.error || 'حدث خطأ أثناء حذف الطبيب');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حذف الطبيب');
+        });
+    }
+}
+
+function updateDoctor(event, doctorId) {
+    event.preventDefault();
+    const form = document.getElementById(`doctor-form-${doctorId}`);
+    const formData = new FormData(form);
+
+    fetch(`/hospital/doctor/${doctorId}/update/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('تم تحديث بيانات الطبيب بنجاح');
+            window.location.reload();
+        } else {
+            alert(data.error || 'حدث خطأ أثناء تحديث بيانات الطبيب');
         }
-    
-        // Handle form submission
-        $('#doctor-filter-form').on('submit', function(e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
-            loadInvoices(formData);
-        });
-    
-        // Handle reset button
-        $('#reset-filter').on('click', function() {
-            $('#doctor-filter-form')[0].reset();
-            loadInvoices('');
-        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء تحديث بيانات الطبيب');
     });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function togglePriceHistory(doctorId, doctorName) {
+    const historyRow = document.getElementById(`price-history-${doctorId}`);
+    const isHidden = historyRow.style.display === 'none';
+
+    // إذا كان مخفياً، اجلب البيانات وأظهرها
+    if (isHidden) {
+        fetch(`/hospital/doctor/${doctorId}/history/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // تحديث السعر الحالي
+                document.querySelector(`.current-price-${doctorId}`).textContent = data.doctor.current_price + ' ريال';
+
+                // تحديث جدول السجل
+                const tableBody = document.querySelector(`.price-history-body-${doctorId}`);
+                tableBody.innerHTML = '';
+
+                data.history.forEach(entry => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${entry.date}</td>
+                        <td>${entry.previous_amount ? entry.previous_amount + ' ريال' : '-'}</td>
+                        <td>${entry.amount} ريال</td>
+                        <td>${entry.created_by ? entry.created_by : '-'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // إظهار الصف
+                historyRow.style.display = 'table-row';
+            } else {
+                alert(data.error || 'حدث خطأ أثناء جلب سجل الأسعار');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء جلب سجل الأسعار');
+        });
+    } else {
+        // إخفاء الصف
+        historyRow.style.display = 'none';
+    }
+}
 </script>

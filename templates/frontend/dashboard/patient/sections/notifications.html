@@ -1,116 +1,221 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section notifications_list d-none">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="card card-table mb-0">
+                        <div class="card-body">
+                            <h2 class="text-center mb-4">الإشعارات</h2>
+                            <div class="text-end mb-3">
+                                <button class="btn btn-sm btn-primary" onclick="markAllAsRead()">تمييز الكل كمقروء</button>
+                            </div>
+                            
+                            {% if notifications %}
+                            <div class="list-group notification-container" id="notificationList">
+                                {% for notification in notifications %}
+                                <div class="notification-message border-bottom d-flex justify-content-between align-items-center p-3
+                                    {% if notification.status == '0' %}notification-unread{% else %}notification-read{% endif %}">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <h5 class="mb-0 fw-semibold me-3 text-dark">{{ notification.sender.name }}</h5>
+                                                <span class="notification-badge 
+                                                    {% if notification.notification_type == '0' %}badge-info{% endif %}
+                                                    {% if notification.notification_type == '1' %}badge-warning{% endif %}
+                                                    {% if notification.notification_type == '2' %}badge-success{% endif %}
+                                                    {% if notification.notification_type == '3' %}badge-error{% endif %}">
+                                                    <i class="notification-icon fa-lg
+                                                        {% if notification.notification_type == '0' %}fas fa-info-circle{% endif %}
+                                                        {% if notification.notification_type == '1' %}fas fa-exclamation-triangle{% endif %}
+                                                        {% if notification.notification_type == '2' %}fas fa-check-circle{% endif %}
+                                                        {% if notification.notification_type == '3' %}fas fa-times-circle{% endif %} me-2"></i>
+                                                    {% if notification.notification_type == '0' %}معلومة{% endif %}
+                                                    {% if notification.notification_type == '1' %}تحذير{% endif %}
+                                                    {% if notification.notification_type == '2' %}نجاح{% endif %}
+                                                    {% if notification.notification_type == '3' %}خطأ{% endif %}
+                                                </span>
+                                            </div>
+                                            <span class="notification-time text-muted">
+                                                {{ notification.send_time|date:"Y-m-d H:i" }}
+                                            </span>
+                                        </div>
+                                        <p class="noti-details mb-2 fs-6 text-dark">{{ notification.message }}</p>
+                                        <small class="text-secondary">من: {{ notification.sender.get_full_name }}</small><br>
+                                        <small class="text-secondary">{{ notification.sender.email }}</small>
+                                    </div>
+                                    <button class="btn btn-link text-danger p-0 ms-3" onclick="confirmDeleteNotification('{{ notification.id }}')">
+                                        <i class="fas fa-trash-alt fa-lg"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info text-center fs-5">لا توجد إشعارات حالياً.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    .list-group {
+    /* أنماط الإشعارات */
+    .notification-container {
         max-height: 500px;
         overflow-y: auto;
-        margin-bottom: 20px;
+        border-radius: 0.5rem;
     }
     
-    .list-group-item {
-        border-radius: 0.375rem;
-        padding: 15px;
+    .notification-unread {
+        background-color: #f8f9fa;
+        border-left: 4px solid #ffc107;
     }
     
-    .list-group-item-warning {
-        background-color: #d4edda;
-        color: #155724;
+    .notification-read {
+        background-color: #ffffff;
     }
     
-    .list-group-item-success {
-        background-color: #d4edda;
-        color: #155724;
+    /* تنسيقات البادجات */
+    .notification-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
     }
     
-    .alert-info {
-        margin-top: 20px;
+    .badge-info {
+        background-color: #e7f2fd;
+        color: #0d6efd;
+        border: 1px solid #b3d1ff;
     }
-    </style>
     
-    {% block content %}
+    .badge-warning {
+        background-color: #fff3cd;
+        color: #664d03;
+        border: 1px solid #ffecb5;
+    }
     
-    <div class="col-md-7 col-lg-8 col-xl-9 section notifications_list d-none">
+    .badge-success {
+        background-color: #d1e7dd;
+        color: #0a3622;
+        border: 1px solid #a3cfbb;
+    }
     
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card card-table mb-0">
-                            <div class="card-body">
-        <h2 class="text-center mb-4">الإشعارات</h2>
+    .badge-error {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f1aeb5;
+    }
     
-        {% if notifications %}
-        <div class="list-group" id="notificationList">
-            {% for notification in notifications %}
-                <div class="list-group-item d-flex justify-content-between align-items-center 
-                    {% if notification.status == '0' %} list-group-item-warning {% else %} list-group-item-success {% endif %}">
-                    
-                    <div>
-                        <h5 class="mb-1">{{ notification.message }}</h5>
-                        <small>{{ notification.send_time|date:"Y-m-d H:i" }}</small> 
-                        <br>
-                        <small>من: {{ notification.sender.username }}</small>
-                        <br>
-                        <small>نوع الإشعار: 
-                            {% if notification.notification_type == '0' %} معلومة
-                            {% elif notification.notification_type == '1' %} تحذير
-                            {% elif notification.notification_type == '2' %} نجاح
-                            {% elif notification.notification_type == '3' %} خطأ
-                            {% endif %}
-                        </small>
-                    </div>
-        
-                    <!-- زر حذف الإشعار -->
-                    <button class="btn btn-danger btn-sm" onclick="confirmDeleteNotification('{{ notification.id }}')">
-                        حذف
-                    </button>
-                    
-                </div>
-            {% endfor %}
-        </div>
-        
-        
-        {% else %}
-            <div class="alert alert-info text-center">لا توجد إشعارات حالياً.</div>
-        {% endif %}
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
+    /* تحسينات التنسيق العام */
+    .text-dark {
+        color: #212529 !important;
+    }
     
-    <script>
-function confirmDeleteNotification(notificationId) {
-    // التأكد من أن notificationId يتم تمريره بشكل صحيح
-    console.log("Notification ID:", notificationId);
+    .text-secondary {
+        color: #6c757d !important;
+    }
+    
+    .text-muted {
+        color: #868e96 !important;
+    }
+    
+    .noti-details {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 0.6rem !important;
+    }
+    
+    /* أيقونة الحذف */
+    .btn-link.text-danger:hover {
+        color: #dc3545 !important;
+        text-decoration: none;
+    }
+    
+    /* حجم الخطوط */
+    h5 {
+        font-size: 1.1rem;
+    }
+    
+    .notification-time {
+        font-size: 0.9rem;
+    }
+    
+    small.fs-6 {
+        font-size: 0.95rem !important;
+    }
+    
+    /* شريط التمرير */
+    .notification-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .notification-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .notification-container::-webkit-scrollbar-thumb {
+        background: #ced4da;
+        border-radius: 4px;
+    }
+</style>
 
-    const userConfirmed = confirm("هل أنت متأكد من أنك تريد حذف هذا الإشعار؟");
-    if (userConfirmed) {
-        fetch("", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: JSON.stringify({ 'notification_id': notificationId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("تم حذف الإشعار بنجاح.");
-                location.reload();
-            } else {
-                alert(data.error || "حدث خطأ أثناء حذف الإشعار.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("حدث خطأ أثناء الاتصال بالخادم.");
-        });
+<script>
+    function confirmDeleteNotification(notificationId) {
+        const userConfirmed = confirm("هل أنت متأكد من أنك تريد حذف هذا الإشعار؟");
+        if (userConfirmed) {
+            fetch("", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ 'notification_id': notificationId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("تم حذف الإشعار بنجاح.");
+                    location.reload();
+                } else {
+                    alert(data.error || "حدث خطأ أثناء حذف الإشعار.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("حدث خطأ أثناء الاتصال بالخادم.");
+            });
+        }
     }
-}
-
-    </script>
-    
-    {% endblock %}
-    
+</script>
+<script>
+    function markAllAsRead() {
+        const userConfirmed = confirm("هل أنت متأكد أنك تريد تمييز جميع الإشعارات كمقروءة؟");
+        if (userConfirmed) {
+            fetch("{% url 'notifications:mark_all_as_read' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("تم تمييز جميع الإشعارات كمقروءة.");
+                    location.reload();
+                } else {
+                    alert(data.error || "حدث خطأ أثناء العملية.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("حدث خطأ أثناء الاتصال بالخادم.");
+            });
+        }
+    }
+</script>

@@ -2,25 +2,45 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts
 from hospitals.models import Hospital
-from .models import HospitalPaymentMethod, Payment, PaymentStatus
+from .models import HospitalPaymentMethod, Payment
 from bookings.models import Booking
 from django.http import HttpResponseBadRequest
 from patients.models import Patients
 
 # Create your views here.
-@login_required
+
 def payment_process(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     
     # Verify required values
-    day_id = request.GET.get('day')
-    date_id = request.GET.get('date')
-    booking_date = request.GET.get('booking_date')
+    if request.method == 'POST':
+        day_id = request.POST.get('day')
+        date_id = request.POST.get('date')
+        booking_date = request.POST.get('booking_date')
+        hospital_id = request.POST.get('hospital_id')
+    else:
+        day_id = request.GET.get('day')
+        date_id = request.GET.get('date')
+        booking_date = request.GET.get('booking_date')
+        hospital_id = request.GET.get('hospital_id')
     
-    if not all([day_id, date_id, booking_date]):
-        return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز')
+    print("Day ID:", day_id)
+    print("Date ID:", date_id)
+    print("Booking Date:", booking_date)
+    print("Hospital ID:", hospital_id)
+    
+    if not all([day_id, date_id, booking_date, hospital_id]):
+        return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز والمستشفى')
     
     try:
+        # Get hospital and validate it's associated with the doctor
+        selected_hospital = get_object_or_404(Hospital, id=hospital_id)
+        if not doctor.hospitals.filter(id=hospital_id).exists():
+            return HttpResponseBadRequest('المستشفى المختار غير مرتبط بالطبيب')
+            
+        # Get doctor's price for this hospital
+        doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
+        
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
         selected_shift = get_object_or_404(DoctorShifts, id=date_id, doctor_schedule=selected_schedule)
@@ -34,34 +54,34 @@ def payment_process(request, doctor_id):
     
     is_online = request.GET.get('type') == 'online'
     
-    # Get the hospital
-    hospital = doctor.hospitals.first()
-    if not hospital:
-        return HttpResponseBadRequest('عذراً، لا يوجد مستشفى مسجل لهذا الطبيب')
-    
-    # Fetch active payment methods for the hospital
-    payment_methods = HospitalPaymentMethod.objects.filter(hospital=hospital, is_active=True)
-    if not payment_methods:
-        return HttpResponseBadRequest('عذراً، لا توجد طرق دفع متاحة لهذا المستشفى')
-    
-    # Get doctor pricing
-    try:
-        pricing = DoctorPricing.objects.get(doctor=doctor, hospital=hospital)
-        amount = pricing.amount
-    except DoctorPricing.DoesNotExist:
-        return HttpResponseBadRequest('عذراً، لم يتم تحديد سعر الكشف لهذا الطبيب')
+    # Get payment methods
+    payment_methods = HospitalPaymentMethod.objects.filter(hospital=selected_hospital, is_active=True)
     
     if request.method == 'POST':
         payment_method_id = request.POST.get('payment_method')
-        transfer_number = request.POST.get('transfer_number')
+        payment_type = request.POST.get('payment_type')
         notes = request.POST.get('notes', '')
         
-        if not all([payment_method_id, transfer_number]):
-            return HttpResponseBadRequest('يرجى اختيار طريقة الدفع وإدخال رقم الحوالة')
+        print("POST request received")
+        print("Payment method:", payment_method_id)
+        print("Payment type:", payment_type)
         
-        # Validate transfer number
-        if not transfer_number.isdigit() or len(transfer_number) < 5:
-            return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
+        if not payment_method_id:
+            return HttpResponseBadRequest('يرجى اختيار طريقة الدفع')
+        
+        transfer_number = None
+        account_image = None
+        
+        if payment_type == 'transfer':
+            transfer_number = request.POST.get('transfer_number')
+            if not transfer_number:
+                return HttpResponseBadRequest('يرجى إدخال رقم الحوالة')
+            if not transfer_number.isdigit() or len(transfer_number) < 5:
+                return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
+        else:  # payment_type == 'account'
+            if 'account_image' not in request.FILES:
+                return HttpResponseBadRequest('يرجى إرفاق صورة سند الحساب')
+            account_image = request.FILES['account_image']
             
         try:
             payment_method = payment_methods.get(id=payment_method_id)
@@ -82,26 +102,27 @@ def payment_process(request, doctor_id):
         booking = Booking.objects.create(
             doctor=doctor,
             patient=patient,
-            hospital=hospital,
+            hospital=selected_hospital,
             appointment_date=selected_schedule,
             appointment_time=selected_shift,
             booking_date=booking_date,
             is_online=is_online,
-            amount=amount,
-            status='pending',  # Pending until transfer verification
+            amount=doctor_price.amount,
+            status='pending',  
             transfer_number=transfer_number,
-            payment_method=payment_method
+            payment_method=payment_method,
+            account_image=account_image if payment_type == 'account' else None
         )
         
         # Create the payment
-        subtotal = float(request.POST.get('subtotal', amount))
+        subtotal = float(request.POST.get('subtotal', doctor_price.amount))
         discount = float(request.POST.get('discount', 0))
         total = subtotal - discount
         
         Payment.objects.create(
             booking=booking,
             payment_method=payment_method,
-            payment_status=get_object_or_404(PaymentStatus, status_code=1),  # Default: pending
+            payment_status=0,
             payment_subtotal=subtotal,
             payment_discount=discount,
             payment_totalamount=total,
@@ -117,14 +138,14 @@ def payment_process(request, doctor_id):
         # Redirect to booking success page
         return redirect('bookings:booking_success', booking_id=booking.id,)
     
-    # Render payment page
     context = {
         'doctor': doctor,
-        'hospital': hospital,
-        'schedule': selected_schedule,
-        'shift': selected_shift,
+        'hospital_id':hospital_id,
+        'selected_hospital': selected_hospital,
+        'doctor_price': doctor_price,
+        'selected_schedule': selected_schedule,
+        'selected_shift': selected_shift,
         'booking_date': booking_date,
-        'amount': amount,
         'is_online': is_online,
         'payment_methods': payment_methods
     }

@@ -1,0 +1,114 @@
+{% load static %}
+<!-- CSS Files -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/feather.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<div class="row justify-content-center my-4 role_list section ">
+    <div class="col-md-10 col-lg-9 col-xl-8">
+        <div class="card mx-auto">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title">إدارة الأدوار الوظيفية</h4>
+                <div class="float-end">
+                    <a href="{% url 'hospital_staff:add_role' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus"></i> إضافة دور جديد
+                    </a>
+                    <a href="/hospital/?section=staff_list" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> العودة إلى قائمة الموظفين
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                    <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-center mb-0 datatable">
+                        <thead>
+                            <tr>
+                                <th>اسم الدور</th>
+                                <th>الوصف</th>
+                                <th>الصلاحيات</th>
+                                <th>افتراضي</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for role in roles %}
+                            <tr>
+                                <td>{{ role.name }}</td>
+                                <td>{{ role.description|truncatechars:50 }}</td>
+                                <td>
+                                    <div class="d-flex flex-wrap">
+                                        {% for permission in role.permissions.all %}
+                                        <span class="badge bg-info m-1">{{ permission.name }}</span>
+                                        {% empty %}
+                                        <span class="text-muted">لا توجد صلاحيات</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if role.is_default %}
+                                    <span class="badge bg-success">نعم</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">لا</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="{% url 'hospital_staff:edit_role' role.id %}" class="btn btn-sm bg-info-light">
+                                            <i class="fas fa-edit"></i> تعديل
+                                        </a>
+                                        <a href="{% url 'hospital_staff:delete_role' role.id %}" class="btn btn-sm bg-danger-light">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">لا توجد أدوار وظيفية حتى الآن</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- القسم الثاني الخاص بالصلاحيات -->
+        <div class="card mx-auto mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title">الصلاحيات المتاحة</h4>
+                <a href="{% url 'hospital_staff:permission_list' %}" class="btn btn-primary me-2">
+                    <i class="fas fa-list"></i> عرض الصلاحيات
+                </a>
+            </div>
+            <div class="card-body">
+                <p>يمكنك عرض قائمة الصلاحيات المتاحة في النظام من خلال الضغط على زر "عرض الصلاحيات".</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('.datatable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+            }
+        });
+    });
+</script>

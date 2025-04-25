@@ -1,17 +1,22 @@
 {% extends "frontend/layouts/master.html" %}
 {% load static %}
 {% load widget_tweaks %}
+
 {% block content %}
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
   <div class="container">
     <div class="row align-items-center inner-banner">
       <div class="col-md-12 col-12 text-center">
-        <h2 class="breadcrumb-title">Doctor Blog</h2>
+        <h2 class="breadcrumb-title">لوحة التحكم</h2>
         <nav aria-label="breadcrumb" class="page-breadcrumb">
           <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Doctor Blog</li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'home:home' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Doctor Blog
+            </li>
           </ol>
         </nav>
       </div>
@@ -29,13 +34,28 @@
         <div class="profile-sidebar">
           <div class="widget-profile pro-widget-content">
             <div class="profile-info-widget">
+              {% if request.user.profile_picture %}
               <a href="#" class="booking-doc-img">
-                <img src="{{hospital.details.photo.url}}" alt="User Image" />
+                <img src="{{request.user.profile_picture.url}}" alt="User Image" />
               </a>
+              {% endif %}
               <div class="profile-det-info">
                 <h3>{{hospital.name}}</h3>
                 <div class="patient-details">
-                  <h5 class="mb-0">{{hospital.details.sub_title}}</h5>
+                  <h5 class="mb-0">{{hospital.sub_title}}</h5>
+                  {% if request.user.user_type == 'hospital_staff' %}
+                  <h6 class="text-primary mt-2">
+                    <i class="fas fa-user-tie"></i> موظف: {{ request.user.get_full_name }}
+                  </h6>
+                  {% if staff_obj %}
+                  <p class="text-muted small">
+                    <i class="fas fa-briefcase"></i> {{ staff_obj.job_title }}
+                    {% if staff_obj.role %}
+                    <br><i class="fas fa-user-tag"></i> {{ staff_obj.role.name }}
+                    {% endif %}
+                  </p>
+                  {% endif %}
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -50,15 +70,16 @@
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:;" data-method="all_doctors_page" data-section="all_doctors_page">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>الاطباء</span>
+                  </a>
+                </li>
+                
+                <li>
                   <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
                     <i class="fas fa-clock"></i>
                     <span>جدولة المواعيد</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:;" data-method="all_doctor_page" data-section="all_doctor_page">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>الاطباء</span>
                   </a>
                 </li>
                 <li>
@@ -74,12 +95,12 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="invoices" data-section="invoices">
+                  <a href="javascript:;" data-method="invoices_table" data-section="invoices_table">
                     <i class="fas fa-file-invoice"></i>
                     <span>الفواتير</span>
                   </a>
                 </li>
-               
+
                 <li>
                   <a href="{% url 'hospitals:blog_list' %}">
                     <i class="fas fa-comments"></i>
@@ -88,10 +109,18 @@
                 </li>
                 <li>
                   <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
-                    <i class="fas fa-user-cog"></i>
+                    <i class="fas fa-credit-card"></i>
                     <span> اعدادات طرق الدفع</span>
                   </a>
                 </li>
+                {% if request.user.user_type == 'hospital_manager' %}
+                <li>
+                  <a href="javascript:;" data-method="staff_list" data-section="staff_list">
+                    <i class="fas fa-users"></i>
+                    <span>إدارة الموظفين</span>
+                  </a>
+                </li>
+                {% endif %}
                 <li>
                   <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
                     <i class="fas fa-user-cog"></i>
@@ -99,14 +128,14 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="notifications_list" >
+                  <a href="javascript:;" data-method="notifications_list">
                     <i class="fas fa-comments"></i>
                     <span>الأشعارات</span>
                     <small class="unread-msg">{{ notifications.count }}</small>
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-method="notifications_forms" >
+                  <a href="javascript:;" data-method="notifications_forms">
                     <i class="fas fa-comments"></i>
                     <span>ارسال اشعار</span>
                   </a>
@@ -118,7 +147,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="javascript:;" data-section="logout">
+                  <a href="{% url 'hospitals:logout' %}">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>تسجيل الخروج</span>
                   </a>
@@ -130,57 +159,112 @@
         <!-- /Profile Sidebar -->
       </div>
 
-      <!-- Include Sections -->      
-
-      
+      <!-- Include Sections -->
+      {% include "frontend/dashboard/hospitals/sections/staff/staff-list.html" %}
+      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
+      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
+      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
+      {% include "frontend/dashboard/hospitals/sections/invoice_table.html" %}
       {% include "frontend/dashboard/hospitals/sections/notifications.html" %}
       {% include "frontend/dashboard/hospitals/sections/notifications-forms.html" %}
-      {% include "frontend/dashboard/hospitals/sections/my-patients.html" %}
-      {% comment %} {% include "frontend/dashboard/hospitals/sections/appointment_details.html" %} {% endcomment %}
-      {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/add_payment_page.html" %}
       {% include "frontend/dashboard/hospitals/sections/payment_settings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/invoices.html" %}
-      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/add_doctor_page.html" %}
-      {% comment %} {% include "frontend/dashboard/hospitals/sections/hospitals-change-password.html" %} {% endcomment %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-profile-settings.html" %}
-      {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
-    
+      {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
+      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+      
     </div>
   </div>
 </div>
 <!-- /Page Content -->
-{% endblock %}
 
+{% endblock %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  function showSection(targetSection) {
-    // إخفاء جميع الأقسام
-    $('.section').addClass('d-none');
-    
-    // إظهار القسم المطلوب
-    $('.' + targetSection).removeClass('d-none');
-    
-    // تحديث الرابط النشط في القائمة
-    $('.dashboard-menu li').removeClass('active');
-    $('a[data-section="' + targetSection + '"]').parent().addClass('active');
-  }
-  
-  $(document).ready(function() {
-    // عرض لوحة التحكم عند تحميل الصفحة
-    showSection('hospital_dashboard');
-    
-    // تحديث القسم المعروض عند النقر على الروابط
-    $("a[data-method]").on("click", function () {
+  $(document).ready(function () {
+    // دالة لتحديث عنوان الصفحة في breadcrumb
+    function updateBreadcrumb(title) {
+      $(".breadcrumb-title").text(title);
+      $(".breadcrumb-item.active").text(title);
+    }
+
+    // دالة للتعامل مع الروابط
+    function handleLinkClick(e) {
       const methodName = $(this).data("method");
-      showSection(methodName);
-    });
+
+      if (methodName === "logout") {
+        e.preventDefault();
+        const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
+        if (confirmLogout) {
+          window.location.href = $(this).attr("href");
+        }
+      } else {
+        e.preventDefault();
+        const sectionTitles = {
+          hospital_dashboard: "لوحة التحكم",
+          all_doctors_page: "جميع الأطباء",
+          schedule_timings: "جدولة المواعيد",
+          appointments: "الحجوزات",
+          my_patient: "المرضى",
+          invoices_table: "الفواتير",
+          payment_settings: "إعدادات الدفع",
+          doctor_profile_settings: "إعدادات الملف الشخصي",
+          notifications_list: "الأشعارات",
+          notifications_forms: "ارسال اشعار",
+          doctor_change_password: "تغيير كلمة المرور",
+          staff_list: "إدارة الموظفين"
+        };
+
+        const newTitle = sectionTitles[methodName] || "لوحة التحكم";
+        updateBreadcrumb(newTitle);
+
+        // إعادة تحميل الصفحة مع إضافة بارامتر للقسم المطلوب
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?section=' + methodName;
+      }
+    }
+
+    // التعامل مع الروابط
+    $("a[data-method]").on("click", handleLinkClick);
+
+    // عند تحميل الصفحة، التحقق من وجود قسم معين في URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+
+    // تعريف عناوين الأقسام
+    const sectionTitles = {
+      hospital_dashboard: "لوحة التحكم",
+      all_doctors_page: "جميع الأطباء",
+      schedule_timings: "جدولة المواعيد",
+      appointments: "الحجوزات",
+      my_patient: "المرضى",
+      invoices_table: "الفواتير",
+      payment_settings: "إعدادات الدفع",
+      doctor_profile_settings: "إعدادات الملف الشخصي",
+      notifications_list: "الأشعارات",
+      notifications_forms: "ارسال اشعار",
+      doctor_change_password: "تغيير كلمة المرور",
+      staff_list: "إدارة الموظفين"
+    };
+
+    // تحديد القسم المطلوب عرضه
+    let currentSection = sectionParam || 'hospital_dashboard';
+
+    // تحديث عنوان الصفحة
+    const title = sectionTitles[currentSection] || "لوحة التحكم";
+    updateBreadcrumb(title);
+
+    // إخفاء جميع الأقسام وإظهار القسم المطلوب
+    $(".section").addClass("d-none");
+    $(`.${currentSection}`).removeClass("d-none");
+
+    // تحديث القائمة النشطة
+    $(".dashboard-menu li").removeClass("active");
+    $(`a[data-method="${currentSection}"]`).parent().addClass("active");
   });
 </script>
-{% endblock extra_js %}
+{% endblock %}

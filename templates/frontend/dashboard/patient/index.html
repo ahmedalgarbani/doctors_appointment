@@ -1,14 +1,22 @@
 {% extends "frontend/layouts/master.html" %}
 {% block content %}
+{% load static %}
+
+<!-- <style>
+	.section {
+        display: none; /* إخفاء الأقسام بشكل افتراضي */
+	}
+</style> -->
+
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar-two">
 	<div class="container">
 		<div class="row align-items-center inner-banner">
 			<div class="col-md-12 col-12 text-center">
-				<h2 class="breadcrumb-title">Dashboard</h2>
+				<h2 class="breadcrumb-title">لوحة التحكم</h2>
 				<nav aria-label="breadcrumb" class="page-breadcrumb">
 					<ol class="breadcrumb">
-						<li class="breadcrumb-item"><a href="index.html">Home</a></li>
+						<li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
 						<li class="breadcrumb-item" aria-current="page">Dashboard</li>
 					</ol>
 				</nav>
@@ -29,19 +37,20 @@
 					<div class="widget-profile pro-widget-content">
 						<div class="profile-info-widget">
 							<a href="#" class="booking-doc-img">
-								{% if patient.profile_picture %}
-									<img src="{{ patient.profile_picture.url }}" alt="{{ patient.full_name }}">
+								{% if patient.user.profile_picture %}
+									<img src="{{ patient.user.profile_picture.url }}" alt="{{ patient.full_name }}">
 								{% else %}
-									<img src="/static/assets/img/patients/default_patient.jpg" alt="Default Picture">
+									<img src="{% static 'assets/img/patients/default_patient.jpg' %}" alt="Default Picture">
 								{% endif %}
 							</a>
 							<div class="profile-det-info">
-								<h3>{{ patient.full_name }}</h3>
+								<h3>{{ patient.user.get_full_name }}</h3>
 								<div class="patient-details">
 									<h5><i class="fas fa-birthday-cake"></i> 
-										{{ patient.birth_date|date:"d M Y" }}, 
+										{{ patient.birth_date|date:" M d Y" }}, years {{ patient.age }}
 									</h5>
-									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> {{ patient.address }}</h5>
+									<h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> {{ patient.user.address }}</h5>
+									<h5><i class="fas fa-phone"></i> {{ user.mobile_number }}</h5>
 								</div>
 							</div>
 						</div>
@@ -62,7 +71,7 @@
 										<span>الأطباء المفضلين</span>
 									</a>
 								</li> 
-								<li>
+								<!-- <li>
 									<a href="javascript:;" data-method="dependent" >
 										<i class="fas fa-users"></i>
 										<span>Dependent</span>
@@ -76,7 +85,7 @@
 										<span>Orders</span>
 										<small class="unread-msg">7</small>
 									</a>
-								</li>
+								</li> -->
 								<li>
 									<a href="javascript:;" data-method="notifications_list" >
 										<i class="fas fa-comments"></i>
@@ -97,11 +106,12 @@
 									</a>
 								</li>
 								<li>
-									<a href="javascript:;" data-method="logout" >
+									<a href="{% url 'users:logout' %}" data-method="logout" id="logout-link">
 										<i class="fas fa-sign-out-alt"></i>
 										<span>تسجيل الخروج </span>
 									</a>
 								</li>
+								
 							</ul>
 						</nav>
 					</div>
@@ -117,6 +127,7 @@
 			{% include "frontend/dashboard/patient/sections/profile-settings.html" %}
 			{% include "frontend/dashboard/patient/sections/change-password.html" %}
 
+
 		</div>
 
 	</div>
@@ -128,19 +139,68 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function () {
-    function showSection(targetSection) {
-      $(".section").addClass("d-none");
-      
-      
-      $(`.${targetSection}`).removeClass("d-none");
+    // دالة لتحديث عنوان الصفحة في breadcrumb
+    function updateBreadcrumb(title) {
+      $(".breadcrumb-title").text(title);
+      $(".breadcrumb-item.active").text(title);
     }
-  
-    $("a[data-method]").on("click", function () {
+
+    // دالة للتعامل مع الروابط
+    function handleLinkClick(e) {
       const methodName = $(this).data("method");
-      showSection(methodName)
-     
-    });
+      
+      if (methodName === "logout") {
+        e.preventDefault();
+        const confirmLogout = confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟");
+        if (confirmLogout) {
+          window.location.href = $(this).attr("href");
+        }
+      } else {
+        e.preventDefault();
+        const sectionTitles = {
+          patient_dashboard: "لوحة التحكم",
+          favourites: "الأطباء المفضلين",
+          dependent: "المعالين",
+          orders_list: "الطلبات",
+          notifications_list: "الإشعارات",
+          profile_settings: "إعدادات الملف الشخصي",
+          change_password: "تغيير كلمة المرور"
+        };
+        
+        const newTitle = sectionTitles[methodName] || "لوحة التحكم";
+        updateBreadcrumb(newTitle);
+        
+        // إعادة تحميل الصفحة مع إضافة بارامتر للقسم المطلوب
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?section=' + methodName;
+      }
+    }
+
+    // التعامل مع الروابط
+    $("a[data-method]").on("click", handleLinkClick);
+
+    // عند تحميل الصفحة، التحقق من وجود قسم معين في URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+    
+    if (sectionParam) {
+      const sectionTitles = {
+        patient_dashboard: "لوحة التحكم",
+        favourites: "الأطباء المفضلين",
+        dependent: "المعالين",
+        orders_list: "الطلبات",
+        notifications_list: "الإشعارات",
+        profile_settings: "إعدادات الملف الشخصي",
+        change_password: "تغيير كلمة المرور"
+      };
+      
+      const title = sectionTitles[sectionParam] || "لوحة التحكم";
+      updateBreadcrumb(title);
+      
+      // إخفاء جميع الأقسام وإظهار القسم المطلوب
+      $(".section").addClass("d-none");
+      $(`.${sectionParam}`).removeClass("d-none");
+    }
   });
-  
 </script>
 {% endblock extra_js %}

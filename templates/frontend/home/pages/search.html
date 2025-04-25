@@ -10,7 +10,7 @@
                 <h2 class="breadcrumb-title">Search Doctors</h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
                         <li class="breadcrumb-item" aria-current="page">Search Doctors</li>
                     </ol>
                 </nav>
@@ -23,7 +23,6 @@
 <!-- Page Content -->
 <div class="doctor-content content">
     <div class="container">
-
         <!-- Doctor Search List -->
         <div class="row">
             <div class="col-xl-12 col-lg-12 map-view">
@@ -35,7 +34,30 @@
                             </div>
                             <div class="filter-details">
                                 <form id="filterForm" method="GET">
-                                <!-- Filter Grid -->
+                                <!-- Filter Grid - Specialty -->
+                                <div class="filter-grid">
+                                    <h4>
+                                        <a href="#collapseSpecialty" data-bs-toggle="collapse">Specialty</a>
+                                    </h4>
+                                    <div id="collapseSpecialty" class="collapse show">
+                                        <div class="filter-collapse">
+                                            <ul>
+                                                {% for specialty in specialities %}
+                                                <li>
+                                                    <label class="custom_check d-inline-flex">
+                                                        <input type="radio" name="specialty" value="{{ specialty.id }}" {% if selected_filters.specialty == specialty.id %}checked{% endif %}>
+                                                        <span class="checkmark"></span>
+                                                        {{ specialty.name }}
+                                                    </label>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /Filter Grid - Specialty -->
+
+                                <!-- Filter Grid - Gender -->
                                 <div class="filter-grid">
                                     <h4>
                                         <a href="#collapseone" data-bs-toggle="collapse">Gender</a>
@@ -61,9 +83,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /Filter Grid -->
+                                <!-- /Filter Grid - Gender -->
 
-                                <!-- Filter Grid -->
+                                <!-- Filter Grid - Fee -->
                                 <div class="filter-grid">
                                     <h4>
                                         <a href="#collapsethree" data-bs-toggle="collapse">Consultation Fee</a>
@@ -103,9 +125,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /Filter Grid -->
+                                <!-- /Filter Grid - Fee -->
 
-                                <!-- Filter Grid -->
+                                <!-- Filter Grid - Experience -->
                                 <div class="filter-grid">
                                     <h4>
                                         <a href="#collapsefive" data-bs-toggle="collapse">Experience</a>
@@ -145,9 +167,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /Filter Grid -->
+                                <!-- /Filter Grid - Experience -->
 
-                                <!-- Filter Grid -->
+                                <!-- Filter Grid - Rating -->
                                 <div class="filter-grid">
                                     <h4>
                                         <a href="#collapseseven" data-bs-toggle="collapse">By Rating</a>
@@ -180,7 +202,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /Filter Grid -->
+                                <!-- /Filter Grid - Rating -->
 
                                 <!-- Filter Btn -->
                                 <div class="filter-btn">
@@ -193,12 +215,6 @@
                         </div>
                     </div>
 
-
-
-
-
-
-                    
                     <div class="col-lg-9">
                         <div class="doctor-filter-info">
                             <div class="doctor-filter-inner">
@@ -206,59 +222,11 @@
                                     <div class="doctors-found">
                                         <p><span>{{ doctors.count }} Doctors found for</span></p>
                                     </div>
-                                    <div class="doctor-filter-availability">
-                                        <p>Availability</p>
-                                        <div class="status-toggle status-tog">
-                                            <input type="checkbox" id="status_6" class="check">
-                                            <label for="status_6" class="checktoggle">checkbox</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="doctor-filter-option">
-                                    <div class="doctor-filter-sort">
-                                        <p>Sort</p>
-                                        <div class="doctor-filter-select">
-                                            <select class="select">
-                                                <option>A to Z</option>
-                                                <option>B to Z</option>
-                                                <option>C to Z</option>
-                                                <option>D to Z</option>
-                                                <option>E to Z</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="doctor-filter-sort">
-                                        <p class="filter-today d-flex align-items-center">
-                                            <i class="feather-calendar"></i> Today 10 Aug to 20 Aug
-                                        </p>
-                                    </div>
-                                    <div class="doctor-filter-sort">
-                                        <ul class="nav">
-                                            <li>
-                                                <a href="javascript:void(0);" id="map-list">
-                                                    <i class="feather-map-pin"></i>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="doctor-search-grid.html">
-                                                    <i class="feather-grid"></i>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="search-2.html" class="active">
-                                                    <i class="feather-list"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-
-                        
-                        {%for doctor in doctors %}
-                       
+                        {% for doctor in doctors %}
                         <div class="card doctor-card">
                             <div class="card-body">
                                 <div class="doctor-widget-one">
@@ -270,6 +238,7 @@
                                             {% else %}
                                                 <img src="{% static 'img/doctors/default-doctor.jpg' %}" alt="{{ doctor.full_name }} "class="img-fluid">
                                             {% endif %}
+                                            </a>
                                             <div class="favourite-btn">
                                                 <a href="javascript:void(0)" class="favourite-icon">
                                                     <i class="fas fa-heart"></i>
@@ -288,7 +257,7 @@
                                                     <span>0.9</span> {{ doctor.hospital.name }}
                                                 </p>
                                                 <p class="doc-location">
-                                                    <i class="feather-award"></i> <span>   {{ doctor.experience_years }}</span>    Years of Experience  
+                                                    <i class="feather-award"></i> <span>{{ doctor.experience_years }}</span> Years of Experience  
                                                 </p>
                                             </div>
                                             <div class="reviews-ratings">
@@ -301,28 +270,30 @@
                                     <div class="doc-info-right">
                                         <div class="clini-infos">
                                             <ul>
-                                                
                                                 {% if doctor %}
                                                 <li>
                                                     <i class="feather-clock available-icon"></i> 
-                                                <span class="available-date available-today">Available Today</span>
+                                                    <span class="available-date available-today">Available Today</span>
                                                 </li>
-                                                
                                                 {% endif %}
-                                                <li><i class="feather-dollar-sign available-icon"></i> ${{price_range.min_price}} <i class="feather-info available-info-icon"></i></li>
+                                                <li>
+                                                    <i class="feather-dollar-sign available-icon"></i> ${{price_range.min_price}} 
+                                                    <i class="feather-info available-info-icon"></i>
+                                                </li>
                                             </ul>
                                         </div>
                                         <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
-                                        </div>
+                                            {% if user.is_authenticated %}
+                                                <a class="btn btn-primary" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
+                                            {% else %}
+                                            <a class="btn btn-primary" href="{% url 'users:login' %}?next={% url 'home:booking' doctor.id %}&message=login_required">Book Appointment</a>
+                                            {% endif %}
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>
                         </div>
-                       {%endfor%}
-
-
-
+                        {% endfor %}
 
                         {% if page_obj.has_other_pages %}
                         <div class="row">
@@ -378,12 +349,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-lg-12 theiaStickySidebar map-right">
-                <div id="map" class="map-listing"></div>
-            </div>
         </div>
         <!-- /Doctor Search List -->
-
     </div>
 </div>		
 <!-- /Page Content -->	

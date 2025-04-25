@@ -16,7 +16,7 @@
                         </div>
                         <div class="col-md-12 col-lg-6 login-right">
                             <div class="login-header">
-                                <h3>Patient Register 
+                                <h3>انشاء حساب المريض
                                     <a href="">Are you a Doctor?</a>
                                 </h3>
                             </div>
@@ -24,43 +24,48 @@
                             <!-- Register Form -->
                             <form method="post" action="{% url 'users:patient_signup' %}">
                                 {% csrf_token %}
+                            
+                                {% if error %}
+                                    <div class="alert alert-danger text-center">
+                                        {{ error }}
+                                    </div>
+                                {% endif %}
+                            
                                 <div class="mb-3 form-focus">
-                                    <input type="text" name="name" class="form-control floating" required>
-                                    <label class="focus-label">Name</label>
+                                    <input type="text" name="username" class="form-control floating" required>
+                                    <label class="focus-label">اسم المستخدم</label>
+                                </div>
+                                <div class="mb-3 form-focus">
+                                    <input type="text" name="first_name" class="form-control floating" required>
+                                    <label class="focus-label">الأسم الأول</label>
+                                </div>
+                                <div class="mb-3 form-focus">
+                                    <input type="text" name="last_name" class="form-control floating" required>
+                                    <label class="focus-label">الأسم الأخير</label>
                                 </div>
                                 <div class="mb-3 form-focus">
                                     <input type="email" name="email" class="form-control floating" required>
-                                    <label class="focus-label">Email Address</label>
+                                    <label class="focus-label">عنوان البريد الألكتروني</label>
                                 </div>
                                 <div class="mb-3 form-focus">
                                     <input type="text" name="mobile_number" class="form-control floating" required>
-                                    <label class="focus-label">Mobile Number</label>
+                                    <label class="focus-label">رقم الهاتف</label>
                                 </div>
                                 <div class="mb-3 form-focus">
                                     <input type="password" name="password" class="form-control floating" required>
-                                    <label class="focus-label">Create Password</label>
+                                    <label class="focus-label">كلمة المرور</label>
                                 </div>
+                                <div class="mb-3 form-focus">
+                                    <input type="password" name="confirm_password" class="form-control floating" required>
+                                    <label class="focus-label">تأكيد كلمة المرور</label>
+                                </div>
+                            
                                 <div class="text-end">
                                     <a class="forgot-link" href="{% url 'users:login' %}">Already have an account?</a>
                                 </div>
-                                <button class="btn btn-primary w-100 btn-lg login-btn" type="submit">Signup</button>
-                                <div class="login-or">
-                                    <span class="or-line"></span>
-                                    <span class="span-or">or</span>
-                                </div>
-                                <div class="row social-login">
-                                    <div class="col-6">
-                                        <a href="#" class="btn btn-facebook w-100">
-                                            <i class="fab fa-facebook-f me-1"></i> Login
-                                        </a>
-                                    </div>
-                                    <div class="col-6">
-                                        <a href="#" class="btn btn-google w-100">
-                                            <i class="fab fa-google me-1"></i> Login
-                                        </a>
-                                    </div>
-                                </div>
+                                <button class="btn btn-primary w-100 btn-lg login-btn" type="submit">انشاء</button>
                             </form>
+                            
 
                             <!-- /Register Form -->
                         </div>
