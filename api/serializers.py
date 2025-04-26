@@ -247,21 +247,21 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 
-# class PaymentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Payment
-#         fields = [
-#             'id', 'user', 'booking', 'payment_method', 'transfer_image',
-#             'payment_status', 'payment_date', 'payment_subtotal',
-#             'payment_discount', 'payment_totalamount', 'payment_currency',
-#             'payment_type', 'payment_note'
-#         ]
-#         extra_kwargs = {
-#             'transfer_image': {'required': False, 'allow_null': True},
-#             'user': {'read_only': True},
-#             'payment_date': {'read_only': True},
-#             'payment_status': {'read_only': True}
-#         }
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'user', 'booking', 'payment_method', 'transfer_image',
+            'payment_status', 'payment_date', 'payment_subtotal',
+            'payment_discount', 'payment_totalamount', 'payment_currency',
+            'payment_type', 'payment_note'
+        ]
+        extra_kwargs = {
+            'transfer_image': {'required': False, 'allow_null': True},
+            'user': {'read_only': True},
+            'payment_date': {'read_only': True},
+            'payment_status': {'read_only': True}
+        }
 
 
 
