@@ -71,7 +71,7 @@
                                 </div>
                             </div>
                             <div id="account_input" class="payment-input" style="display: none;">
-                                <label for="account_image" class="form-label">صورة سند الحساب</label>
+                                <label for="account_image" class="form-label">صورة سند الحساب (اختياري)</label>
                                 <input type="file" id="account_image" name="account_image" class="form-control" accept="image/*">
                                 <div class="invalid-feedback">
                                     يرجى إرفاق صورة الحساب
@@ -106,7 +106,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="booking-summary mt-4">
                             <h5>تفاصيل الحجز:</h5>
                             <div class="booking-summary-details">
@@ -115,7 +115,7 @@
                                 <p><strong>الوقت:</strong> {{ selected_shift.start_time|time:"H:i" }}</p>
                                 <p><strong>نوع الحجز:</strong> {% if is_online %}استشارة عن بعد{% else %}زيارة في العيادة{% endif %}</p>
                             </div>
-                            
+
                             <div class="price-details mt-3">
                                 <h5>تفاصيل السعر:</h5>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -138,10 +138,10 @@ $(document).ready(function() {
     // عند تغيير نوع الدفع
     $('input[name="payment_type"]').change(function() {
         const selectedType = $(this).val();
-        
+
         // إخفاء جميع حقول الإدخال
         $('.payment-input').hide();
-        
+
         // إظهار حقل الإدخال المحدد
         if (selectedType === 'transfer') {
             $('#transfer_input').show();
@@ -149,7 +149,7 @@ $(document).ready(function() {
             $('#transfer_number').prop('required', true);
         } else {
             $('#account_input').show();
-            $('#account_image').prop('required', true);
+            $('#account_image').prop('required', false); // جعل حقل صورة السند غير مطلوب
             $('#transfer_number').prop('required', false);
         }
     });
@@ -160,7 +160,7 @@ $(document).ready(function() {
         $('.payment-details').hide();
         // إزالة الفئة النشطة من جميع العناصر
         $('.payment-method-item label').removeClass('active');
-        
+
         // إظهار تفاصيل طريقة الدفع المحددة
         $(this).closest('label').addClass('active')
             .find('.payment-details').show();
@@ -199,27 +199,27 @@ $(document).ready(function() {
         padding: 20px;
         border-radius: 8px;
     }
-    
+
     .booking-summary h5 {
         color: #272b41;
         margin-bottom: 15px;
         font-weight: 600;
     }
-    
+
     .booking-summary-details p {
         margin-bottom: 8px;
         color: #757575;
     }
-    
+
     .booking-summary-details strong {
         color: #272b41;
     }
-    
+
     .price-details {
         border-top: 1px solid #dee2e6;
         padding-top: 15px;
     }
-    
+
     .price {
         color: #20c0f3;
         font-size: 20px;

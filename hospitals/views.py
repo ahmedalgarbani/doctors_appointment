@@ -273,13 +273,24 @@ def index(request):
     # حساب عدد الإشعارات غير المقروءة
     unread_notifications_count = notifications.filter(status='0').count()
 
+    # Get hospital location from HospitalUpdateRequest
+    hospital_location = None
+    try:
+        update_request = HospitalUpdateRequest.objects.filter(hospital=hospital, status='approved').first()
+        if update_request and update_request.location:
+            hospital_location = update_request.location
+            print(f"Found hospital location: {hospital_location}")
+    except Exception as e:
+        print(f"Error getting hospital location: {str(e)}")
+
     context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
         'users': User.objects.all(),
         'bookings': bookings,
-        'city':city,
+        'city': city,
+        'cities': City.objects.filter(status=True),  # Add all active cities for dropdown
         'doctors': doctors,
         'patients':patients,
         'speciality':Specialty.objects.filter(status=True),
@@ -323,8 +334,9 @@ def index(request):
 
 def blog_list(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
+    hospital = get_object_or_404(Hospital, user=user)
+    # Use prefetch_related to efficiently load comments and their users
+    posts = Post.objects.filter(author=hospital).prefetch_related('comments__user')
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -334,12 +346,35 @@ def blog_list(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
 
+
+@login_required(login_url='/user/login')
+def blog_list_json(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, user=user)
+    posts = Post.objects.filter(author=hospital, status=True)
+
+    blogs_data = []
+    for post in posts:
+        blog_data = {
+            'id': post.id,
+            'title': post.title,
+            'content_preview': post.content[:100] + '...' if len(post.content) > 100 else post.content,
+            'image_url': post.image.url if post.image else '',
+            'author_name': hospital.name,
+            'created_at': post.created_at.strftime('%Y-%m-%d'),
+            'status': post.status
+        }
+        blogs_data.append(blog_data)
+
+    return JsonResponse({'status': 'success', 'blogs': blogs_data})
+
 @login_required(login_url='/user/login')
 
 def blog_pending_list(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
+    hospital = get_object_or_404(Hospital, user=user)
+    # Use prefetch_related to efficiently load comments and their users
+    posts = Post.objects.filter(author=hospital).prefetch_related('comments__user')
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -355,7 +390,7 @@ def blog_pending_list(request):
 
 def add_blog(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -383,7 +418,7 @@ def add_blog(request):
 
 def edit_blog(request, blog_id):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
     blog = get_object_or_404(Post, id=blog_id, author=hospital)
 
     if request.method == 'POST':
@@ -407,6 +442,25 @@ def edit_blog(request, blog_id):
         'blog': blog,
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-edit-blog.html', context)
+
+
+@login_required(login_url='/user/login')
+def blog_detail(request, blog_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, user=user)
+    blog = get_object_or_404(Post, id=blog_id, author=hospital)
+
+    # استخدام prefetch_related لتحميل التعليقات ومستخدميها بكفاءة
+    blog = Post.objects.prefetch_related('comments__user').get(id=blog_id, author=hospital)
+
+    # ترتيب التعليقات من الأحدث إلى الأقدم
+    comments = blog.comments.all().order_by('-created_at')
+
+    context = {
+        'blog': blog,
+        'comments': comments,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-blog-detail.html', context)
 
 
 
@@ -442,35 +496,7 @@ def delete_notification(notification_id, user):
 
 
 
-@login_required(login_url='/user/login')
 
-def blog_list(request):
-    user = request.user
-    hospital = get_object_or_404(Hospital, user_id=user)
-    posts = Post.objects.filter(author=hospital)
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'allBlogs': page_obj,
-    }
-    return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
-
-@login_required(login_url='/user/login')
-
-def blog_pending_list(request):
-    user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'allBlogs': page_obj,
-    }
-    return render(request, 'frontend/dashboard/hospitals/sections/hospital_pending_blog.html', context)
 
 
 
@@ -478,7 +504,7 @@ def blog_pending_list(request):
 
 def add_blog(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -506,7 +532,7 @@ def add_blog(request):
 
 def edit_blog(request, blog_id):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
     blog = get_object_or_404(Post, id=blog_id, author=hospital)
 
     if request.method == 'POST':
@@ -568,6 +594,10 @@ def hospital_delete(request, pk):
 
 def hospital_request_success(request):
     """صفحة نجاح تقديم الطلب"""
+    # طباعة رسالة تأكيد للتحقق من وصول الطلب إلى هذه الوظيفة
+    print("\n\n*** تم الوصول إلى صفحة نجاح تقديم الطلب ***\n\n")
+    print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
+    print(f"\n\n*** المستخدم مسجل الدخول: {request.user.is_authenticated} ***\n\n")
     return render(request, 'frontend/auth/hospital-request-success.html')
 
 def hospital_request_status(request, request_id):
@@ -583,7 +613,7 @@ def hospital_request_status(request, request_id):
 @login_required(login_url='/user/login')
 
 def filter_doctors(request):
-    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+    hospital = get_object_or_404(Hospital, user=request.user)
 
     # Get all doctors for this hospital
     doctors = Doctor.objects.filter(hospitals=hospital)
@@ -1350,6 +1380,30 @@ def schedule_timings(request):
                         'message': 'صيغة الوقت غير صحيحة'
                     })
 
+                # التحقق من عدم وجود تعارض في مواعيد الطبيب بين المستشفيات المختلفة
+                # البحث عن جميع مواعيد الطبيب في نفس اليوم في جميع المستشفيات الأخرى
+                conflicting_schedules = DoctorSchedules.objects.filter(
+                    doctor=doctor,
+                    day=day
+                ).exclude(hospital=hospital)
+
+                # التحقق من كل جدول للتأكد من عدم وجود تداخل في الأوقات
+                for schedule in conflicting_schedules:
+                    conflicting_shifts = DoctorShifts.objects.filter(
+                        doctor_schedule=schedule,
+                        start_time__lt=end_time_obj,
+                        end_time__gt=start_time_obj
+                    )
+
+                    if conflicting_shifts.exists():
+                        conflicting_shift = conflicting_shifts.first()
+                        hospital_name = conflicting_shift.hospital.name
+                        shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'يوجد تعارض في المواعيد: الطبيب لديه موعد في مستشفى {hospital_name} في نفس اليوم من الساعة {shift_time}'
+                        })
+
                 # Get or create the schedule for this doctor and day
                 schedule, created = DoctorSchedules.objects.get_or_create(
                     doctor=doctor,
@@ -1395,10 +1449,6 @@ def schedule_timings(request):
                 return JsonResponse({
                     'status': 'error',
                     'message': 'حدث خطأ أثناء إضافة الموعد'
-                })
-                return JsonResponse({
-                    'status': 'error',
-                    'message': str(e)
                 })
 
         # GET request - تم التعديل هنا
@@ -1459,10 +1509,7 @@ def schedule_timings(request):
                     'message': 'الطبيب غير موجود'
                 })
 
-            return JsonResponse({
-                'status': 'success',
-                'doctor_schedules': schedules_data
-            })
+            # هذا الكود غير مطلوب لأنه تم بالفعل إرجاع الاستجابة في الأعلى
 
         context = {
             'doctors': doctors,
@@ -1647,38 +1694,196 @@ def invoice_detail(request, invoice_id):
 @login_required
 def update_hospital_profile(request):
     """معالجة طلب تعديل بيانات ملف المستشفى الشخصي"""
+    print("\n\n*** update_hospital_profile view called ***\n\n")
+    print(f"Request method: {request.method}")
+    print(f"User type: {request.user.user_type}")
+
     if request.method == 'POST':
+        print(f"POST data: {request.POST}")
+        print(f"FILES data: {request.FILES}")
+
         try:
-            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-            print(request.POST)
-            # Collect the updated data from the form
-            name = request.POST.get('hospital_name')
-            location = request.POST.get('hospital_location')
-            description = request.POST.get('description')
-            about = request.POST.get('about')
-            photo = request.FILES.get('photo')
+            # Get the hospital based on user type
+            hospital = None
+            if request.user.user_type == 'hospital_manager':
+                hospital = Hospital.objects.get(user=request.user)
+                print(f"Found hospital for manager: {hospital.name} (ID: {hospital.id})")
+            elif request.user.user_type == 'hospital_staff':
+                # Import here to avoid circular imports
+                from hospital_staff.models import HospitalStaff
+                staff = HospitalStaff.objects.get(user=request.user)
+                hospital = staff.hospital
+                print(f"Found hospital for staff: {hospital.name} (ID: {hospital.id})")
 
-            # Create the update request object
-            update_request = HospitalUpdateRequest(
-                hospital=hospital,
-                name=name if name != hospital.name else None,
-                location=location if location != hospital.location else None,
-                description=description if description != hospital.description else None,
-                about=about if about != hospital.about else None,
-                photo=photo if photo else None,
-                created_by=request.user
-            )
-            update_request.save()
+            # Update user's information (mobile number, username, email, profile picture, city, state)
+            mobile_number = request.POST.get('mobile_number')
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            user_city = request.POST.get('user_city')
+            user_state = request.POST.get('user_state')
+            profile_picture = request.FILES.get('profile_picture')
 
-            messages.success(request, 'تم إرسال طلب تعديل البيانات بنجاح. سيتم مراجعته من قبل المسؤول.')
-            return redirect('hospitals:index')
+            user_updated = False
 
+            # Check if username is being changed and is not already taken
+            if username and username != request.user.username:
+                if CustomUser.objects.filter(username=username).exclude(id=request.user.id).exists():
+                    messages.error(request, 'اسم المستخدم مستخدم بالفعل. يرجى اختيار اسم مستخدم آخر.')
+                    return redirect('/hospital/?section=doctor_profile_settings')
+                request.user.username = username
+                user_updated = True
+                print(f"Updated username to: {username}")
 
+            # Check if email is being changed and is not already taken
+            if email and email != request.user.email:
+                if CustomUser.objects.filter(email=email).exclude(id=request.user.id).exists():
+                    messages.error(request, 'البريد الإلكتروني مستخدم بالفعل. يرجى اختيار بريد إلكتروني آخر.')
+                    return redirect('/hospital/?section=doctor_profile_settings')
+                request.user.email = email
+                user_updated = True
+                print(f"Updated email to: {email}")
+
+            if mobile_number:
+                request.user.mobile_number = mobile_number
+                user_updated = True
+                print(f"Updated user mobile number to: {mobile_number}")
+
+            # Update user city and state
+            if user_city is not None:
+                request.user.city = user_city
+                user_updated = True
+                print(f"Updated user city to: {user_city}")
+
+            if user_state is not None:
+                request.user.state = user_state
+                user_updated = True
+                print(f"Updated user state to: {user_state}")
+
+            if profile_picture:
+                request.user.profile_picture = profile_picture
+                user_updated = True
+                print(f"Updated user profile picture")
+
+            if user_updated:
+                request.user.save()
+                print(f"User information saved successfully")
+
+            # Only hospital managers can update hospital information
+            if request.user.user_type == 'hospital_manager' and hospital:
+                # Update hospital name
+                hospital_name = request.POST.get('hospital_name')
+                if hospital_name:
+                    hospital.name = hospital_name
+                    print(f"Updated hospital name to: {hospital_name}")
+
+                # Update hospital description
+                description = request.POST.get('description')
+                if description:
+                    hospital.description = description
+                    print(f"Updated hospital description")
+
+                # Update hospital about section
+                about = request.POST.get('about')
+                if about:
+                    hospital.about = about
+                    print(f"Updated hospital about section")
+
+                # Handle logo upload
+                if 'logo' in request.FILES and request.FILES['logo']:
+                    hospital.logo = request.FILES['logo']
+                    print(f"Updated hospital logo")
+
+                # Save the hospital object
+                hospital.save()
+                print(f"Hospital saved successfully")
+
+                # Handle city selection
+                city_id = request.POST.get('city_id')
+                if city_id and city_id.isdigit():
+                    try:
+                        city = City.objects.get(id=city_id)
+                        hospital.city = city
+                        hospital.save()  # Save the hospital after updating the city
+                        print(f"Updated hospital city to: {city.name}")
+                    except City.DoesNotExist:
+                        print(f"City with ID {city_id} not found")
+                    except Exception as city_error:
+                        print(f"Error updating city: {str(city_error)}")
+
+                # Handle phone number updates
+                try:
+                    # Update existing phone numbers
+                    for key, value in request.POST.items():
+                        # Check for phone number updates
+                        if key.startswith('phone_number_'):
+                            phone_id = key.replace('phone_number_', '')
+                            phone_type_key = f'phone_type_{phone_id}'
+                            phone_type = request.POST.get(phone_type_key)
+
+                            if phone_id.isdigit():
+                                try:
+                                    phone = PhoneNumber.objects.get(id=phone_id, hospital=hospital)
+                                    phone.number = value
+                                    if phone_type:
+                                        phone.phone_type = phone_type
+                                    phone.save()
+                                    print(f"Updated phone number {phone_id} to {value} ({phone_type})")
+                                except PhoneNumber.DoesNotExist:
+                                    print(f"Phone number with ID {phone_id} not found")
+
+                    # Handle phone number deletions
+                    for key, value in request.POST.items():
+                        if key.startswith('delete_phone_'):
+                            phone_id = key.replace('delete_phone_', '')
+                            if phone_id.isdigit():
+                                try:
+                                    phone = PhoneNumber.objects.get(id=phone_id, hospital=hospital)
+                                    phone.delete()
+                                    print(f"Deleted phone number {phone_id}")
+                                except PhoneNumber.DoesNotExist:
+                                    print(f"Phone number with ID {phone_id} not found for deletion")
+
+                    # Add new phone numbers
+                    for key, value in request.POST.items():
+                        if key.startswith('new_phone_number_'):
+                            counter = key.replace('new_phone_number_', '')
+                            phone_type_key = f'new_phone_type_{counter}'
+                            phone_type = request.POST.get(phone_type_key, 'mobile')
+
+                            if value.strip():  # Only add if the number is not empty
+                                PhoneNumber.objects.create(
+                                    hospital=hospital,
+                                    number=value,
+                                    phone_type=phone_type,
+                                    created_by=request.user
+                                )
+                                print(f"Added new phone number: {value} ({phone_type})")
+                except Exception as phone_error:
+                    print(f"Error handling phone numbers: {str(phone_error)}")
+                    import traceback
+                    traceback.print_exc()
+
+            if request.user.user_type == 'hospital_manager':
+                messages.success(request, 'تم تحديث بيانات المستشفى بنجاح.')
+            else:
+                messages.success(request, 'تم تحديث بياناتك الشخصية بنجاح.')
+
+            print("Redirecting to profile settings page")
+            return redirect('/hospital/?section=doctor_profile_settings')
+
+        except Hospital.DoesNotExist:
+            print("Hospital not found for current user")
+            messages.error(request, 'لم يتم العثور على المستشفى المرتبط بالمستخدم الحالي.')
         except Exception as e:
-            messages.error(request, f'حدث خطأ أثناء معالجة طلب التعديل: {e}.')
-            return redirect('hospitals:index')
+            print(f"Error updating profile: {str(e)}")
+            print(f"Exception type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f'حدث خطأ أثناء تحديث البيانات: {e}.')
+    else:
+        print("Not a POST request")
 
-    return redirect('hospitals:index')
+    return redirect('/hospital/?section=doctor_profile_settings')
 
 @login_required(login_url='/user/login')
 def get_doctor(request, doctor_id):
@@ -1938,5 +2143,4 @@ def doctor_details(request, doctor_id):
         print(f"Error in doctor_details view: {str(e)}")  # Debug print
         messages.error(request, str(e))
         return redirect('hospitals:index')
-    
-    
+

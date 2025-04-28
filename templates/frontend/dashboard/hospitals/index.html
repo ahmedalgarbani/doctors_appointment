@@ -75,7 +75,7 @@
                     <span>الاطباء</span>
                   </a>
                 </li>
-                
+
                 <li>
                   <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
                     <i class="fas fa-clock"></i>
@@ -174,7 +174,8 @@
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-      
+
+
     </div>
   </div>
 </div>
@@ -254,13 +255,23 @@
     // تحديد القسم المطلوب عرضه
     let currentSection = sectionParam || 'hospital_dashboard';
 
+    console.log("Current section from URL:", currentSection);
+
     // تحديث عنوان الصفحة
     const title = sectionTitles[currentSection] || "لوحة التحكم";
     updateBreadcrumb(title);
 
     // إخفاء جميع الأقسام وإظهار القسم المطلوب
     $(".section").addClass("d-none");
-    $(`.${currentSection}`).removeClass("d-none");
+
+    // Special handling for profile settings section
+    if (currentSection === 'doctor_profile_settings') {
+        console.log("Showing profile settings section");
+        $(".doctor_profile_settings").removeClass("d-none");
+    } else {
+        console.log("Showing section:", currentSection);
+        $(`.${currentSection}`).removeClass("d-none");
+    }
 
     // تحديث القائمة النشطة
     $(".dashboard-menu li").removeClass("active");

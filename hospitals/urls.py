@@ -25,6 +25,7 @@ urlpatterns = [
     path('hospitals/pending-blogs', views.blog_pending_list, name='blog_pending_list'),
     path('hospitals/add-blog/', views.add_blog, name='add_blog'),
     path('hospitals/edit-blog/<int:blog_id>/', views.edit_blog, name='edit_blog'),
+    path('hospitals/blog-detail/<int:blog_id>/', views.blog_detail, name='blog_detail'),
     path('add-payment/', views.add_payment_method, name='add_payment_method'),
     path('update-payment/', views.update_payment_method, name='update_payment_method'),
     path('delete-payment/', views.delete_payment_method, name='delete_payment_method'),

@@ -1,0 +1,179 @@
+{% extends "frontend/layouts/master.html" %}
+{% block content %}
+
+<div class="content" style="min-height: 159.1px;">
+    <div class="container">
+        <!-- Spacer for pushing the button down -->
+        <div class="row">
+            <div class="col-12" style="height: 30px;"></div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <a href="{% url 'hospitals:blog_list' %}" class="btn btn-primary" style="display: inline-block; padding: 8px 20px; font-size: 16px;">
+                    <i class="fas fa-arrow-left me-2"></i> العودة إلى قائمة المدونات
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="col-md-10 col-lg-10 col-xl-10 mx-auto">
+
+                    <!-- Blog Detail -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="blog-view">
+                                <div class="blog blog-single-post">
+                                    <!-- Blog Image -->
+                                    <div class="blog-image text-center">
+                                        <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid rounded" style="max-width: 70%; max-height: 400px; object-fit: contain;">
+                                    </div>
+
+                                    <!-- Blog Title -->
+                                    <h2 class="blog-title mt-4">{{ blog.title }}</h2>
+
+                                    <!-- Blog Meta -->
+                                    <div class="blog-info clearfix">
+                                        <div class="post-left">
+                                            <ul class="entry-meta meta-item">
+                                                <li>
+                                                    <div class="post-author">
+                                                        <a href="javascript:void(0);">
+                                                            {% if blog.author.details.photo %}
+                                                            <img src="{{ blog.author.details.photo.url }}" alt="{{ blog.author.name }}" class="rounded-circle" width="40">
+                                                            {% endif %}
+                                                            <span>{{ blog.author.name }}</span>
+                                                        </a>
+                                                    </div>
+                                                </li>
+                                                <li><i class="far fa-calendar"></i> {{ blog.created_at|date:"d M Y" }}</li>
+                                                <li><i class="far fa-comments"></i> {{ comments.count }} تعليقات</li>
+                                                <li><i class="far fa-eye"></i> {{ blog.views_count }} مشاهدة</li>
+                                                <li>
+                                                    <span class="badge {% if blog.status %}bg-success{% else %}bg-warning{% endif %} text-white">
+                                                        {% if blog.status %}منشور{% else %}مسودة{% endif %}
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Blog Content -->
+                                    <div class="blog-content">
+                                        <p>{{ blog.content|linebreaks }}</p>
+                                    </div>
+
+                                    <!-- Blog Categories and Tags -->
+                                    <div class="blog-tags mt-4">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <span class="badge bg-primary me-2">التصنيف: {{ blog.categories.name }}</span>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                {% for tag in blog.tags.all %}
+                                                <span class="badge bg-info me-1">{{ tag.name }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Blog Actions -->
+                                    <div class="blog-actions mt-4 d-flex justify-content-between">
+                                        <a href="{% url 'hospitals:edit_blog' blog.id %}" class="btn btn-primary">
+                                            <i class="far fa-edit me-1"></i> تعديل المدونة
+                                        </a>
+                                        <a href="{% url 'home:blog:post_detail' blog.slug %}" class="btn btn-info" target="_blank">
+                                            <i class="fas fa-external-link-alt me-1"></i> عرض في الموقع
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="card mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="card-title mb-0">
+                                <i class="far fa-comments me-2"></i> التعليقات ({{ comments.count }})
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if comments %}
+                            <div class="comments-list">
+                                {% for comment in comments %}
+                                <div class="comment-item p-3 mb-3" style="background-color: #f8f9fa; border-radius: 8px; border-right: 4px solid #20c0f3;">
+                                    <div class="d-flex">
+                                        <div class="comment-avatar me-3">
+                                            {% if comment.user.profile_picture %}
+                                            <img src="{{ comment.user.profile_picture.url }}" alt="{{ comment.user.username }}" class="rounded-circle" width="60" height="60">
+                                            {% else %}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                <span style="font-size: 24px;">{{ comment.user.username|first|upper }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="comment-content flex-grow-1">
+                                            <div class="comment-meta d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <h5 class="mb-0 fw-bold">{{ comment.user.username }}</h5>
+                                                    <small class="text-muted">
+                                                        <i class="far fa-clock me-1"></i> {{ comment.created_at|date:"d M Y - h:i A" }}
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <span class="badge {% if comment.status %}bg-success{% else %}bg-secondary{% endif %}">
+                                                        {% if comment.status %}معتمد{% else %}قيد المراجعة{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="comment-text">
+                                                <p class="mb-0">{{ comment.content|linebreaks }}</p>
+                                            </div>
+                                            <div class="comment-user-info mt-2">
+                                                <small class="text-muted">
+                                                    <i class="far fa-envelope me-1"></i> {{ comment.user.email }}
+                                                    {% if comment.user.phone_number %}
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-phone me-1"></i> {{ comment.user.phone_number }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="far fa-comments fa-4x text-muted mb-3"></i>
+                                <h5>لا توجد تعليقات حتى الآن</h5>
+                                <p class="text-muted">كن أول من يعلق على هذه المدونة من خلال صفحة المدونة العامة.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // تطبيق تأثيرات عند تمرير الماوس على التعليقات
+        $('.comment-item').hover(
+            function() {
+                $(this).css('box-shadow', '0 5px 15px rgba(0,0,0,0.1)').css('transform', 'translateY(-2px)');
+            },
+            function() {
+                $(this).css('box-shadow', 'none').css('transform', 'translateY(0)');
+            }
+        );
+    });
+</script>
+{% endblock extra_js %}

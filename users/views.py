@@ -77,7 +77,7 @@ def register_step1(request):
         request.session['city'] = city
         request.session['state'] = state
 
-        return redirect('users:register_step2') 
+        return redirect('users:register_step2')
 
     return render(request, 'frontend/auth/patient-register-step1.html')
 
@@ -270,35 +270,39 @@ def hospital_account_request(request):
             medical_license = request.FILES.get('medical_license')
 
             # 1. التحقق من الحقول المطلوبة
-            if not all([hospital_name, manager_full_name, manager_email, manager_phone,logo, password, confirm_password, hospital_location]):
+            if not all([hospital_name, manager_full_name, manager_email, manager_phone, password, confirm_password, hospital_location]):
                 messages.error(request, 'الرجاء ملء جميع الحقول المطلوبة.')
-                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
+
+            # التحقق من الملفات المطلوبة
+            if not logo:
+                messages.error(request, 'الرجاء رفع شعار المستشفى.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
+
+            if not commercial_record:
+                messages.error(request, 'الرجاء رفع السجل التجاري.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
+
+            if not medical_license:
+                messages.error(request, 'الرجاء رفع الترخيص الطبي.')
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
 
             # 2. التحقق من صحة البريد الإلكتروني
             try:
               validate_email(manager_email)
             except ValidationError:
                 messages.error(request, 'البريد الإلكتروني غير صالح.')
-                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
 
             # 3. التحقق من تطابق كلمتي المرور
             if password != confirm_password:
                 messages.error(request, 'كلمتا المرور غير متطابقتين.')
-                return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+                return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
 
-            # # 4. التحقق من صحة رقم الهاتف (يمكنك إضافة شروط أكثر تعقيدًا إذا لزم الأمر)
-            # if not manager_phone.isdigit() or len(manager_phone) < 9:
-            #      messages.error(request, 'رقم الهاتف غير صالح.')
-            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
-
-            #  # 5. التحقق من حجم الملفات (يمكنك تعديل الحجم الأقصى حسب الحاجة)
-            # max_file_size = settings.MAX_UPLOAD_SIZE
-            # if commercial_record and commercial_record.size > max_file_size:
-            #       messages.error(request, f'حجم السجل التجاري كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
-            #       return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
-            # if medical_license and medical_license.size > max_file_size:
-            #      messages.error(request, f'حجم الترخيص الطبي كبير جدًا. الحد الأقصى هو {max_file_size / (1024 * 1024) } ميجابايت')
-            #      return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            # 4. التحقق من صحة رقم الهاتف
+            if not manager_phone.isdigit() or len(manager_phone) < 9:
+                 messages.error(request, 'رقم الهاتف غير صالح. يجب أن يتكون من أرقام فقط ولا يقل عن 9 أرقام.')
+                 return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
 
             # إنشاء طلب جديد
             hospital_request = HospitalAccountRequest(
@@ -310,23 +314,23 @@ def hospital_account_request(request):
                 manager_password=password,
                 hospital_location=hospital_location,
                 notes=notes,
+                commercial_record=commercial_record,
+                medical_license=medical_license,
                 created_by=request.user if request.user.is_authenticated else None
             )
-
-            # معالجة الملفات المرفقة
-            if commercial_record:
-                hospital_request.commercial_record = commercial_record
-            if medical_license:
-                hospital_request.medical_license = medical_license
 
             hospital_request.save()
 
             messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً.')
-            return redirect('hospitals:hospital_request_success')
+            print("\n\n*** تم حفظ طلب فتح حساب المستشفى بنجاح. جاري التوجيه إلى صفحة النجاح ***\n\n")
+            # استخدام المسار الكامل للتوجيه
+            success_url = '/hospital/account/request/success/'
+            print(f"\n\n*** جاري التوجيه إلى: {success_url} ***\n\n")
+            return redirect(success_url)
 
         except Exception as e:
             messages.error(request, f'حدث خطأ أثناء معالجة طلبك: {e}. يرجى المحاولة مرة أخرى.')
-            return render(request, 'frontend/auth/hospital-manager-register.html', request.POST)
+            return render(request, 'frontend/auth/hospital-manager-register.html', {'form_data': request.POST})
 
     return render(request, 'frontend/auth/hospital-manager-register.html')
 

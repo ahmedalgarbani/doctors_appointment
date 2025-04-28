@@ -17,18 +17,18 @@
         </div>
     </div>
     <!-- /Breadcrumb -->
-    
+
     <!-- Page Content -->
     <div class="content">
         <div class="container">
-        
+
             <div class="row">
                 <div class="col-lg-8 col-md-12">
-                
+
                     <div class="row blog-grid-row">
                         {% for post in page_obj %}
                         <div class="col-md-6 col-sm-12">
-                        
+
                             <!-- Blog Post -->
                             <div class="blog grid-blog">
                                 <div class="blog-image">
@@ -42,6 +42,8 @@
                                             </div>
                                         </li>
                                         <li><i class="far fa-clock"></i>{{ post.created_at|date:"F j, Y" }}</li>
+                                        <li><i class="far fa-eye"></i>{{ post.views_count }} Views</li>
+                                        <li><i class="far fa-comments"></i>{{ post.comments.count }} Comments</li>
                                     </ul>
                                     <h3 class="blog-title"><a href="{{ post.get_absolute_url }}">{{post.title}}</a></h3>
                                     <p class="mb-0">{{ post.content|truncatechars:70 }}
@@ -49,7 +51,7 @@
                                 </div>
                             </div>
                             <!-- /Blog Post -->
-                            
+
                         </div>
                         {% endfor %}
                     </div>
@@ -60,7 +62,7 @@
             <div class="blog-pagination">
                 <nav>
                     <ul class="pagination justify-content-center">
-                        
+
                         {% if page_obj.has_previous %}
                             <li class="page-item">
                                 <a class="page-link" href="?page=1" tabindex="-1"><i class="fas fa-angle-double-left"></i></a>
@@ -114,7 +116,7 @@
 {% endif %}
 
                 </div>
-                
+
                 <!-- Blog Sidebar -->
                 <div class="col-lg-4 col-md-12 sidebar-right theiaStickySidebar">
 
@@ -153,8 +155,8 @@
                                     </div>
                                 </li>
                                 {% endfor %}
-                                
-                              
+
+
                             </ul>
                         </div>
                     </div>
@@ -162,7 +164,7 @@
                     {% endif %}
                     <!-- Categories -->
                     {% if categories %}
-                   
+
                     <div class="card category-widget">
                         <div class="card-header">
                             <h4 class="card-title">Blog Categories</h4>
@@ -177,7 +179,7 @@
                                     {% endwith %}
                                 </span></a></li>
                                 {% endfor %}
-                               
+
                             </ul>
                         </div>
                     </div>
@@ -194,7 +196,7 @@
                                 {% for tag in tags %}
                                 <li><a href="{{ tag.get_absolute_url }}" class="tag">{{tag}}</a></li>
                                 {% endfor %}
-                                
+
                             </ul>
                         </div>
                     </div>
@@ -202,9 +204,9 @@
                     {% endif %}
                 </div>
                 <!-- /Blog Sidebar -->
-                
+
             </div>
         </div>
-    </div>	
+    </div>
     <!-- /Page Content -->
 {% endblock content %}

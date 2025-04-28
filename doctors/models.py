@@ -64,7 +64,7 @@ class Doctor(BaseModel):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('home:blog:post_detail', args=[self.slug])
+        return reverse('doctor:doctor_detail', args=[self.slug])
 
     class Meta:
         verbose_name = "الطبيب"
@@ -91,8 +91,8 @@ class DoctorSchedules(models.Model):
 
     class Meta:
         ordering = ['day', 'doctor']
-        verbose_name = "جدول الطبيب"
-        verbose_name_plural = "جداول الأطباء"
+        verbose_name = "جدول ايام الطبيب"
+        verbose_name_plural = "ايام الأطباء"
 
 
 class DoctorShifts(models.Model):
@@ -121,6 +121,33 @@ class DoctorShifts(models.Model):
         # التحقق من أن المستشفى مرتبط بالطبيب
         if not self.doctor_schedule.doctor.hospitals.filter(id=self.hospital.id).exists():
             raise ValidationError('هذا الطبيب لا يعمل في هذا المستشفى')
+
+        # التحقق من عدم وجود تعارض في مواعيد الطبيب بين المستشفيات المختلفة
+        doctor = self.doctor_schedule.doctor
+        day = self.doctor_schedule.day
+
+        # البحث عن جميع مواعيد الطبيب في نفس اليوم في جميع المستشفيات
+        conflicting_schedules = DoctorSchedules.objects.filter(
+            doctor=doctor,
+            day=day
+        ).exclude(hospital=self.hospital)
+
+        # التحقق من كل جدول للتأكد من عدم وجود تداخل في الأوقات
+        for schedule in conflicting_schedules:
+            conflicting_shifts = DoctorShifts.objects.filter(
+                doctor_schedule=schedule,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            )
+
+            if conflicting_shifts.exists():
+                conflicting_shift = conflicting_shifts.first()
+                hospital_name = conflicting_shift.hospital.name
+                shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+                raise ValidationError(
+                    f'يوجد تعارض في المواعيد: الطبيب لديه موعد في مستشفى {hospital_name} '
+                    f'في نفس اليوم من الساعة {shift_time}'
+                )
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -185,7 +212,7 @@ class DoctorPricing(models.Model):
 
     class Meta:
         verbose_name = "جدول اسعار الطبيب"
-        verbose_name_plural = "جداول اسعار الأطباء"
+        verbose_name_plural = " اسعار الأطباء"
 
 
 class DoctorPricingHistory(BaseModel):
