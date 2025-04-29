@@ -96,13 +96,14 @@ class DoctorSerializer(serializers.ModelSerializer):
     pricing = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    specialty_name = serializers.SerializerMethodField()
 
 
     class Meta:
         model = Doctor
         fields = [
             "id", "created_at", "updated_at", "deleted_at",
-            "full_name", "birthday", "photo",
+            "full_name", "birthday", "photo","specialty","specialty_name",
             "gender",  "experience_years", "sub_title",
             "about",  "show_at_home",
             "hospitals", "schedules", "pricing",
@@ -116,6 +117,9 @@ class DoctorSerializer(serializers.ModelSerializer):
     def get_pricing(self, obj):
         pricing = DoctorPricing.objects.filter(doctor=obj)
         return DoctorPricingSerializer(pricing, many=True).data
+    def get_specialty_name(self, obj):
+        specility = Specialty.objects.get(id=obj.specialty.id)
+        return specility.name
     def get_reviews(self, obj):
         reviews = Review.objects.filter(doctor=obj, status=True)  
         return ReviewSerializer(reviews, many=True).data
