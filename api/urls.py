@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, MarkAllNotificationsReadView, MarkNotificationReadView, NotificationListView, RegisterView,LogoutView, SpecialtiesViewSet, UserProfileView
+from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, MarkAllNotificationsReadView, MarkNotificationReadView, NotificationListView, PaymentViewSet, RegisterView,LogoutView, ReviewViewSet, SpecialtiesViewSet, UserProfileView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -15,7 +15,8 @@ router.register(r'hospitals', HospitalsViewSet)
 router.register(r'favourites', FavouritesViewSet, basename='favourite')
 router.register(r'bookings', BookingViewSet,basename='booking')
 router.register(r'hospital-payment-methods', HospitalPaymentMethodViewSet, basename='hospital-payment-methods')
-# router.register(r'payment', PaymentViewSet, basename='payment')
+router.register(r'reviews', ReviewViewSet, basename='review')
+router.register(r'payment', PaymentViewSet, basename='payment')
 
 
 
