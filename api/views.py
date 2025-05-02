@@ -139,6 +139,7 @@ class RegisterView(APIView):
                     )
 
                 try:
+                    user.user_type = 'patient'
                     patient = Patients.objects.create(
                         user=user,
                         birth_date=birth_date,  
