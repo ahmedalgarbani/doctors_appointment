@@ -21,6 +21,7 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from .serializers import NotificationSerializer
 from rest_framework.filters import SearchFilter
+from .serializers import DoctorSerializer, HospitalDetailSerializer
 
 User = get_user_model()
 
@@ -47,8 +48,9 @@ class DoctorsViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
     filter_backends = [SearchFilter]
     filterset_fields = ['gender', 'specialty__name']
-    search_fields = ['full_name', 'specialty__name'] 
+    search_fields = ['full_name', 'specialty__name']
 
+    # فلترة الأطباء حسب الجنس، التخصص، والتقييم
     @action(detail=False, methods=['post'], url_path='filter')
     def filter_doctors(self, request):
         genders_raw = request.data.get('gender', '')
@@ -59,7 +61,6 @@ class DoctorsViewSet(viewsets.ModelViewSet):
             genders = [g.strip() for g in genders_raw.split(',') if g.strip()]
         else:
             genders = genders_raw or []
-
 
         if isinstance(specialties_raw, str):
             specialties = [s.strip() for s in specialties_raw.split(',') if s.strip()]
@@ -74,11 +75,9 @@ class DoctorsViewSet(viewsets.ModelViewSet):
         if gender_values:
             doctors = doctors.filter(gender__in=gender_values)
 
-        
         if specialties:
-            doctors = doctors.filter(specialty__name__in=specialties,status=True)
+            doctors = doctors.filter(specialty__name__in=specialties)
 
-       
         if stars is not None:
             try:
                 stars = int(stars)
@@ -89,7 +88,13 @@ class DoctorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(doctors, many=True)
         return Response(serializer.data)
 
-
+    # إرجاع قائمة المستشفيات المرتبطة بطبيب معيّن
+    @action(detail=True, methods=['get'], url_path='hospitals')
+    def hospitals(self, request, pk=None):
+        doctor = self.get_object()
+        hospitals = doctor.hospitals.all()
+        serializer = HospitalDetailSerializer(hospitals, many=True, context={'doctor': doctor})
+        return Response(serializer.data)
 class SpecialtiesViewSet(viewsets.ModelViewSet):
     queryset = Specialty.objects.filter(status=True)
     serializer_class = SpecialtiesSerializer
@@ -503,3 +508,5 @@ class MarkAllNotificationsReadView(APIView):
 #     "email":"a9a0a2@a3a.com",
 #     "password":"a9a1515151a"
 # }
+
+
