@@ -96,13 +96,14 @@ class DoctorSerializer(serializers.ModelSerializer):
     pricing = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    specialty_name = serializers.SerializerMethodField()
 
 
     class Meta:
         model = Doctor
         fields = [
             "id", "created_at", "updated_at", "deleted_at",
-            "full_name", "birthday", "photo",
+            "full_name", "birthday", "photo","specialty","specialty_name",
             "gender",  "experience_years", "sub_title",
             "about",  "show_at_home",
             "hospitals", "schedules", "pricing",
@@ -116,6 +117,9 @@ class DoctorSerializer(serializers.ModelSerializer):
     def get_pricing(self, obj):
         pricing = DoctorPricing.objects.filter(doctor=obj)
         return DoctorPricingSerializer(pricing, many=True).data
+    def get_specialty_name(self, obj):
+        specility = Specialty.objects.get(id=obj.specialty.id)
+        return specility.name
     def get_reviews(self, obj):
         reviews = Review.objects.filter(doctor=obj, status=True)  
         return ReviewSerializer(reviews, many=True).data
@@ -329,3 +333,54 @@ class PaymentSerializer(serializers.ModelSerializer):
 }
 
 """
+
+
+from rest_framework import serializers
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts, DoctorPricing
+from hospitals.models import Hospital
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoctorShifts
+        fields = ['start_time', 'end_time', 'available_slots', 'booked_slots', 'is_available']
+
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    day_display = serializers.CharField(source='get_day_display', read_only=True)
+    shifts = ShiftSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = DoctorSchedules
+        fields = ['day', 'day_display', 'shifts']
+
+
+class HospitalDetailSerializer(serializers.ModelSerializer):
+    schedules = serializers.SerializerMethodField()
+    pricing = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Hospital
+        fields = ['id', 'name', 'slug', 'schedules', 'pricing','logo_url']
+
+    def get_schedules(self, hospital):
+        doctor = self.context.get('doctor')
+        schedules = hospital.doctor_schedules.filter(doctor=doctor)
+        return ScheduleSerializer(schedules, many=True).data
+
+    def get_pricing(self, hospital):
+        doctor = self.context.get('doctor')
+        pricing = doctor.pricing.filter(hospital=hospital).first()
+        if pricing:
+            return {
+                "amount": pricing.amount,
+                "transaction_number": pricing.transaction_number
+            }
+        
+    def get_logo_url(self, hospital):
+        if hospital.logo:
+            return hospital.logo.url
+        
+        return None
+
