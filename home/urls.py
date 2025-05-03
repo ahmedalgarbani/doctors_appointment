@@ -23,6 +23,7 @@ urlpatterns = [
     path('booking/<int:doctor_id>/', views.booking_view, name='booking'),
     path('get-time-slots/<int:schedule_id>/<int:doctor_id>/', views.get_time_slots, name='get_time_slots'),
     path('payment/<int:doctor_id>/', payment_process, name='payment'),
+
 ]
 
 if settings.DEBUG:
