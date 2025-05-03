@@ -21,7 +21,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ["id", "user_name","profile_picture" ,"rating", "review", "created_at"]
+        fields = ["id", "user_name","doctor","profile_picture" ,"rating", "review", "created_at"]
 
     def get_user_name(self, obj):
         return f"{obj.user.user.first_name} {obj.user.user.last_name}"
@@ -33,6 +33,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.user.user.profile_picture.url)
             return obj.user.user.profile_picture.url
         return None 
+    def validate(self, data):
+        if not data.get('doctor'):
+            raise serializers.ValidationError("يجب تحديد الدكتور.")
+        return data
 
 
 class SpecialtiesSerializer(serializers.ModelSerializer):
@@ -265,14 +269,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            'id', 'user', 'booking', 'payment_method', 'transfer_image',
+            'id', 'booking', 'payment_method',
             'payment_status', 'payment_date', 'payment_subtotal',
             'payment_discount', 'payment_totalamount', 'payment_currency',
             'payment_type', 'payment_note'
         ]
+
         extra_kwargs = {
             'transfer_image': {'required': False, 'allow_null': True},
-            'user': {'read_only': True},
             'payment_date': {'read_only': True},
             'payment_status': {'read_only': True}
         }
