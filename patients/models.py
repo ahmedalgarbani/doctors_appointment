@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from hospitals.models import BaseModel
 from django.conf import settings
@@ -41,6 +42,17 @@ class Patients(BaseModel):
     class Meta:
         verbose_name = _("المرضى")
         verbose_name_plural = _("المرضى")
+
+    def calculate_age(self):
+        today = date.today()
+        return today.year - self.birth_date.year - (
+            (today.month, today.day) < (self.birth_date.month, self.birth_date.day)
+        )
+    
+    def save(self, *args, **kwargs):
+        if self.birth_date and not self.age:
+            self.age = self.calculate_age()
+        super().save(*args, **kwargs)
 
 
 class Favourites(BaseModel):
