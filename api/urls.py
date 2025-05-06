@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import DoctorsViewSet, HospitalsViewSet, LoginView, RegisterView,LogoutView
+from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, MarkAllNotificationsReadView, MarkNotificationReadView, NotificationListView, RegisterView,LogoutView, SpecialtiesViewSet, UserProfileView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -9,13 +9,27 @@ from rest_framework_simplejwt.views import (
 
 # Test
 router = DefaultRouter()
+router.register(r'specialties', SpecialtiesViewSet)
 router.register(r'doctors', DoctorsViewSet)
 router.register(r'hospitals', HospitalsViewSet)
+router.register(r'favourites', FavouritesViewSet, basename='favourite')
+router.register(r'bookings', BookingViewSet,basename='booking')
+router.register(r'hospital-payment-methods', HospitalPaymentMethodViewSet, basename='hospital-payment-methods')
+# router.register(r'payment', PaymentViewSet, basename='payment')
+
+
 
 urlpatterns = [
     
     path('', include(router.urls)),
+    path('profile/', UserProfileView.as_view(), name='user-profile'),
 
+
+    # notifications
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:pk>/mark-read/', MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/mark-all-read/', MarkAllNotificationsReadView.as_view(), name='mark-all-notifications-read'),
+    
     #  JWT Token endpoints
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

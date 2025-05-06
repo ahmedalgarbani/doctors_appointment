@@ -283,8 +283,12 @@
                                             </ul>
                                         </div>
                                         <div class="clinic-booking book-appoint">
-                                            <a class="btn btn-primary" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
-                                        </div>
+                                            {% if user.is_authenticated %}
+                                                <a class="btn btn-primary" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
+                                            {% else %}
+                                            <a class="btn btn-primary" href="{% url 'users:login' %}?next={% url 'home:booking' doctor.id %}&message=login_required">Book Appointment</a>
+                                            {% endif %}
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>

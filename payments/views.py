@@ -40,7 +40,7 @@ def payment_process(request, doctor_id):
 
         # Get doctor's price for this hospital
         doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
-
+        
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
         selected_shift = get_object_or_404(DoctorShifts, id=date_id, doctor_schedule=selected_schedule)

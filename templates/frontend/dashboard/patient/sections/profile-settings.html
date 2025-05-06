@@ -9,8 +9,13 @@
                         <div class="mb-3">
                             <div class="change-avatar">
                                 <div class="profile-img">
-                                    <img id="profile-image" src="{{ patient.user.profile_picture.url }}" alt="User Image">
+                                    {% if patient.user.profile_picture and patient.user.profile_picture.name %}
+                                        <img id="profile-image" src="{{ patient.user.profile_picture.url }}" alt="User Image">
+                                    {% else %}
+                                        <img id="profile-image" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Default User Image">
+                                    {% endif %}
                                 </div>
+                                
                                 <div class="upload-img">
                                     <div class="change-photo-btn">
                                         <span><i class="fa fa-upload"></i> تحميل الصوره</span>

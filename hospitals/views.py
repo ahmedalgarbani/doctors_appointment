@@ -852,40 +852,42 @@ def toggle_payment_status(request):
 
 
 
-
+from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import csrf_exempt
+@require_POST
+@csrf_exempt
 def accept_appointment(request, booking_id):
-    """قبول الحجز """
-    # التحقق من أن المستخدم هو مسؤول في المستشفى
+    """قبول الحجز مع إرجاع رد JSON مناسب لرسالة الـ Toast"""
     if not hasattr(request.user, 'hospital'):
         return JsonResponse({
             'status': 'error',
-            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء',
+            'toast_class': 'bg-danger'
         }, status=403)
 
     try:
         booking = get_object_or_404(Booking, id=booking_id)
         payment = get_object_or_404(Payment, booking=booking)
 
-        # التحقق من أن الحجز يتبع نفس المستشفى
         if booking.hospital != request.user.hospital:
             return JsonResponse({
                 'status': 'error',
-                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء',
+                'toast_class': 'bg-danger'
             }, status=403)
-        # تحديث عدد الحجوزات في الفترة المحددة
+
+        # تحديث البيانات
         doctor_shifts = booking.appointment_time
         if doctor_shifts:
             doctor_shifts.booked_slots += 1
             doctor_shifts.save()
 
         booking.status = 'confirmed'
-        # تحديث حالة التحقق من الدفع
         booking.payment_verified = True
         booking.payment_verified_at = timezone.now()
         booking.payment_verified_by = request.user
         booking.save()
 
-        # إنشاء سجل جديد لحالة الحجز
         BookingStatusHistory.objects.create(
             booking=booking,
             status='confirmed',
@@ -893,27 +895,28 @@ def accept_appointment(request, booking_id):
             notes='تم قبول الحجز من قبل المستشفى'
         )
 
-        # تحديث حالة الدفع
         payment.payment_status = 2
         payment.save()
 
         return JsonResponse({
             'status': 'success',
-            'message': 'تم قبول الحجز بنجاح'
+            'message': 'تم قبول الحجز بنجاح',
+            'toast_class': 'bg-success',
+            'booking_status': 'confirmed'
         })
 
     except (Booking.DoesNotExist, Payment.DoesNotExist):
         return JsonResponse({
             'status': 'error',
-            'message': 'الحجز غير موجود'
+            'message': 'الحجز غير موجود',
+            'toast_class': 'bg-danger'
         }, status=404)
     except Exception as e:
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': f'حدث خطأ: {str(e)}',
+            'toast_class': 'bg-danger'
         }, status=500)
-
-
 
 
 def completed_appointment(request, booking_id):
@@ -968,6 +971,60 @@ def completed_appointment(request, booking_id):
         }, status=500)
 
 
+def cancel_appointment(request, booking_id):
+    """إلغاء الحجز"""
+    if not hasattr(request.user, 'hospital'):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+        }, status=403)
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        # التحقق من أن الحجز يتبع نفس المستشفى
+        if booking.hospital != request.user.hospital:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
+            }, status=403)
+
+        # تحديث حالة الحجز إلى ملغى
+        booking.status = 'cancelled'
+        booking.save()
+
+        # تنقيص عدد الحجوزات في الفترة المحددة
+        doctor_shifts = booking.appointment_time
+        if doctor_shifts:
+            doctor_shifts.booked_slots -= 1
+            doctor_shifts.save()
+
+        # إنشاء سجل جديد لحالة الحجز
+        BookingStatusHistory.objects.create(
+            booking=booking,
+            status='cancelled',
+            created_by=request.user,
+            notes='تم إلغاء الحجز'
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'تم إلغاء الحجز بنجاح',
+            'toast_class': 'bg-success'
+        })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود',
+            'toast_class': 'bg-danger'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+            'toast_class': 'bg-danger'
+        }, status=500)
 
 
 def booking_history(request, booking_id):

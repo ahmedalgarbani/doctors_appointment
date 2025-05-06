@@ -211,9 +211,12 @@
                                             <!-- <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-edit"></i> تعديل
                                             </button> -->
-                                            <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
-                                                <i class="fas fa-trash"></i> الغاء
-                                            </button>
+                                            {% if booking.status != 'completed' and booking.status != 'cancelled' %}
+                                                <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
+                                                    <i class="fas fa-trash"></i> الغاء
+                                                </button>
+                                            {% endif %}
+
                                         </div>
                                     </td>
                                 </tr>
