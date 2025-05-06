@@ -1,0 +1,127 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+    <div class="container">
+        <div class="row align-items-center inner-banner">
+            <div class="col-md-12 col-12 text-center">
+                <h2 class="breadcrumb-title">المستشفيات</h2>
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">المستشفيات</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content pt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+               
+                <!-- Search Form -->
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <form method="GET" class="flex-grow-1">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="ابحث عن مستشفى..." value="{{ search_query }}">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i> بحث
+                                    </button>
+                                </div>
+                            </form>
+                            {% if search_query and search_query != '' %}
+                            <a href="{% url 'hospitals:all_hospitals' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-sync"></i> عرض الكل
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for hospital in hospitals %}
+            <div class="col-md-4 col-sm-6 col-12 mb-4">
+                <div class="card h-100">
+                    {% if hospital.logo %}
+                    <img src="{{ hospital.logo.url }}" class="card-img-top" alt="{{ hospital.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <img src="{% static 'img/hospital-default.jpg' %}" class="card-img-top" alt="{{ hospital.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ hospital.name }}</h5>
+                        <p class="card-text text-muted mb-2">
+                            <i class="fas fa-map-marker-alt"></i> {{ hospital.city.name }}
+                        </p>
+                        {% if hospital.address %}
+                        <p class="card-text small mb-2">{{ hospital.address|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mt-3">
+                            <div class="text-primary">
+                                <i class="fas fa-user-md"></i>
+                                <span>{{ hospital.doctors_count }} طبيب</span>
+                            </div>
+                            <div class="text-success">
+                                <i class="fas fa-stethoscope"></i>
+                                <span>{{ hospital.specialties_count }} تخصص</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'hospitals:hospital_details' hospital.id %}" class="btn btn-primary">
+                                <i class="fas fa-info-circle"></i> عرض التفاصيل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">لا توجد مستشفيات متاحة حالياً</p>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if hospitals.has_other_pages %}
+            <div class="col-12">
+                <div class="pagination justify-content-center">
+                    <ul class="pagination">
+                        {% if hospitals.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ hospitals.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in hospitals.paginator.page_range %}
+                        <li class="page-item {% if hospitals.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if hospitals.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ hospitals.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}

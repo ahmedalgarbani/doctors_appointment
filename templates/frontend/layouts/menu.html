@@ -134,13 +134,23 @@
                     </a>
                 </div>
                 <ul class="main-nav">
+                    <!-- Direct hospitals link -->
+                    <li>
+                        <a href="{% url 'hospitals:all_hospitals' %}">المستشفيات</a>
+                    </li>
+                    <!-- Other menu items -->
                     {% for item in top_menu %}
-                    <li class="has-submenu">
+                    {% if item.name != "المستشفيات" %}
+                    <li {% if item.submenu %}class="has-submenu"{% endif %}>
+                        {% if item.name == "المستشفيات" %}
+                        <a href="{% url 'hospitals:all_hospitals' %}">{{ item.name }}</a>
+                        {% else %}
                         <a href="{{ item.url }}">{{item.name}} 
                         {% if item.submenu %}
                         <i class="fas fa-chevron-down"></i>
                         {% endif %}    
                         </a>
+                        {% endif %}
                         {% if item.submenu %}
                         <ul class="submenu">
                             {% for menu in item.submenu %}
@@ -149,6 +159,7 @@
                         </ul>
                         {% endif %}
                     </li>
+                    {% endif %}
                     {% endfor %}
                     <li class="searchbar">
                         <a href="javascript:void(0);"><i class="feather-search"></i></a>
@@ -278,20 +289,20 @@
                             </div>
                             {% if request.user.user_type == 'patient' %}
                                 <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
-                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">Profile Settings</a>
+                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">إعدادات الملف الشخصي</a>
                             {% elif request.user.user_type == 'hospital_manager' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
-                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                                <a class="dropdown-item" href="profile-settings.html">إعدادات الملف الشخصي</a>
                             {% elif request.user.user_type == 'hospital_staff' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
-                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                                <a class="dropdown-item" href="profile-settings.html">إعدادات الملف الشخصي</a>
 
                             {% else %}
-                                <a class="dropdown-item" href="admin-dashboard.html">Dashboard</a>
-                                <a class="dropdown-item" href="profile-settings.html">Profile Settings</a>
+                                <a class="dropdown-item" href="admin-dashboard.html">لوحة التحكم</a>
+                                <a class="dropdown-item" href="profile-settings.html">إعدادات الملف الشخصي</a>
 
                             {% endif %}
-                            <a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a>
+                            <a class="dropdown-item" href="{% url 'users:logout' %}">تسجيل الخروج</a>
                         </div>
                     </li>
                     <!-- /User Menu -->
@@ -299,12 +310,12 @@
 
                     {% if not request.user.is_authenticated %}                        
                        
-                        <li class="login-link"><a href="{% url 'users:login' %}">Login / Signup</a></li>
+                        <li class="login-link"><a href="{% url 'users:login' %}">تسجيل الدخول / التسجيل</a></li>
                         <li class="register-btn">
-                            <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>Register</a>
+                            <a href="{% url 'users:signup' %}" class="btn reg-btn"><i class="feather-user"></i>إنشاء حساب</a>
                         </li>
                         <li class="register-btn">
-                            <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>Login</a>
+                            <a href="{% url 'users:login' %}" class="btn btn-primary log-btn"><i class="feather-lock"></i>تسجيل الدخول</a>
                         </li>
                     
                         {% endif %}

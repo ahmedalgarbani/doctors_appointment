@@ -7,11 +7,11 @@
     <div class="container">
         <div class="row align-items-center inner-banner">
             <div class="col-md-12 col-12 text-center">
-                <h2 class="breadcrumb-title">Search Doctors</h2>
+                <h2 class="breadcrumb-title">نتائج البحث</h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Search Doctors</li>
+                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
+                        <li class="breadcrumb-item" aria-current="page">نتائج البحث</li>
                     </ol>
                 </nav>
             </div>
@@ -30,14 +30,14 @@
                     <div class="col-lg-3  theiaStickySidebar">
                         <div class="filter-contents">
                             <div class="filter-header">
-                                <h4 class="filter-title">Filter</h4>
+                                <h4 class="filter-title">تصفية النتائج</h4>
                             </div>
                             <div class="filter-details">
                                 <form id="filterForm" method="GET">
                                 <!-- Filter Grid - Specialty -->
                                 <div class="filter-grid">
                                     <h4>
-                                        <a href="#collapseSpecialty" data-bs-toggle="collapse">Specialty</a>
+                                        <a href="#collapseSpecialty" data-bs-toggle="collapse">التخصص</a>
                                     </h4>
                                     <div id="collapseSpecialty" class="collapse show">
                                         <div class="filter-collapse">
@@ -60,7 +60,7 @@
                                 <!-- Filter Grid - Gender -->
                                 <div class="filter-grid">
                                     <h4>
-                                        <a href="#collapseone" data-bs-toggle="collapse">Gender</a>
+                                        <a href="#collapseone" data-bs-toggle="collapse">الجنس</a>
                                     </h4>
                                     <div id="collapseone" class="collapse show">
                                         <div class="filter-collapse">
@@ -69,14 +69,14 @@
                                                     <label class="custom_check d-inline-flex">  
                                                         <input type="radio" name="gender" value="male" {% if selected_filters.gender == '1' or selected_filters.gender == 'male' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        Male Gender
+                                                        ذكر
                                                     </label>
                                                 </li>
                                                 <li>
                                                     <label class="custom_check d-inline-flex">
                                                         <input type="radio" name="gender" value="female" {% if selected_filters.gender == '0' or selected_filters.gender == 'female' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        Female Gender
+                                                        أنثى
                                                     </label>
                                                 </li>
                                             </ul>
@@ -88,7 +88,7 @@
                                 <!-- Filter Grid - Fee -->
                                 <div class="filter-grid">
                                     <h4>
-                                        <a href="#collapsethree" data-bs-toggle="collapse">Consultation Fee</a>
+                                        <a href="#collapsethree" data-bs-toggle="collapse">سعر الاستشارة</a>
                                     </h4>
                                     <div id="collapsethree" class="collapse show">
                                         <div class="filter-collapse">
@@ -130,7 +130,7 @@
                                 <!-- Filter Grid - Experience -->
                                 <div class="filter-grid">
                                     <h4>
-                                        <a href="#collapsefive" data-bs-toggle="collapse">Experience</a>
+                                        <a href="#collapsefive" data-bs-toggle="collapse">الخبرة</a>
                                     </h4>
                                     <div id="collapsefive" class="collapse show">
                                         <div class="filter-collapse">
@@ -139,28 +139,28 @@
                                                     <label class="custom_check d-inline-flex">
                                                         <input type="radio" name="experience" value="0-2" {% if selected_filters.experience == '0-2' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        0-2 Years
+                                                        0-2 سنوات
                                                     </label>
                                                 </li>
                                                 <li>
                                                     <label class="custom_check d-inline-flex">
                                                         <input type="radio" name="experience" value="2-5" {% if selected_filters.experience == '2-5' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        2-5 Years
+                                                        2-5 سنوات
                                                     </label>
                                                 </li>
                                                 <li>
                                                     <label class="custom_check d-inline-flex">
                                                         <input type="radio" name="experience" value="5-10" {% if selected_filters.experience == '5-10' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        5-10 Years
+                                                        5-10 سنوات
                                                     </label>
                                                 </li>
                                                 <li>
                                                     <label class="custom_check d-inline-flex">
                                                         <input type="radio" name="experience" value="10+" {% if selected_filters.experience == '10+' %}checked{% endif %}>
                                                         <span class="checkmark"></span>
-                                                        10+ Years
+                                                        10+ سنوات
                                                     </label>
                                                 </li>
                                             </ul>
@@ -172,7 +172,7 @@
                                 <!-- Filter Grid - Rating -->
                                 <div class="filter-grid">
                                     <h4>
-                                        <a href="#collapseseven" data-bs-toggle="collapse">By Rating</a>
+                                        <a href="#collapseseven" data-bs-toggle="collapse">التقييم</a>
                                     </h4>
                                     <div id="collapseseven" class="collapse show">
                                         <div class="filter-collapse">
@@ -206,8 +206,8 @@
 
                                 <!-- Filter Btn -->
                                 <div class="filter-btn">
-                                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                                    <a href="{% url 'home:search_view' %}" class="btn btn-outline-primary">Reset Filters</a>
+                                    <button type="submit" class="btn btn-primary">تطبيق الفلتر</button>
+                                    <a href="{% url 'home:search_view' %}" class="btn btn-outline-primary">إعادة ضبط</a>
                                 </div>
                                 <!-- /Filter Btn -->
                                 </form>

@@ -560,9 +560,44 @@ def edit_blog(request, blog_id):
 
 
 
-def hospital_detail(request, pk):
-    hospital = get_object_or_404(Hospital, pk=pk)
-    return render(request, 'hospital_detail.html', {'hospital': hospital})
+    """عرض تفاصيل المستشفى للزوار"""
+    try:
+        hospital = get_object_or_404(Hospital, slug=slug)
+
+        # طباعة معلومات تصحيح
+        print(f"Found hospital: {hospital.name}, Status: {hospital.status}")
+
+        # الحصول على الأطباء المرتبطين بالمستشفى
+        doctors = Doctor.objects.filter(hospitals=hospital, status=True).select_related('specialty')
+        print(f"Found {doctors.count()} doctors")
+
+        # الحصول على التخصصات المتاحة في المستشفى
+        specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+        print(f"Found {specialties.count()} specialties")
+
+        # إحصائيات المستشفى
+        stats = {
+            'doctors_count': doctors.count(),
+            'specialties_count': specialties.count(),
+        }
+
+        context = {
+            'hospital': hospital,
+            'doctors': doctors,
+            'specialties': specialties,
+            'stats': stats,
+        }
+
+        # طباعة معلومات تصحيح
+        print(f"Rendering template: frontend/home/pages/hospital_detail.html")
+        print(f"Context: {context}")
+
+        # تجربة استخدام قالب بديل
+        return render(request, 'frontend/home/pages/hospital_detail.html', context)
+    except Exception as e:
+        print(f"Error in hospital_detail: {str(e)}")
+        # إعادة توجيه المستخدم إلى الصفحة الرئيسية في حالة حدوث خطأ
+        return redirect('home:home')
 
 def hospital_create(request):
     if request.method == 'POST':
@@ -1077,8 +1112,6 @@ def booking_history(request, booking_id):
         }, status=500)
 
 
-
-
 def delete_booking(request, booking_id):
     """حذف الحجز"""
     if not request.user.is_authenticated:
@@ -1124,7 +1157,6 @@ def delete_booking(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
-
 
 
 @login_required(login_url='/user/login')
@@ -1430,8 +1462,7 @@ def schedule_timings(request):
                             'status': 'error',
                             'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
                         })
-                except ValueError as e:
-                    print(f"Time format error: {str(e)}")
+                except ValueError:
                     return JsonResponse({
                         'status': 'error',
                         'message': 'صيغة الوقت غير صحيحة'
@@ -1632,8 +1663,101 @@ def delete_shift(request, shift_id):
     }, status=405)
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from doctors.models import Doctor
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import Hospital
 
+def all_hospitals(request):
+    search_query = request.GET.get('search', '')
+    hospitals = Hospital.objects.filter(status=True)
+    
+    if search_query:
+        hospitals = hospitals.filter(name__icontains=search_query)
+    
+    hospitals = hospitals.annotate(
+        doctors_count=models.Count('doctors', distinct=True),
+        specialties_count=models.Count('doctors__specialty', distinct=True)
+    )
 
+    # Pagination
+    paginator = Paginator(hospitals, 6)  # Show 6 hospitals per page
+    page = request.GET.get('page')
+    
+    try:
+        hospitals = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        hospitals = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results.
+        hospitals = paginator.page(paginator.num_pages)
+    
+    return render(request, 'frontend/hospitals/all_hospitals.html', {
+        'hospitals': hospitals,
+        'title': 'المستشفيات',
+        'search_query': search_query
+    })
+
+def hospital_details(request, hospital_id):
+    hospital = get_object_or_404(Hospital, id=hospital_id)
+    
+    # Get doctors with their ratings
+    doctors = hospital.doctors.select_related('specialty').all()
+    
+    # Ensure all doctors have slugs
+    from django.utils.text import slugify
+    updated_doctors = []
+    for doctor in doctors:
+        # Print debug info
+        print(f"Processing doctor: {doctor.full_name}, Current slug: {doctor.slug}")
+        
+        # Always generate a new slug if it's empty or invalid
+        if not doctor.slug or not doctor.slug.strip():
+            base_slug = slugify(doctor.full_name)
+            if not base_slug:  # If name doesn't generate valid slug
+                base_slug = f'doctor-{doctor.id}'
+            
+            # Handle slug duplication
+            unique_slug = base_slug
+            counter = 1
+            while Doctor.objects.filter(slug=unique_slug).exclude(pk=doctor.pk).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            # Update the doctor's slug
+            doctor.slug = unique_slug
+            doctor.save(update_fields=['slug'])
+            print(f"Updated slug for {doctor.full_name} to: {doctor.slug}")
+        
+        updated_doctors.append(doctor)
+    
+    # Now get the doctors again with annotations
+    doctors = hospital.doctors.select_related('specialty').annotate(
+        rating=models.Avg('reviews__rating'),
+        reviews_count=models.Count('reviews')
+    ).all()
+    
+    # Get unique specialties count
+    specialties_count = doctors.values('specialty').distinct().count()
+    
+    # Final verification
+    for doctor in doctors:
+        print(f"Final verification - Doctor: {doctor.full_name}, Slug: {doctor.slug}")
+        if not doctor.slug:
+            print(f"WARNING: Doctor {doctor.full_name} still has no slug!")
+    
+    context = {
+        'hospital': hospital,
+        'doctors': doctors,
+        'doctors_count': doctors.count(),
+        'specialties_count': specialties_count,
+        'title': hospital.name
+    }
+    
+    return render(request, 'frontend/hospitals/hospital_details.html', context)
 
 @login_required(login_url='/user/login')
 def invoice_view(request, payment_id):
@@ -2161,6 +2285,74 @@ def get_doctor_history(request, doctor_id):
         }, status=500)
 
 @login_required(login_url='/user/login')
+def search_doctors(request):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        search_query = request.GET.get('query', '')
+        current_hospital = get_object_or_404(Hospital, user=request.user)
+
+        # البحث عن الأطباء باستخدام الاسم أو التخصص
+        doctors = Doctor.objects.filter(
+            Q(full_name__icontains=search_query) |
+            Q(specialty__name__icontains=search_query)
+        ).exclude(hospitals=current_hospital).distinct()
+
+        doctors_data = []
+        for doctor in doctors:
+            current_hospitals = doctor.hospitals.all()
+            doctors_data.append({
+                'id': doctor.id,
+                'full_name': doctor.full_name,
+                'specialty': doctor.specialty.name if doctor.specialty else '',
+                'current_hospitals': [h.name for h in current_hospitals],
+                'photo_url': doctor.photo.url if doctor.photo else None
+            })
+
+        return JsonResponse({'doctors': doctors_data})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required(login_url='/user/login')
+def add_existing_doctor(request):
+    if request.method == 'POST':
+        doctor_id = request.POST.get('doctor_id')
+        amount = request.POST.get('amount')
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+            hospital = get_object_or_404(Hospital, user=request.user)
+
+            # إضافة الطبيب إلى المستشفى
+            doctor.hospitals.add(hospital)
+
+            # إنشاء تسعيرة للطبيب في المستشفى
+            DoctorPricing.objects.create(
+                doctor=doctor,
+                hospital=hospital,
+                amount=amount
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم إضافة الطبيب بنجاح'
+            })
+
+        except Doctor.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لم يتم العثور على الطبيب'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'طريقة الطلب غير صحيحة'
+    }, status=400)
+
+@login_required(login_url='/user/login')
 def add_doctor_form(request):
     user = request.user
     hospital = get_object_or_404(Hospital, user=user)
@@ -2200,4 +2392,3 @@ def doctor_details(request, doctor_id):
         print(f"Error in doctor_details view: {str(e)}")  # Debug print
         messages.error(request, str(e))
         return redirect('hospitals:index')
-

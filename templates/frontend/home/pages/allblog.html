@@ -5,11 +5,11 @@
         <div class="container">
             <div class="row align-items-center inner-banner">
                 <div class="col-md-12 col-12 text-center">
-                    <h2 class="breadcrumb-title">All Blogs</h2>
+                    <h2 class="breadcrumb-title">المدونة</h2>
                     <nav aria-label="breadcrumb" class="page-breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Home</a></li>
-                            <li class="breadcrumb-item" aria-current="page">All Blogs</li>
+                            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                            <li class="breadcrumb-item" aria-current="page">المدونة</li>
                         </ol>
                     </nav>
                 </div>
@@ -42,8 +42,8 @@
                                             </div>
                                         </li>
                                         <li><i class="far fa-clock"></i>{{ post.created_at|date:"F j, Y" }}</li>
-                                        <li><i class="far fa-eye"></i>{{ post.views_count }} Views</li>
-                                        <li><i class="far fa-comments"></i>{{ post.comments.count }} Comments</li>
+                                        <li><i class="far fa-eye"></i>{{ post.views_count }} مشاهدة</li>
+                                        <li><i class="far fa-comments"></i>{{ post.comments.count }} تعليق</li>
                                     </ul>
                                     <h3 class="blog-title"><a href="{{ post.get_absolute_url }}">{{post.title}}</a></h3>
                                     <p class="mb-0">{{ post.content|truncatechars:70 }}
@@ -83,7 +83,7 @@
                         {% for num in page_obj.paginator.page_range %}
                             {% if num == page_obj.number %}
                                 <li class="page-item active">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }} <span class="visually-hidden">(current)</span></a>
+                                    <a class="page-link" href="?page={{ num }}">{{ num }} <span class="visually-hidden">(الحالي)</span></a>
                                 </li>
                             {% else %}
                                 <li class="page-item">
@@ -123,9 +123,9 @@
                     <!-- Search -->
                     <div class="card search-widget">
                         <div class="card-body">
-                            <form class="search-form">
+                            <form class="search-form" method="GET" action="{% url 'home:blog:post_list' %}">
                                 <div class="input-group">
-                                    <input type="text" placeholder="Search..." class="form-control">
+                                    <input type="text" name="search" placeholder="ابحث عن مقال..." class="form-control" value="{{ request.GET.search }}">
                                     <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                                 </div>
                             </form>
@@ -136,7 +136,7 @@
                     <!-- Latest Posts -->
                     <div class="card post-widget">
                         <div class="card-header">
-                            <h4 class="card-title">Latest Posts</h4>
+                            <h4 class="card-title">أحدث المقالات</h4>
                         </div>
                         <div class="card-body">
                             <ul class="latest-posts">
@@ -167,7 +167,7 @@
 
                     <div class="card category-widget">
                         <div class="card-header">
-                            <h4 class="card-title">Blog Categories</h4>
+                            <h4 class="card-title">التصنيفات</h4>
                         </div>
                         <div class="card-body">
                             <ul class="categories">
@@ -189,7 +189,7 @@
                     <!-- Tags -->
                     <div class="card tags-widget">
                         <div class="card-header">
-                            <h4 class="card-title">Tags</h4>
+                            <h4 class="card-title">الوسوم</h4>
                         </div>
                         <div class="card-body">
                             <ul class="tags">

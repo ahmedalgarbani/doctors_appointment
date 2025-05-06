@@ -97,20 +97,34 @@ def index(request):
         # الحصول على المستشفيات التي يجب عرضها في الصفحة الرئيسية
         hospitals = Hospital.objects.filter(show_at_home=True, status=True).select_related('city')
 
+        # طباعة معلومات تصحيح
+        logger.info(f'Found {hospitals.count()} hospitals for home page')
+        for h in hospitals:
+            logger.info(f'Hospital: {h.name}, City: {h.city.name if h.city else "No city"}, Status: {h.status}, Show at home: {h.show_at_home}')
+
         # إضافة عدد التخصصات وعدد جداول الأطباء لكل مستشفى
         for hospital in hospitals:
             hospital.specialties_count = hospital.doctors.values('specialty').distinct().count()
             hospital.schedules_count = DoctorSchedules.objects.filter(hospital=hospital).count()
+            logger.info(f'Hospital {hospital.name}: {hospital.specialties_count} specialties, {hospital.schedules_count} schedules')
 
         logger.info('Retrieved hospitals for home page')
     except Exception as e:
         logger.error(f'Failed to retrieve hospitals: {str(e)}')
+        hospitals = []
+
+    # التأكد من أن المستشفيات موجودة
+    if 'hospitals' not in locals() or hospitals is None:
+        hospitals = []
+        logger.warning('Hospitals variable not defined or is None, setting to empty list')
+
+    # طباعة معلومات تصحيح
+    logger.info(f'Context hospitals count: {len(hospitals)}')
 
     ctx = {
         'homeBanner': homeBanner,
         'specialities': specialities,
         'doctors': doctors,
-        'hospitals': hospitals,  # إضافة المستشفيات إلى السياق
         'workSection': workSection,
         'appSection': appSection,
         'faqSection': faqSection,
@@ -208,11 +222,9 @@ def add_to_favorites(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
-
 def search_view(request):
-    search_text = request.GET.get('search', '').strip()
+    doctor_name = request.GET.get('doctor_name', '').strip()
     city_slug = request.GET.get('city', '').strip()
-    date_str = request.GET.get('date', '').strip()
     gender = request.GET.get('gender')
     availability = request.GET.get('availability')
     fee_range = request.GET.get('fee_range')
@@ -227,9 +239,8 @@ def search_view(request):
     # قائمة الأطباء الأساسية
     doctors = Doctor.objects.all()
 
-    if search_text:
-        filters['full_name__icontains'] = search_text
-        filters['hospitals__name__icontains'] = search_text
+    if doctor_name:
+        filters['full_name__icontains'] = doctor_name
 
     if city_slug:
         filters['hospitals__city__slug__in'] = [city_slug]
@@ -279,21 +290,7 @@ def search_view(request):
 
         doctors = doctors.filter(id__in=doctor_ids)
 
-    # تطبيق باقي الفلاتر
-    if date_str:
-        try:
-            available_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            doctors = doctors.filter(schedules__day=available_date.strftime('%A'))
-        except ValueError:
-            pass
-
-    if availability == 'today':
-        today = datetime.now().strftime('%A')
-        doctors = doctors.filter(schedules__day=today)
-    elif availability == 'tomorrow':
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%A')
-        doctors = doctors.filter(schedules__day=tomorrow)
-
+    # تطبيق فلتر الخبرة
     if experience:
         experience_ranges = {
             '0-2': (0, 2),
@@ -347,11 +344,9 @@ def search_view(request):
         'cities': cities,
         'specialities': Specialty.objects.all(),
         'selected_filters': {
-            'search': search_text,
+            'doctor_name': doctor_name,
             'city': city_slug,
-            'date': date_str,
             'gender': gender,
-            'availability': availability,
             'fee_range': fee_range,
             'experience': experience,
             'rating': rating,
@@ -438,3 +433,5 @@ def get_time_slots(request,schedule_id,doctor_id,):
         return JsonResponse({
             'error': str(e)
         }, status=500)
+
+

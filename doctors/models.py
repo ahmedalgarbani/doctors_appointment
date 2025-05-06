@@ -40,7 +40,7 @@ class Doctor(BaseModel):
     email = models.EmailField(unique=True, verbose_name="البريد الإلكتروني")
     experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
-    slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
+    slug = models.SlugField(max_length=200, unique=True, blank=True, null=True, verbose_name="رابط الطبيب")
     about = RichTextField(verbose_name="عن الطبيب")
     status = models.BooleanField(default=True, verbose_name="الحالة")
     show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
@@ -49,19 +49,25 @@ class Doctor(BaseModel):
         return self.full_name
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.full_name)
-
-        # Handle slug duplication
-        from django.db.models import Q
-        unique_slug = self.slug
-        counter = 1
-        while Doctor.objects.filter(slug=unique_slug).exclude(pk=self.pk).exists():
-            unique_slug = f"{self.slug}-{counter}"
-            counter += 1
-        self.slug = unique_slug
+        if not self.slug and self.full_name:
+            base_slug = slugify(self.full_name)
+            if not base_slug:  # If name doesn't generate valid slug
+                base_slug = f'doctor-{self.pk or "new"}'
+            
+            # Handle slug duplication
+            unique_slug = base_slug
+            counter = 1
+            while Doctor.objects.filter(slug=unique_slug).exclude(pk=self.pk).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = unique_slug
 
         super().save(*args, **kwargs)
+        
+        # If we still don't have a slug after saving (in case of new doctor)
+        if not self.slug:
+            self.slug = f'doctor-{self.pk}'
+            self.save(update_fields=['slug'])
 
     def get_absolute_url(self):
         return reverse('doctor:doctor_detail', args=[self.slug])

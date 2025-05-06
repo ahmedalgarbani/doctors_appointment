@@ -8,8 +8,12 @@ urlpatterns = [
 
     path('logout/', views.logout_view, name='logout'),
     path('', views.index, name='index'),
+    path('all/', views.all_hospitals, name='all_hospitals'),
+    path('<int:hospital_id>/details/', views.hospital_details, name='hospital_details'),
     path('add-doctor-form/', views.add_doctor_form, name='add_doctor_form'),
     path('add-doctor/', views.add_doctor, name='add_doctor'),
+    path('search-doctors/', views.search_doctors, name='search_doctors'),
+    path('add-existing-doctor/', views.add_existing_doctor, name='add_existing_doctor'),
     # path('dashboard/', views.hospital_dashboard, name='dashboard'),
     path('doctors-filter/', views.filter_doctors, name='filter_doctors'),
     path('doctor/<int:doctor_id>/get/', views.get_doctor, name='get_doctor'),
@@ -40,7 +44,9 @@ urlpatterns = [
     path('account/request/<int:request_id>/status/', views.hospital_request_status, name='hospital_request_status'),
 
 
-    path('hospital/<slug:slug>', views.hospital_detail, name='hospital_detail'),
+
+
+
     path('accept_appointment/<int:booking_id>/', views.accept_appointment, name='accept_appointment'),
     path('completed_appointment/<int:booking_id>/', views.completed_appointment, name='completed_appointment'),
     path('cancel_appointment/<int:booking_id>/', views.cancel_appointment, name='cancel_appointment'),

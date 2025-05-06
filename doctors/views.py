@@ -14,8 +14,12 @@ def specialties_list(request):
     return render(request, 'frontend/dashboard/doctor/index.html', {'object_list': specialties})
 
 
-def doctor_detail(request):
-    pass
+def doctor_detail(request, slug):
+    doctor = get_object_or_404(Doctor, slug=slug)
+    return render(request, 'frontend/home/pages/doctor_profile.html', {
+        'doctor': doctor,
+        'title': doctor.full_name
+    })
 
 def specialties_create(request):
     if request.method == 'POST':

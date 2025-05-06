@@ -1,149 +1,76 @@
 {% load static %}
-
 <!-- Hospitals Section -->
-<section class="section section-doctor" style="background-color: #f8f9fa; padding: 50px 0;">
+<section class="hospitals-section">
     <div class="container">
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-md-6 aos" data-aos="fade-up">
                 <div class="section-header-one section-header-slider">
                     <h2 class="section-title">أفضل المستشفيات</h2>
-                    <p class="sub-title">اكتشف أفضل المستشفيات المتاحة في منصتنا</p>
                 </div>
             </div>
-        </div>
-
-        <!-- أسهم التمرير -->
-        <div class="hospitals-navigation-container">
-            <div class="hospitals-navigation">
-                <button class="hospital-nav-prev" aria-label="السابق">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button class="hospital-nav-next" aria-label="التالي">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+            <div class="col-md-6 aos" data-aos="fade-up">
+                <div class="owl-nav slide-nav-3 text-end nav-control"></div>
             </div>
         </div>
 
-        <!-- حاوية المستشفيات القابلة للتمرير -->
-        <div class="hospitals-container">
-            <div class="hospitals-wrapper">
-                <div class="row hospitals-row">
-                    {% for hospital in hospitals %}
-                    <div class="col-lg-3 col-md-6 col-sm-12 hospital-item" style="margin-bottom: 30px;">
-                        <div class="profile-widget" style="box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden; height: 100%; display: flex; flex-direction: column;">
-                            <div class="doc-img" style="height: 200px; overflow: hidden;">
-                                <a href="#">
-                                    {% if hospital.logo %}
-                                        <img class="img-fluid" alt="{{ hospital.name }}" src="{{ hospital.logo.url }}" style="height: 200px; width: 100%; object-fit: cover;">
-                                    {% else %}
-                                        <img class="img-fluid" alt="{{ hospital.name }}" src="{% static 'img/doctors/default-doctor.jpg' %}" style="height: 200px; width: 100%; object-fit: cover;">
-                                    {% endif %}
-                                </a>
-                            </div>
-                            <div class="pro-content" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
-                                <h3 class="title" style="margin-bottom: 10px; height: 54px; overflow: hidden;">
-                                    <a href="#" style="color: #0071dc; font-weight: bold; font-size: 18px;">{{ hospital.name }}</a>
-                                </h3>
-                                <p style="color: #757575; margin-bottom: 10px; height: 40px; overflow: hidden;">{{ hospital.sub_title|default:"" }}</p>
-                                <div style="display: flex; justify-content: space-between; margin-top: auto; padding-top: 15px; border-top: 1px solid #f0f0f0;">
-                                    <div style="text-align: center;">
-                                        <span style="font-weight: bold; color: #0071dc; display: block;">{{ hospital.doctors.count }}</span>
-                                        <span style="font-size: 12px; color: #757575;">طبيب</span>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <span style="font-weight: bold; color: #0071dc; display: block;">{{ hospital.specialties_count|default:"0" }}</span>
-                                        <span style="font-size: 12px; color: #757575;">تخصص</span>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <span style="font-weight: bold; color: #0071dc; display: block;">{{ hospital.city.name }}</span>
-                                        <span style="font-size: 12px; color: #757575;">المدينة</span>
-                                    </div>
-                                </div>
-                            </div>
+
+
+        <!-- Simple Hospital Cards -->
+        <div class="row">
+            {% for hospital in hospitals %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            {% if hospital.logo %}
+                            <img src="{{ hospital.logo.url }}" class="img-fluid" alt="{{ hospital.name }}" style="max-height: 100px;">
+                            {% else %}
+                            <img src="{% static 'img/logo.png' %}" class="img-fluid" alt="{{ hospital.name }}" style="max-height: 100px;">
+                            {% endif %}
                         </div>
+                        <h5 class="card-title">{{ hospital.name }}</h5>
+                        {% if hospital.city %}
+                        <p class="card-text"><i class="feather-map-pin"></i> {{ hospital.city.name }}</p>
+                        {% endif %}
+                        <p class="card-text">
+                            <i class="feather-award"></i> {{ hospital.specialties_count }} تخصص
+                            <br>
+                            <i class="feather-clock"></i> {{ hospital.schedules_count }} موعد
+                        </p>
+                        <a href="/dashboard/hospitals/{{ hospital.slug }}/" class="btn btn-primary">عرض التفاصيل</a>
                     </div>
-                    {% empty %}
-                    <div class="col-12 text-center">
-                        <p style="color: #757575; padding: 30px;">لا توجد مستشفيات متاحة حالياً</p>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
+            {% endfor %}
         </div>
-
-       
     </div>
 </section>
 <!-- /Hospitals Section -->
 
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        // حساب عرض عنصر المستشفى الواحد مع الهوامش
-        const hospitalItemWidth = $('.hospital-item').outerWidth(true);
-        // الحصول على عدد المستشفيات
-        const hospitalsCount = $('.hospital-item').length;
-        // حساب العرض الكلي للصف
-        const totalWidth = hospitalItemWidth * hospitalsCount;
-        // تعيين عرض الصف
-        $('.hospitals-row').width(totalWidth);
+<style>
+    .card {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
 
-        // متغير لتتبع موضع التمرير الحالي
-        let scrollPosition = 0;
-        // عدد العناصر المرئية في وقت واحد (يعتمد على حجم الشاشة)
-        let visibleItems = Math.floor($('.hospitals-container').width() / hospitalItemWidth);
-        // مقدار التمرير في كل نقرة (عرض عنصر واحد)
-        const scrollAmount = hospitalItemWidth * Math.min(visibleItems, 2);
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
 
-        // التمرير لليسار (التالي)
-        $('.hospital-nav-next').on('click', function() {
-            if (scrollPosition > 0) {
-                scrollPosition = Math.max(0, scrollPosition - scrollAmount);
-                $('.hospitals-wrapper').animate({
-                    scrollLeft: scrollPosition
-                }, 300);
-                updateNavButtons();
-            }
-        });
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #272b41;
+        margin-bottom: 10px;
+    }
 
-        // التمرير لليمين (السابق)
-        $('.hospital-nav-prev').on('click', function() {
-            const maxScroll = totalWidth - $('.hospitals-container').width();
-            if (scrollPosition < maxScroll) {
-                scrollPosition = Math.min(maxScroll, scrollPosition + scrollAmount);
-                $('.hospitals-wrapper').animate({
-                    scrollLeft: scrollPosition
-                }, 300);
-                updateNavButtons();
-            }
-        });
+    .card-text {
+        font-size: 14px;
+        color: #757575;
+        margin-bottom: 10px;
+    }
+</style>
 
-        // تحديث حالة أزرار التنقل (تعطيل/تفعيل)
-        function updateNavButtons() {
-            // إذا كنا في البداية، عطل زر التالي
-            if (scrollPosition <= 0) {
-                $('.hospital-nav-next').addClass('disabled');
-            } else {
-                $('.hospital-nav-next').removeClass('disabled');
-            }
 
-            // إذا كنا في النهاية، عطل زر السابق
-            const maxScroll = totalWidth - $('.hospitals-container').width();
-            if (scrollPosition >= maxScroll) {
-                $('.hospital-nav-prev').addClass('disabled');
-            } else {
-                $('.hospital-nav-prev').removeClass('disabled');
-            }
-        }
-
-        // تحديث أزرار التنقل عند التحميل
-        updateNavButtons();
-
-        // تحديث المتغيرات وأزرار التنقل عند تغيير حجم النافذة
-        $(window).resize(function() {
-            visibleItems = Math.floor($('.hospitals-container').width() / hospitalItemWidth);
-            updateNavButtons();
-        });
-    });
-</script>
-{% endblock %}

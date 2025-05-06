@@ -11,9 +11,9 @@ app_name = 'home'
 urlpatterns = [
     # الصفحة الرئيسية
     path('', views.index, name='home'),
-    
+
     path('faq', views.faq_page, name='faq'),
-    
+
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
     path('privacy-policy',views.privacy_policy,name='privacy_policy'),
     path('terms-condition',views.terms_condition,name='terms_condition'),

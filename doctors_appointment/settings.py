@@ -252,45 +252,49 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NAV_MENU_TOP = [
     {
-        "name": "FAQ",
+        "name": "الأسئلة الشائعة",
         "url": "/faq",
     },
     {
-        "name": "About",
+        "name": "عن الموقع",
         "url": "/about",
     },
     {
-        "name": "Pricing Plan",
+        "name": "خطط الأسعار",
         "url": "/about",
     },
     {
-        "name": "Pages",
+        "name": "الصفحات",
         "url": "/",
 
         "submenu": [
             {
-                "name": "About Us",
+                "name": "من نحن",
                 "url": "/",
             },
             {
-                "name": "Contact Us",
+                "name": "اتصل بنا",
                 "url": "/",
 
             },
             {
-                "name": "Terms & Condition",
+                "name": "الشروط والأحكام",
                 "url": "/terms-condition",
 
             },
             {
-                "name": "Privacy Policy",
+                "name": "سياسة الخصوصية",
                 "url": "/privacy-policy",
 
             }
         ],
     },
     {
-        "name": "Blog",
+        "name": "المستشفيات",
+        "url": "/hospitals/all/",
+    },
+    {
+        "name": "المدونة",
         "url": "/blog/",
     },
 ]

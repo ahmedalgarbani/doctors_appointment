@@ -115,7 +115,7 @@ class Hospital(BaseModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('home:hospitals:hospital_detail', args=[self.slug])
+        return reverse('hospitals:hospital_detail', args=[self.slug])
 
     class Meta:
         verbose_name = _("مستشفى")

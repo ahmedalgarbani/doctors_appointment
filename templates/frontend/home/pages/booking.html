@@ -53,7 +53,10 @@
                    <p>Choose a Date</p>
                     <div class="col-md-6 mb-3 px-0">
                         <label class="mb-2 fw-bold">تاريخ الحجز</label>
-                        <input type="date" class="form-control" name="booking_date" id="datepicker" value="{{ form.booking_date }}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="booking_date" id="datepicker" value="{{ form.booking_date }}" readonly>
+                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                        </div>
                     </div>
                 
                 
@@ -152,6 +155,46 @@
 
 <script>
 $(document).ready(function () {
+    // تخزين أيام الأسبوع المتاحة
+    let availableDays = [];
+
+    // تحديث أيام الأسبوع المتاحة عند اختيار يوم
+    function updateAvailableDays() {
+        availableDays = [];
+        $('.date-slider li.active').each(function() {
+            const dayName = $(this).find('h4').text().trim();
+            const dayMap = {
+                'السبت': 6,
+                'الأحد': 0,
+                'الاثنين': 1,
+                'الثلاثاء': 2,
+                'الأربعاء': 3,
+                'الخميس': 4,
+                'الجمعة': 5
+            };
+            if (dayMap.hasOwnProperty(dayName)) {
+                availableDays.push(dayMap[dayName]);
+            }
+        });
+        // إعادة تهيئة التقويم
+        $("#datepicker").datepicker("refresh");
+    }
+
+    // تهيئة التقويم
+    $("#datepicker").datepicker({
+        minDate: 0,
+        dateFormat: 'yy-mm-dd',
+        beforeShowDay: function(date) {
+            const day = date.getDay();
+            return [availableDays.includes(day), ''];
+        },
+        beforeShow: function() {
+            setTimeout(function(){
+                $('.ui-datepicker').append('<div class="ui-helper-clearfix"><span style="padding:3px;color:#666;font-size:12px;">اختر التاريخ المناسب من الأيام المتاحة</span></div>');
+            }, 0);
+        }
+    });
+
     // عند تغيير التاريخ من input
     $("#datepicker").on("change", function () {
         const dateText = $(this).val();
@@ -176,6 +219,14 @@ $(document).ready(function () {
         $('.date-slider li').removeClass('active');
         $(this).addClass('active');
         $('#day_id').val(selectedScheduleId);
+        // تحديث التواريخ المتاحة في التقويم
+        updateAvailableDays();
+        // مسح التاريخ المحدد إذا كان لا يتوافق مع اليوم الجديد
+        const currentDate = $("#datepicker").datepicker("getDate");
+        if (currentDate && !availableDays.includes(currentDate.getDay())) {
+            $("#datepicker").val("");
+            $("#booking_date_input").val("");
+        }
         updateTimeSlots();
     });
 

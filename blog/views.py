@@ -5,6 +5,11 @@ from .forms import CommentForm
 
 def post_list(request):
     posts = Post.objects.filter(status=True)
+    search_query = request.GET.get('search', '')
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
     tags = Tag.objects.filter(status=True)
     categories = Category.objects.filter(status=True)
     paginator = Paginator(posts, 10)
