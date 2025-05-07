@@ -24,6 +24,11 @@
                                         <div class="login-header">
                                             <h3>Login <span>Doccure</span></h3>
                                         </div>
+                                        {% if request.session.login_required_message %}
+                                        <div class="alert alert-warning" role="alert">
+                                            {{ request.session.login_required_message }}
+                                        </div>
+                                        {% endif %}
                                         <form action="{% url 'users:login' %}" method="POST">
                                             {% csrf_token %}
                                             <div class="mb-3 form-focus">

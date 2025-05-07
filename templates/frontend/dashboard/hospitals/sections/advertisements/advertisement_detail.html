@@ -1,0 +1,130 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section advertisement_detail d-none">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">تفاصيل الإعلان</h4>
+            <a href="javascript:;" data-method="advertisements_list" data-section="advertisements_list" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left"></i> العودة للقائمة
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- بطاقة معلومات الإعلان الرئيسية -->
+                    <div class="card border shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="card-title mb-0">{{ advertisement.title }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 text-muted small">
+                                <i class="far fa-calendar-alt me-1"></i> تم الإنشاء: {{ advertisement.created_at|date:"Y-m-d H:i" }}
+                                {% if advertisement.updated_at %}
+                                <span class="ms-3"><i class="far fa-edit me-1"></i> آخر تحديث: {{ advertisement.updated_at|date:"Y-m-d H:i" }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 text-primary"><i class="far fa-file-alt me-2"></i>الوصف:</h5>
+                                <p class="p-2 bg-light rounded">{{ advertisement.description }}</p>
+                            </div>
+
+                            <!-- معلومات التواريخ -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-success">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-success"><i class="far fa-calendar-plus me-2"></i>تاريخ البدء</h5>
+                                            <p class="card-text fs-5">{{ advertisement.start_date }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-danger">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-danger"><i class="far fa-calendar-minus me-2"></i>تاريخ الانتهاء</h5>
+                                            <p class="card-text fs-5">{{ advertisement.end_date|default:"غير محدد" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- حالة الإعلان -->
+                            <div class="mb-4 text-center">
+                                <h5 class="border-bottom pb-2 text-primary"><i class="fas fa-info-circle me-2"></i>الحالة:</h5>
+                                <div class="p-3">
+                                    {% if advertisement.status == 'active' %}
+                                    <span class="badge bg-success fs-5 p-2"><i class="fas fa-check-circle me-1"></i> نشط</span>
+                                    {% elif advertisement.status == 'inactive' %}
+                                    <span class="badge bg-secondary fs-5 p-2"><i class="fas fa-times-circle me-1"></i> غير نشط</span>
+                                    {% elif advertisement.status == 'scheduled' %}
+                                    <span class="badge bg-info fs-5 p-2"><i class="fas fa-clock me-1"></i> مجدول</span>
+                                    {% elif advertisement.status == 'expired' %}
+                                    <span class="badge bg-danger fs-5 p-2"><i class="fas fa-exclamation-circle me-1"></i> منتهي</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- إحصائيات الإعلان -->
+                            <div class="row mb-3">
+                                <h5 class="border-bottom pb-2 text-primary"><i class="fas fa-chart-bar me-2"></i>إحصائيات:</h5>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-primary"><i class="fas fa-eye me-2"></i>المشاهدات</h5>
+                                            <p class="card-text fs-1 fw-bold">{{ advertisement.views_count }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-primary"><i class="fas fa-mouse-pointer me-2"></i>النقرات</h5>
+                                            <p class="card-text fs-1 fw-bold">{{ advertisement.clicks_count }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- صورة الإعلان -->
+                    <div class="card border shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0"><i class="fas fa-image me-2"></i>صورة الإعلان</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if advertisement.image %}
+                            <img src="{{ advertisement.image.url }}" alt="{{ advertisement.title }}" class="img-fluid w-100">
+                            {% else %}
+                            <div class="text-center p-5 bg-light">
+                                <i class="fas fa-image fa-5x text-muted"></i>
+                                <p class="mt-3 text-muted">لا توجد صورة للإعلان</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- أزرار الإجراءات -->
+                    <div class="card border shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0"><i class="fas fa-cogs me-2"></i>الإجراءات</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-3">
+                                {% if advertisement.id %}
+                                <a href="javascript:;" class="btn btn-primary btn-lg edit-ad-btn" data-ad-id="{{ advertisement.id }}">
+                                    <i class="fas fa-edit me-2"></i> تعديل الإعلان
+                                </a>
+                                <a href="javascript:;" class="btn btn-danger btn-lg delete-ad-btn" data-ad-id="{{ advertisement.id }}" data-ad-title="{{ advertisement.title }}">
+                                    <i class="fas fa-trash me-2"></i> حذف الإعلان
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

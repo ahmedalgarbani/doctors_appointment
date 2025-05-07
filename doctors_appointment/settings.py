@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'home',
     'blog',
     'hospital_staff',
+    'advertisements',
     'menu_generator',
     'ckeditor',
     'widget_tweaks',
@@ -59,16 +60,16 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/minute',  
-        'user': '100/minute' 
+        'anon': '100/minute',
+        'user': '100/minute'
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10, 
+    'PAGE_SIZE': 10,
 
-    
+
 
 }
     #'EXCEPTION_HANDLER': '/api/handle.py'
@@ -78,14 +79,14 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),  
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  
-    "ROTATE_REFRESH_TOKENS": True,  
-    "BLACKLIST_AFTER_ROTATION": True,  
-    "UPDATE_LAST_LOGIN": True, 
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY, 
+    "SIGNING_KEY": SECRET_KEY,
     "VERIFYING_KEY": "",
     "AUDIENCE": None,
     "ISSUER": None,

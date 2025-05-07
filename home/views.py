@@ -234,6 +234,9 @@ def search_view(request):
     specialty = request.GET.get('specialty')
     sort_by = request.GET.get('sort_by', 'default')
     page = request.GET.get('page', 1)
+    date_str = request.GET.get('date', '')
+    experience = request.GET.get('experience', '')
+    doctor_name = request.GET.get('doctor_name', '')
 
     filters = {}
     logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
@@ -371,6 +374,22 @@ def search_view(request):
 
 
 def booking_view(request, doctor_id):
+    # Check if user is logged in
+    if not request.user.is_authenticated:
+        # Store the doctor_id and hospital_id in session to redirect back after login
+        request.session['redirect_after_login'] = request.get_full_path()
+        # Add a message to the session to inform the user
+        request.session['login_required_message'] = 'يجب تسجيل الدخول أولاً لحجز موعد مع الطبيب'
+        # Redirect to login page
+        return redirect('users:login')
+    
+    # Check if user is a hospital manager
+    if request.user.user_type == 'hospital_manager' or request.user.user_type == 'hospital_staff':
+        # Store a message to inform the user
+        request.session['hospital_user_message'] = 'حسابك الحالي هو حساب مستشفى. يجب استخدام حساب مريض لحجز موعد.'
+        # Redirect to patient registration page
+        return redirect('users:patient_signup')
+    
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
     request.session['selected_doctor'] = selected_doctor.id
 

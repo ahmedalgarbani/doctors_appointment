@@ -107,6 +107,14 @@
                     <span>المدونة</span>
                   </a>
                 </li>
+                {% if request.user.user_type == 'hospital_manager' %}
+                <li>
+                  <a href="javascript:;" data-method="advertisements_list" data-section="advertisements_list">
+                    <i class="fas fa-ad"></i>
+                    <span>إدارة الإعلانات</span>
+                  </a>
+                </li>
+                {% endif %}
                 <li>
                   <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
                     <i class="fas fa-credit-card"></i>
@@ -160,6 +168,10 @@
       </div>
 
       <!-- Include Sections -->
+      {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_list.html" %}
+      {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_form.html" %}
+      {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_detail.html" %}
+      {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_confirm_delete.html" %}
       {% include "frontend/dashboard/hospitals/sections/staff/staff-list.html" %}
       {% include "frontend/dashboard/hospitals/sections/schedule-timings.html" %}
       {% include "frontend/dashboard/hospitals/sections/all_doctors_page.html" %}
@@ -174,6 +186,7 @@
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
+
 
 
     </div>
@@ -217,15 +230,33 @@
           notifications_list: "الأشعارات",
           notifications_forms: "ارسال اشعار",
           doctor_change_password: "تغيير كلمة المرور",
-          staff_list: "إدارة الموظفين"
+          staff_list: "إدارة الموظفين",
+          advertisements_list: "إدارة الإعلانات",
+          advertisement_form: "إضافة/تعديل إعلان",
+          advertisement_detail: "تفاصيل الإعلان",
+          advertisement_confirm_delete: "حذف الإعلان"
         };
 
         const newTitle = sectionTitles[methodName] || "لوحة التحكم";
         updateBreadcrumb(newTitle);
 
-        // إعادة تحميل الصفحة مع إضافة بارامتر للقسم المطلوب
+        // إخفاء جميع الأقسام
+        $(".section").addClass("d-none");
+
+        // إظهار القسم المطلوب
+        if (methodName === 'doctor_profile_settings') {
+          $(".doctor_profile_settings").removeClass("d-none");
+        } else {
+          $(`.${methodName}`).removeClass("d-none");
+        }
+
+        // تحديث القائمة النشطة
+        $(".dashboard-menu li").removeClass("active");
+        $(`a[data-method="${methodName}"]`).parent().addClass("active");
+
+        // تحديث عنوان URL بدون إعادة تحميل الصفحة
         const currentUrl = window.location.href.split('?')[0];
-        window.location.href = currentUrl + '?section=' + methodName;
+        window.history.pushState({}, '', currentUrl + '?section=' + methodName);
       }
     }
 
@@ -249,11 +280,28 @@
       notifications_list: "الأشعارات",
       notifications_forms: "ارسال اشعار",
       doctor_change_password: "تغيير كلمة المرور",
-      staff_list: "إدارة الموظفين"
+      staff_list: "إدارة الموظفين",
+      advertisements_list: "إدارة الإعلانات",
+      advertisement_form: "إضافة/تعديل إعلان",
+      advertisement_detail: "تفاصيل الإعلان",
+      advertisement_confirm_delete: "حذف الإعلان"
     };
 
     // تحديد القسم المطلوب عرضه
-    let currentSection = sectionParam || 'hospital_dashboard';
+    let currentSection = sectionParam;
+
+    // إذا لم يكن هناك قسم محدد في URL
+    if (!currentSection) {
+        // التحقق من نوع المستخدم (تم تعيينه في الخادم)
+        const userType = "{{ request.user.user_type }}";
+
+        // إذا كان المستخدم مدير مستشفى، عرض قسم الإعلانات تلقائيًا
+        if (userType === 'hospital_manager') {
+            currentSection = 'advertisements_list';
+        } else {
+            currentSection = 'hospital_dashboard';
+        }
+    }
 
     console.log("Current section from URL:", currentSection);
 
@@ -276,6 +324,392 @@
     // تحديث القائمة النشطة
     $(".dashboard-menu li").removeClass("active");
     $(`a[data-method="${currentSection}"]`).parent().addClass("active");
+
+    // إضافة معالجة خاصة عند النقر على زر إضافة إعلان جديد
+    $("a[data-method='advertisement_form']").on("click", function() {
+        // تعيين عنوان النموذج
+        $(".advertisement_form .card-title").text("إضافة إعلان جديد");
+
+        // إظهار مؤشر التحميل
+        $("#form-content").html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">جاري التحميل...</span>
+                </div>
+                <p class="mt-2">جاري تحميل النموذج...</p>
+            </div>
+        `);
+
+        // تحميل النموذج عبر AJAX
+        $.ajax({
+            url: "{% url 'advertisements:load_advertisement_form' %}",
+            type: "GET",
+            success: function(response) {
+                // عرض النموذج
+                $("#form-content").html(response.html);
+
+                // تعيين التاريخ الحالي كتاريخ البدء
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                $(".advertisement_form form.advertisement-form input[name='start_date']").val(formattedDate);
+
+                console.log("Form loaded successfully");
+            },
+            error: function(xhr, status, error) {
+                // عرض رسالة خطأ
+                $("#form-content").html(`
+                    <div class="alert alert-danger">
+                        <h5>حدث خطأ أثناء تحميل النموذج</h5>
+                        <p>يرجى المحاولة مرة أخرى.</p>
+                        <button class="btn btn-primary mt-2" onclick="location.reload()">إعادة تحميل الصفحة</button>
+                    </div>
+                `);
+                console.error("Error loading form:", error);
+            }
+        });
+    });
+
+    // معالجة النقر على زر الإلغاء في نموذج الإضافة
+    $(document).on("click", ".advertisement_form .cancel-btn", function(e) {
+        e.preventDefault();
+        console.log("Cancel button clicked in add form");
+
+        // العودة إلى قائمة الإعلانات
+        $("a[data-method='advertisements_list']").trigger("click");
+    });
+
+    // إضافة معالجة خاصة لنموذج إضافة الإعلان (باستخدام التفويض لمعالجة العناصر المضافة ديناميكيًا)
+    $(document).on("submit", ".advertisement_form form.advertisement-form", function(e) {
+        e.preventDefault();
+        console.log("Form submitted");
+
+        const formData = new FormData(this);
+
+        // إظهار مؤشر التحميل
+        $("#form-content").append(`
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center" style="z-index: 1000;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">جاري الإرسال...</span>
+                    </div>
+                    <p class="mt-2">جاري إرسال البيانات...</p>
+                </div>
+            </div>
+        `);
+
+        $.ajax({
+            url: "{% url 'advertisements:add_advertisement' %}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // عرض رسالة نجاح
+                alert("تم إضافة الإعلان بنجاح!");
+
+                // العودة إلى قائمة الإعلانات
+                $("a[data-method='advertisements_list']").trigger("click");
+            },
+            error: function(xhr, status, error) {
+                // عرض رسالة خطأ
+                alert("حدث خطأ أثناء إضافة الإعلان. يرجى المحاولة مرة أخرى.");
+                console.error("Error submitting form:", error);
+
+                // إزالة مؤشر التحميل
+                $("#form-content .position-absolute").remove();
+            }
+        });
+    });
+
+    // تأكد من تحميل النموذج بشكل صحيح عند تحميل الصفحة إذا كان القسم الحالي هو نموذج الإعلان
+    if (currentSection === 'advertisement_form') {
+        $("a[data-method='advertisement_form']").trigger("click");
+    }
+
+    // تأكد من تحميل النموذج بشكل صحيح
+    console.log("Form elements count: " + $(".advertisement_form form.advertisement-form").length);
+
+    // معالجة النقر على زر عرض تفاصيل الإعلان
+    $(document).on("click", "a[href^='{% url 'advertisements:advertisement_detail' 0 %}']", function(e) {
+        e.preventDefault();
+        const url = $(this).attr("href");
+        const adId = url.split("/").filter(Boolean).pop();
+        console.log("View advertisement details with ID:", adId);
+
+        // إخفاء جميع الأقسام
+        $(".section").addClass("d-none");
+
+        // إظهار قسم تفاصيل الإعلان
+        $(".advertisement_detail").removeClass("d-none");
+
+        // تحديث عنوان الصفحة
+        updateBreadcrumb("تفاصيل الإعلان");
+
+        // تحديث عنوان URL بدون إعادة تحميل الصفحة
+        const currentUrl = window.location.href.split('?')[0];
+        window.history.pushState({}, '', currentUrl + '?section=advertisement_detail&id=' + adId);
+
+        // تحميل بيانات الإعلان عبر AJAX
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function(response) {
+                // تحديث محتوى صفحة التفاصيل
+                $(".advertisement_detail").html($(response).find(".advertisement_detail").html());
+            },
+            error: function(xhr, status, error) {
+                console.error("Error loading advertisement details:", error);
+                $(".advertisement_detail").html(`
+                    <div class="alert alert-danger">
+                        <h5>حدث خطأ أثناء تحميل تفاصيل الإعلان</h5>
+                        <p>يرجى المحاولة مرة أخرى.</p>
+                        <button class="btn btn-primary mt-2" onclick="location.reload()">إعادة تحميل الصفحة</button>
+                    </div>
+                `);
+            }
+        });
+    });
+
+    // معالجة النقر على زر تعديل الإعلان
+    $(document).on("click", ".edit-ad-btn", function() {
+        const adId = $(this).data("ad-id");
+        console.log("Edit advertisement with ID:", adId);
+
+        // إظهار نموذج التعديل
+        $("#edit-advertisement-form-container").removeClass("d-none");
+
+        // التمرير إلى نموذج التعديل
+        $('html, body').animate({
+            scrollTop: $("#edit-advertisement-form-container").offset().top - 100
+        }, 500);
+
+        // تحميل بيانات الإعلان عبر AJAX
+        $.ajax({
+            url: "{% url 'advertisements:load_edit_form' 0 %}".replace('0', adId),
+            type: "GET",
+            success: function(response) {
+                // عرض النموذج
+                $("#edit-form-content").html(response.html);
+
+                // إذا كان هناك صورة، عرضها
+                if (response.image_url) {
+                    $("#current-image-container").removeClass("d-none");
+                    $("#current-image").attr("src", response.image_url).attr("alt", response.title);
+                }
+
+                console.log("Edit form loaded successfully");
+            },
+            error: function(xhr, status, error) {
+                // عرض رسالة خطأ
+                $("#edit-form-content").html(`
+                    <div class="alert alert-danger">
+                        <h5>حدث خطأ أثناء تحميل النموذج</h5>
+                        <p>يرجى المحاولة مرة أخرى.</p>
+                    </div>
+                `);
+                console.error("Error loading edit form:", error);
+            }
+        });
+    });
+
+    // معالجة إغلاق نموذج التعديل
+    $(document).on("click", "#close-edit-form", function() {
+        $("#edit-advertisement-form-container").addClass("d-none");
+    });
+
+    // معالجة النقر على زر الإلغاء في نموذج التعديل
+    $(document).on("click", "#edit-advertisement-form .cancel-btn", function(e) {
+        e.preventDefault();
+        console.log("Cancel button clicked in edit form");
+
+        // إخفاء نموذج التعديل
+        $("#edit-advertisement-form-container").addClass("d-none");
+
+        // التمرير إلى أعلى الصفحة
+        $('html, body').animate({
+            scrollTop: $(".advertisements_list").offset().top - 50
+        }, 300);
+    });
+
+    // معالجة إرسال نموذج التعديل
+    $(document).on("submit", "#edit-advertisement-form", function(e) {
+        e.preventDefault();
+        console.log("Edit form submitted");
+
+        const formData = new FormData(this);
+        const adId = $("#advertisement_id").val();
+
+        // إظهار مؤشر التحميل
+        $("#edit-form-content").append(`
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center" style="z-index: 1000;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">جاري الإرسال...</span>
+                    </div>
+                    <p class="mt-2">جاري تحديث البيانات...</p>
+                </div>
+            </div>
+        `);
+
+        $.ajax({
+            url: "{% url 'advertisements:edit_advertisement' 0 %}".replace('0', adId),
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // عرض رسالة نجاح
+                alert("تم تحديث الإعلان بنجاح!");
+
+                // إعادة تحميل الصفحة لتحديث البيانات
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                // إزالة مؤشر التحميل
+                $("#edit-form-content .position-absolute").remove();
+
+                // عرض رسالة خطأ
+                alert("حدث خطأ أثناء تحديث الإعلان. يرجى المحاولة مرة أخرى.");
+                console.error("Error updating advertisement:", error);
+            }
+        });
+    });
+
+    // دالة للحصول على قيمة ملف تعريف الارتباط
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // معالجة النقر على زر حذف الإعلان
+    $(document).on("click", ".delete-ad-btn", function() {
+        const adId = $(this).data("ad-id");
+        console.log("Show delete confirmation for advertisement ID:", adId);
+
+        // إخفاء جميع صفوف التأكيد الأخرى
+        $(".delete-confirm-row").addClass("d-none");
+
+        // إظهار صف تأكيد الحذف لهذا الإعلان
+        $("#delete-confirm-" + adId).removeClass("d-none");
+
+        // تمرير الصفحة إلى صف التأكيد
+        $('html, body').animate({
+            scrollTop: $("#delete-confirm-" + adId).offset().top - 100
+        }, 300);
+    });
+
+    // معالجة النقر على زر إلغاء الحذف
+    $(document).on("click", ".cancel-delete-btn", function() {
+        const adId = $(this).data("ad-id");
+        console.log("Canceling delete for advertisement ID:", adId);
+
+        // إخفاء صف تأكيد الحذف
+        $("#delete-confirm-" + adId).addClass("d-none");
+    });
+
+    // معالجة النقر على زر تأكيد الحذف
+    $(document).on("click", ".confirm-delete-btn", function() {
+        const adId = $(this).data("ad-id");
+        console.log("Confirming delete for advertisement ID:", adId);
+
+        // تعطيل أزرار التأكيد والإلغاء
+        $(this).prop("disabled", true).text("جاري الحذف...");
+        $(this).siblings(".cancel-delete-btn").prop("disabled", true);
+
+        // إضافة مؤشر التحميل
+        const confirmRow = $("#delete-confirm-" + adId);
+        confirmRow.find("p").after(`
+            <div class="text-center my-2">
+                <div class="spinner-border text-danger spinner-border-sm" role="status">
+                    <span class="visually-hidden">جاري الحذف...</span>
+                </div>
+                <span class="ms-2">جاري حذف الإعلان...</span>
+            </div>
+        `);
+
+        // الحصول على رمز CSRF
+        const csrfToken = $(".advertisements_list input[name=csrfmiddlewaretoken]").val() || getCookie('csrftoken');
+
+        $.ajax({
+            url: "{% url 'advertisements:ajax_delete_advertisement' 0 %}".replace('0', adId),
+            type: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken
+            },
+            success: function(response) {
+                console.log("Delete response:", response);
+
+                // إخفاء صف الإعلان وصف التأكيد بتأثير متلاشي
+                $("#ad-row-" + adId).fadeOut(500);
+                confirmRow.fadeOut(500, function() {
+                    // إزالة الصفوف من DOM بعد انتهاء التأثير
+                    $("#ad-row-" + adId).remove();
+                    confirmRow.remove();
+
+                    // عرض رسالة نجاح
+                    const alertDiv = $(`
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            تم حذف الإعلان بنجاح!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `);
+
+                    // إضافة التنبيه في أعلى الجدول
+                    $(".table-responsive").before(alertDiv);
+
+                    // إخفاء التنبيه تلقائيًا بعد 5 ثوانٍ
+                    setTimeout(function() {
+                        alertDiv.alert('close');
+                    }, 5000);
+
+                    // إذا لم تعد هناك إعلانات، عرض رسالة "لا توجد إعلانات"
+                    if ($(".table-responsive tbody tr").length === 0) {
+                        $(".table-responsive").replaceWith(`
+                            <div class="alert alert-info text-center">
+                                لا توجد إعلانات متاحة. <a href="javascript:;" data-method="advertisement_form" data-section="advertisement_form" class="alert-link">إضافة إعلان جديد</a>
+                            </div>
+                        `);
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error deleting advertisement:", error);
+                console.error("Status:", status);
+                console.error("Response:", xhr.responseText);
+
+                // إزالة مؤشر التحميل
+                confirmRow.find(".text-center").remove();
+
+                // إعادة تفعيل الأزرار
+                confirmRow.find(".confirm-delete-btn").prop("disabled", false).text("تأكيد الحذف");
+                confirmRow.find(".cancel-delete-btn").prop("disabled", false);
+
+                // عرض رسالة خطأ
+                confirmRow.find("p").after(`
+                    <div class="alert alert-danger mb-2">
+                        حدث خطأ أثناء حذف الإعلان. يرجى المحاولة مرة أخرى.
+                    </div>
+                `);
+
+                // إخفاء رسالة الخطأ بعد 5 ثوانٍ
+                setTimeout(function() {
+                    confirmRow.find(".alert").fadeOut(500, function() {
+                        $(this).remove();
+                    });
+                }, 5000);
+            }
+        });
+    });
   });
 </script>
 {% endblock %}

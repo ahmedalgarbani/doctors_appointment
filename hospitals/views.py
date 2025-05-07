@@ -283,6 +283,19 @@ def index(request):
     except Exception as e:
         print(f"Error getting hospital location: {str(e)}")
 
+    # Importar el modelo Advertisement si aún no está importado
+    try:
+        from advertisements.models import Advertisement
+        # Obtener anuncios para este hospital
+        advertisements = Advertisement.objects.filter(hospital=hospital)
+    except ImportError:
+        # Si el modelo no está disponible, usar una lista vacía
+        advertisements = []
+    except Exception as e:
+        # Si hay otro error, registrarlo y usar una lista vacía
+        print(f"Error al cargar anuncios: {str(e)}")
+        advertisements = []
+
     context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
@@ -323,6 +336,7 @@ def index(request):
         'hospital_notifications_sended':hospital_notifications_sended,
         'unread_notifications_count': unread_notifications_count,
         'staff_obj': staff_obj,  # إضافة معلومات الموظف إلى السياق
+        'advertisements': advertisements,  # Añadir anuncios al contexto
     }
 
 
@@ -1673,10 +1687,10 @@ from .models import Hospital
 def all_hospitals(request):
     search_query = request.GET.get('search', '')
     hospitals = Hospital.objects.filter(status=True)
-    
+
     if search_query:
         hospitals = hospitals.filter(name__icontains=search_query)
-    
+
     hospitals = hospitals.annotate(
         doctors_count=models.Count('doctors', distinct=True),
         specialties_count=models.Count('doctors__specialty', distinct=True)
@@ -1685,7 +1699,7 @@ def all_hospitals(request):
     # Pagination
     paginator = Paginator(hospitals, 6)  # Show 6 hospitals per page
     page = request.GET.get('page')
-    
+
     try:
         hospitals = paginator.page(page)
     except PageNotAnInteger:
@@ -1694,7 +1708,7 @@ def all_hospitals(request):
     except EmptyPage:
         # If page is out of range, deliver last page of results.
         hospitals = paginator.page(paginator.num_pages)
-    
+
     return render(request, 'frontend/hospitals/all_hospitals.html', {
         'hospitals': hospitals,
         'title': 'المستشفيات',
@@ -1703,52 +1717,52 @@ def all_hospitals(request):
 
 def hospital_details(request, hospital_id):
     hospital = get_object_or_404(Hospital, id=hospital_id)
-    
+
     # Get doctors with their ratings
     doctors = hospital.doctors.select_related('specialty').all()
-    
+
     # Ensure all doctors have slugs
     from django.utils.text import slugify
     updated_doctors = []
     for doctor in doctors:
         # Print debug info
         print(f"Processing doctor: {doctor.full_name}, Current slug: {doctor.slug}")
-        
+
         # Always generate a new slug if it's empty or invalid
         if not doctor.slug or not doctor.slug.strip():
             base_slug = slugify(doctor.full_name)
             if not base_slug:  # If name doesn't generate valid slug
                 base_slug = f'doctor-{doctor.id}'
-            
+
             # Handle slug duplication
             unique_slug = base_slug
             counter = 1
             while Doctor.objects.filter(slug=unique_slug).exclude(pk=doctor.pk).exists():
                 unique_slug = f"{base_slug}-{counter}"
                 counter += 1
-            
+
             # Update the doctor's slug
             doctor.slug = unique_slug
             doctor.save(update_fields=['slug'])
             print(f"Updated slug for {doctor.full_name} to: {doctor.slug}")
-        
+
         updated_doctors.append(doctor)
-    
+
     # Now get the doctors again with annotations
     doctors = hospital.doctors.select_related('specialty').annotate(
         rating=models.Avg('reviews__rating'),
         reviews_count=models.Count('reviews')
     ).all()
-    
+
     # Get unique specialties count
     specialties_count = doctors.values('specialty').distinct().count()
-    
+
     # Final verification
     for doctor in doctors:
         print(f"Final verification - Doctor: {doctor.full_name}, Slug: {doctor.slug}")
         if not doctor.slug:
             print(f"WARNING: Doctor {doctor.full_name} still has no slug!")
-    
+
     context = {
         'hospital': hospital,
         'doctors': doctors,
@@ -1756,7 +1770,7 @@ def hospital_details(request, hospital_id):
         'specialties_count': specialties_count,
         'title': hospital.name
     }
-    
+
     return render(request, 'frontend/hospitals/hospital_details.html', context)
 
 @login_required(login_url='/user/login')

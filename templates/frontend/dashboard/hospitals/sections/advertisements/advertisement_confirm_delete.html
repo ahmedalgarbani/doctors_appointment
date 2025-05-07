@@ -1,0 +1,50 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section advertisement_confirm_delete d-none">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">حذف الإعلان</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">تأكيد الحذف</h5>
+                <p>هل أنت متأكد من رغبتك في حذف الإعلان "<strong>{{ advertisement.title }}</strong>"؟</p>
+                <p>هذا الإجراء لا يمكن التراجع عنه.</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>معلومات الإعلان:</h5>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item"><strong>العنوان:</strong> {{ advertisement.title }}</li>
+                        <li class="list-group-item"><strong>تاريخ البدء:</strong> {{ advertisement.start_date }}</li>
+                        <li class="list-group-item"><strong>تاريخ الانتهاء:</strong> {{ advertisement.end_date|default:"غير محدد" }}</li>
+                        <li class="list-group-item"><strong>الحالة:</strong> 
+                            {% if advertisement.status == 'active' %}
+                            <span class="badge bg-success">نشط</span>
+                            {% elif advertisement.status == 'inactive' %}
+                            <span class="badge bg-secondary">غير نشط</span>
+                            {% elif advertisement.status == 'scheduled' %}
+                            <span class="badge bg-info">مجدول</span>
+                            {% elif advertisement.status == 'expired' %}
+                            <span class="badge bg-danger">منتهي</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    {% if advertisement.image %}
+                    <img src="{{ advertisement.image.url }}" alt="{{ advertisement.title }}" class="img-fluid rounded mb-3">
+                    {% endif %}
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="text-end">
+                    <a href="{% url 'advertisements:advertisement_list' %}" class="btn btn-secondary me-2">إلغاء</a>
+                    <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

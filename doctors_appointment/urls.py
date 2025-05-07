@@ -17,6 +17,7 @@ urlpatterns = [
     path('patients/', include(('patients.urls', 'patients'), namespace='patients'),name='patients'),  # رابط المرضى
     path('api/', include('api.urls')),
     path('notifications/', include('notifications.urls')),
+    path('advertisements/', include(('advertisements.urls', 'advertisements'), namespace='advertisements')),
 
     # صفحة ثابتة لتفاصيل المستشفى
     path('hospital_static.html', TemplateView.as_view(template_name='hospital_static.html'), name='hospital_static'),

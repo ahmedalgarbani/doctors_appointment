@@ -17,6 +17,11 @@ from django.contrib.auth import authenticate, login, logout
 
 def patient_signup(request):
     """عرض صفحة تسجيل المريض ومعالجة البيانات"""
+    # Clear the hospital_user_message from session after displaying it
+    hospital_user_message = None
+    if 'hospital_user_message' in request.session:
+        hospital_user_message = request.session.pop('hospital_user_message')
+        
     if request.method == "POST":
         username = request.POST.get('username')
         first_name = request.POST.get('first_name')
@@ -164,6 +169,10 @@ from django.contrib.auth.hashers import make_password, check_password
 def login_view(request):
     if request.user.is_authenticated:
         logout(request)
+        
+    # Check if there's a message parameter in the URL
+    if request.GET.get('message') == 'login_required' and 'login_required_message' not in request.session:
+        request.session['login_required_message'] = 'يجب تسجيل الدخول أولاً لحجز موعد مع الطبيب'
 
     if request.method == "POST":
         email = request.POST.get('email')
@@ -200,8 +209,14 @@ def login_view(request):
                 except Exception as e:
                     print(f"\n\nخطأ في التحقق من أول تسجيل دخول: {str(e)}\n\n")
 
-            # توجيه بناء على `next`
-            if next_url:
+            # توجيه بناء على `next` أو redirect_after_login من الجلسة
+            if 'redirect_after_login' in request.session:
+                redirect_url = request.session.pop('redirect_after_login')
+                # Clear the login message from session
+                if 'login_required_message' in request.session:
+                    del request.session['login_required_message']
+                return redirect(redirect_url)
+            elif next_url:
                 return redirect(next_url)
 
             # توجيه حسب نوع المستخدم
