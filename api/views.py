@@ -6,26 +6,23 @@ from doctors.models import Doctor,Specialty
 from hospitals.models import Hospital
 from notifications.models import Notifications
 from payments.models import HospitalPaymentMethod, Payment
-from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, RegisterSerializer, SpecialtiesSerializer, UserSerializer
+from reviews.models import Review
+from .serializers import BookingSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, PaymentSerializer, RegisterSerializer, ReviewSerializer, SpecialtiesSerializer, UserSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status, permissions
+from rest_framework import status, permissions,generics
 from patients.models import Favourites, Patients
 from django.db.utils import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser,MultiPartParser, FormParser
-from django.core.exceptions import ValidationError
 from datetime import datetime
-from django.core.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from .serializers import NotificationSerializer
 from rest_framework.filters import SearchFilter
+from .serializers import DoctorSerializer, HospitalDetailSerializer
 
 User = get_user_model()
 
@@ -38,7 +35,17 @@ class CustomPagination(PageNumberPagination):
 
 
 
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.filter(status=True)
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        patient = Patients.objects.get(user=self.request.user)
+        serializer.save(user=patient)
+
+
+        
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -52,8 +59,9 @@ class DoctorsViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
     filter_backends = [SearchFilter]
     filterset_fields = ['gender', 'specialty__name']
-    search_fields = ['full_name', 'specialty__name'] 
+    search_fields = ['full_name', 'specialty__name']
 
+    # فلترة الأطباء حسب الجنس، التخصص، والتقييم
     @action(detail=False, methods=['post'], url_path='filter')
     def filter_doctors(self, request):
         genders_raw = request.data.get('gender', '')
@@ -64,7 +72,6 @@ class DoctorsViewSet(viewsets.ModelViewSet):
             genders = [g.strip() for g in genders_raw.split(',') if g.strip()]
         else:
             genders = genders_raw or []
-
 
         if isinstance(specialties_raw, str):
             specialties = [s.strip() for s in specialties_raw.split(',') if s.strip()]
@@ -79,11 +86,9 @@ class DoctorsViewSet(viewsets.ModelViewSet):
         if gender_values:
             doctors = doctors.filter(gender__in=gender_values)
 
-        
         if specialties:
-            doctors = doctors.filter(specialty__name__in=specialties,status=True)
+            doctors = doctors.filter(specialty__name__in=specialties)
 
-       
         if stars is not None:
             try:
                 stars = int(stars)
@@ -94,7 +99,13 @@ class DoctorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(doctors, many=True)
         return Response(serializer.data)
 
-
+    # إرجاع قائمة المستشفيات المرتبطة بطبيب معيّن
+    @action(detail=True, methods=['get'], url_path='hospitals')
+    def hospitals(self, request, pk=None):
+        doctor = self.get_object()
+        hospitals = doctor.hospitals.all()
+        serializer = HospitalDetailSerializer(hospitals, many=True, context={'doctor': doctor})
+        return Response(serializer.data)
 class SpecialtiesViewSet(viewsets.ModelViewSet):
     queryset = Specialty.objects.filter(status=True)
     serializer_class = SpecialtiesSerializer
@@ -110,20 +121,17 @@ class RegisterView(APIView):
     parser_classes = (JSONParser,MultiPartParser, FormParser)
 
     def post(self, request):
-        print("Received request data:", request.data)
 
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid():
             try:
                 user = serializer.save()
-                print("User created:", user.username)
 
                 required_fields = ["birth_date", "gender", "weight", "height", "age", "blood_group"]
                 missing_fields = [field for field in required_fields if not request.data.get(field, None)]
 
                 if missing_fields:
-                    print("Missing patient fields:", missing_fields)
                     return Response(
                         {"error": "Missing required fields: " + ", ".join(missing_fields)},
                         status=status.HTTP_400_BAD_REQUEST
@@ -139,6 +147,7 @@ class RegisterView(APIView):
                     )
 
                 try:
+                    user.user_type = 'patient'
                     patient = Patients.objects.create(
                         user=user,
                         birth_date=birth_date,  
@@ -150,24 +159,19 @@ class RegisterView(APIView):
                         notes=request.data.get("notes", "")
                     )
                 except ValueError as ve:
-                    print("Data conversion error:", str(ve))
                     return Response(
                         {"error": "Invalid data type for weight, height, or age."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                print("Patient created for:", patient.user.username)
                 return Response({'message': 'User and patient created successfully'}, status=status.HTTP_201_CREATED)
 
             except ValidationError as ve:
-                print("Validation Error:", str(ve))
                 return Response({'error': str(ve)}, status=status.HTTP_400_BAD_REQUEST)
 
             except Exception as e:
-                print("Server Error:", str(e))
                 return Response({'error': 'Server error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -348,7 +352,6 @@ class BookingViewSet(viewsets.ModelViewSet):
         """Creates a new booking"""
         patient = get_object_or_404(Patients, user=request.user.id)
         serializer = self.get_serializer(data=request.data)
-        print(serializer)
         serializer.is_valid(raise_exception=True)
         serializer.save(patient=patient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -386,7 +389,6 @@ class HospitalPaymentMethodViewSet(viewsets.ModelViewSet):
             payment_option__is_active=True
         )
         serializer = HospitalPaymentMethodSerializer(payment_methods, many=True,context={'request': request})
-        print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -455,51 +457,49 @@ class MarkAllNotificationsReadView(APIView):
 
 
 
-# class PaymentViewSet(viewsets.ModelViewSet):
-#     serializer_class = PaymentSerializer
-#     permission_classes = [IsAuthenticated]
-#     pagination_class = CustomPagination
+class PaymentViewSet(viewsets.ModelViewSet):
+    serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
-#     def get_queryset(self):
-#         return Payment.objects.filter(user=self.request.user)
+    def get_queryset(self):
+        return Payment.objects.filter(user=self.request.user)
 
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save()
 
-#     @action(detail=False, methods=['post'])
-#     def make_payment(self, request):
-#         data = request.data
-#         required_fields = ['booking_id', 'payment_method_id', 'payment_subtotal', 'payment_currency', 'payment_type']
+    @action(detail=False, methods=['post'])
+    def make_payment(self, request):
+        data = request.data
+        required_fields = ['booking_id', 'payment_method_id', 'payment_subtotal', 'payment_currency', 'payment_type']
 
-#         for field in required_fields:
-#             if not data.get(field):
-#                 return Response({'error': f'{field} is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        for field in required_fields:
+            if not data.get(field):
+                return Response({'error': f'{field} is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-#         try:
-#             booking = Booking.objects.get(id=data['booking_id'])
-#         except Booking.DoesNotExist:
-#             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            booking = Booking.objects.get(id=data['booking_id'])
+        except Booking.DoesNotExist:
+            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
 
-#         try:
-#             payment_method = HospitalPaymentMethod.objects.get(id=data['payment_method_id'])
-#         except HospitalPaymentMethod.DoesNotExist:
-#             return Response({'error': 'Payment method not found'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            payment_method = HospitalPaymentMethod.objects.get(id=data['payment_method_id'])
+        except HospitalPaymentMethod.DoesNotExist:
+            return Response({'error': 'Payment method not found'}, status=status.HTTP_404_NOT_FOUND)
 
-#         payment = Payment.objects.create(
-#             booking=booking,
-#             user=request.user,
-#             payment_method=payment_method,
-#             payment_subtotal=data['payment_subtotal'],
-#             payment_discount=data.get('payment_discount', 0),
-#             payment_currency=data['payment_currency'],
-#             payment_type=data['payment_type'],
-#             transfer_image=request.FILES.get('transfer_image'),
-#             payment_note=data.get('payment_note', ''),
-#             payment_status=0  
-#         )
+        payment = Payment.objects.create(
+            booking=booking,
+            payment_method=payment_method,
+            payment_subtotal=data['payment_subtotal'],
+            payment_discount=data.get('payment_discount', 0),
+            payment_currency=data['payment_currency'],
+            payment_type=data['payment_type'],
+            payment_note=data.get('payment_note', ''),
+            payment_status=0  
+        )
 
-#         serializer = self.get_serializer(payment)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(payment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 
@@ -508,3 +508,5 @@ class MarkAllNotificationsReadView(APIView):
 #     "email":"a9a0a2@a3a.com",
 #     "password":"a9a1515151a"
 # }
+
+

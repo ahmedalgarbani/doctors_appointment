@@ -222,60 +222,65 @@ def add_to_favorites(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
+
 def search_view(request):
-    doctor_name = request.GET.get('doctor_name', '').strip()
+    search_text = request.GET.get('search', '').strip()  
     city_slug = request.GET.get('city', '').strip()
     gender = request.GET.get('gender')
     availability = request.GET.get('availability')
     fee_range = request.GET.get('fee_range')
-    experience = request.GET.get('experience')
+    experience_min = request.GET.get('experience_min', 0)
     rating = request.GET.get('rating')
     specialty = request.GET.get('specialty')
+    sort_by = request.GET.get('sort_by', 'default')
     page = request.GET.get('page', 1)
 
     filters = {}
     logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
 
-    # قائمة الأطباء الأساسية
-    doctors = Doctor.objects.all()
+    # البدء بجميع الأطباء
+    doctors = Doctor.objects.all().distinct()
 
-    if doctor_name:
-        filters['full_name__icontains'] = doctor_name
+    if search_text:
+        filters['full_name__icontains'] = search_text
+        filters['hospitals__name__icontains'] = search_text 
 
     if city_slug:
-        filters['hospitals__city__slug__in'] = [city_slug]
+        doctors = doctors.filter(hospitals__city__slug=city_slug)
 
     if specialty:
-        filters['specialty_id'] = specialty
+        doctors = doctors.filter(specialty_id=specialty)
 
     if gender:
         gender_map = {
-            'male': 1,    # Doctor.STATUS_MALE
-            'female': 0   # Doctor.STATUS_FAMEL
+            'male': 1,
+            'female': 0
         }
         gender_value = gender_map.get(gender.lower())
-        logger.info(f"Mapped gender value: {gender_value}")
         if gender_value is not None:
-            filters['gender'] = gender_value
+            doctors = doctors.filter(gender=gender_value)
 
-    # تطبيق فلتر نطاق السعر
+    # فلترة حسب نطاق السعر
     if fee_range:
         fee_ranges = {
-            'low': (0, 100),
-            'medium': (101, 200),
-            'high': (201, 500),
-            'very_high': (501, 999999)
+            'low': (0, 2000),
+            'medium': (2001, 5000),
+            'high': (5001, 7000),
+            'very_high': (7001, 999999)
         }
         if fee_range in fee_ranges:
             min_fee, max_fee = fee_ranges[fee_range]
-            # الحصول على معرفات الأطباء الذين لديهم أسعار في النطاق المحدد
             doctor_ids = DoctorPricing.objects.filter(
                 amount__gte=min_fee,
                 amount__lte=max_fee
             ).values_list('doctor_id', flat=True).distinct()
             doctors = doctors.filter(id__in=doctor_ids)
 
-    # تطبيق فلتر التقييم
+    # فلترة حسب سنوات الخبرة
+    if experience_min:
+        doctors = doctors.filter(experience_years__gte=int(experience_min))
+
+    # فلترة حسب التقييم
     if rating:
         rating_value = float(rating)
         # احصل على معرفات الأطباء الذين لديهم متوسط تقييم أعلى من أو يساوي القيمة المحددة
@@ -287,10 +292,24 @@ def search_view(request):
         ).filter(
             avg_rating__gte=rating_value
         ).values_list('doctor', flat=True)
-
+        
         doctors = doctors.filter(id__in=doctor_ids)
 
-    # تطبيق فلتر الخبرة
+    # تطبيق باقي الفلاتر
+    if date_str:
+        try:
+            available_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            doctors = doctors.filter(schedules__day=available_date.strftime('%A'))
+        except ValueError:
+            pass
+
+    if availability == 'today':
+        today = datetime.now().strftime('%A')
+        doctors = doctors.filter(schedules__day=today)
+    elif availability == 'tomorrow':
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%A')
+        doctors = doctors.filter(schedules__day=tomorrow)
+
     if experience:
         experience_ranges = {
             '0-2': (0, 2),
@@ -305,8 +324,8 @@ def search_view(request):
     # تطبيق الفلاتر الأساسية
     doctors = doctors.filter(**filters).distinct()
 
-    # تطبيق الترقيم
-    paginator = Paginator(doctors, 10)  # 10 أطباء في كل صفحة
+    # الترقيم
+    paginator = Paginator(doctors, 10)
     try:
         doctors_page = paginator.page(page)
     except PageNotAnInteger:
@@ -314,52 +333,39 @@ def search_view(request):
     except EmptyPage:
         doctors_page = paginator.page(paginator.num_pages)
 
-    cities = City.objects.all()
+    # إضافة بيانات إضافية لكل طبيب
+    for doctor in doctors_page:
+        doctor.avg_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        doctor.review_count = doctor.reviews.count()
+        doctor.hospital_prices = DoctorPricing.objects.filter(
+            doctor=doctor
+        ).select_related('hospital')
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render(request, 'frontend/home/components/doctors_list.html', {
-            'doctors': doctors_page,
-            'page_obj': doctors_page,
-        })
-
-    # احصل على الحد الأدنى والأقصى للأسعار لعرضها في الواجهة
-    price_range = DoctorPricing.objects.aggregate(
-        min_price=Min('amount'),
-        max_price=Max('amount')
-    )
-
-    # احصل على متوسط التقييمات لكل طبيب
-    doctor_ratings = Review.objects.filter(
-        doctor__in=doctors_page,
-        status=True
-    ).values('doctor').annotate(
-        avg_rating=Avg('rating')
-    )
-    doctors_with_ratings = Doctor.objects.annotate(
-        avg_rating=Avg('reviews__rating')
-    )
-    ctx = {
+    context = {
         'doctors': doctors_page,
         'page_obj': doctors_page,
-        'cities': cities,
+        'cities': City.objects.all(),
         'specialities': Specialty.objects.all(),
         'selected_filters': {
             'doctor_name': doctor_name,
             'city': city_slug,
             'gender': gender,
             'fee_range': fee_range,
-            'experience': experience,
+            'experience_min': experience_min,
             'rating': rating,
-            'specialty': specialty
+            'specialty': specialty,
+            'sort_by': sort_by
         },
-        'price_range': price_range,
-        'doctors_with_ratings':doctors_with_ratings,
-        'doctor_ratings': {r['doctor']: r['avg_rating'] for r in doctor_ratings}
+        'price_range': DoctorPricing.objects.aggregate(
+            min_price=Min('amount'),
+            max_price=Max('amount')
+        )
     }
 
-    return render(request, 'frontend/home/pages/search.html', ctx)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'frontend/home/components/doctors_list.html', context)
 
-
+    return render(request, 'frontend/home/pages/search.html', context)
 
 
 
