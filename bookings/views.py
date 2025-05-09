@@ -17,7 +17,6 @@ def booking_view(request, doctor_id):
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
     request.session['selected_doctor'] = selected_doctor
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    is_online = request.GET.get('type') == 'online'
     
     # الحصول على الجداول المتاحة للطبيب
     # Get available schedules for the doctor
@@ -43,7 +42,6 @@ def get_available_slots(request, doctor_id):
     """API endpoint to get available slots for a specific date"""
     if request.method == 'GET':
         date = request.GET.get('date')
-        is_online = request.GET.get('type') == 'online'
         
         if not date:
             return JsonResponse({'error': 'Date is required'}, status=400)
@@ -85,7 +83,6 @@ def create_booking(request, doctor_id):
             data = json.loads(request.body)
             date = data.get('date')
             time = data.get('time')
-            is_online = data.get('is_online', False)
             notes = data.get('notes', '')
             
             if not all([date, time]):
@@ -115,7 +112,6 @@ def create_booking(request, doctor_id):
                 patient=request.user,
                 appointment_date=date,
                 appointment_time=time,
-                is_online=is_online,
                 notes=notes
             )
             
@@ -149,13 +145,11 @@ def payment_view(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     selected_date = request.GET.get('date')
     selected_time = request.GET.get('time')
-    is_online = request.GET.get('type') == 'online'
     
     context = {
         'doctor': doctor,
         'selected_date': selected_date,
         'selected_time': selected_time,
-        'is_online': is_online
     }
     
     return render(request, 'frontend/home/pages/payment.html', context)

@@ -3,15 +3,17 @@
 
 {% block content %}
 <!-- Breadcrumb -->
-<div class="breadcrumb-bar-two">
+<div class="breadcrumb-bar-two" style="background-color: #f8f9fa;">
     <div class="container">
         <div class="row align-items-center inner-banner">
             <div class="col-md-12 col-12 text-center">
-                <h2 class="breadcrumb-title">المستشفيات</h2>
+                <h2 class="breadcrumb-title" style="color: #2c3e50; font-weight: 700;">المستشفيات</h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">المستشفيات</li>
+                    <ol class="breadcrumb justify-content-center" style="background-color: transparent;">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'home:home' %}" style="color: #6c757d; text-decoration: none;">الرئيسية</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page" style="color: #2c3e50;">المستشفيات</li>
                     </ol>
                 </nav>
             </div>
@@ -21,80 +23,128 @@
 <!-- /Breadcrumb -->
 
 <!-- Page Content -->
-<div class="content pt-5">
+<div class="content pt-5 pb-5">
     <div class="container">
-        <div class="row">
-            <div class="col-12">
-               
-                <!-- Search Form -->
-                <div class="row justify-content-center mb-4">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center">
-                            <form method="GET" class="flex-grow-1">
-                                <div class="input-group">
-                                    <input type="text" name="search" class="form-control" placeholder="ابحث عن مستشفى..." value="{{ search_query }}">
-                                    <button class="btn btn-primary" type="submit">
-                                        <i class="fas fa-search"></i> بحث
-                                    </button>
-                                </div>
-                            </form>
-                            {% if search_query and search_query != '' %}
-                            <a href="{% url 'hospitals:all_hospitals' %}" class="btn btn-outline-secondary ms-2">
-                                <i class="fas fa-sync"></i> عرض الكل
-                            </a>
-                            {% endif %}
+        <!-- Search and Filter Section -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="search-filter-card shadow-sm rounded-lg p-4">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                                       placeholder="ابحث عن مستشفى، مدينة، أو تخصص..." value="{{ search_query }}">
+                            </div>
                         </div>
-                    </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary btn-lg w-100" type="submit">
+                                <i class="fas fa-search me-2"></i> بحث
+                            </button>
+                        </div>
+                        {% if search_query and search_query != '' %}
+                        <div class="col-12 text-center">
+                            <a href="{% url 'hospitals:all_hospitals' %}" class="text-decoration-none text-primary small">
+                                <i class="fas fa-sync me-1"></i> إعادة تعيين البحث
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <!-- Hospitals Grid -->
+        <div class="row g-4">
             {% for hospital in hospitals %}
-            <div class="col-md-4 col-sm-6 col-12 mb-4">
-                <div class="card h-100">
-                    {% if hospital.logo %}
-                    <img src="{{ hospital.logo.url }}" class="card-img-top" alt="{{ hospital.name }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                    <img src="{% static 'img/hospital-default.jpg' %}" class="card-img-top" alt="{{ hospital.name }}" style="height: 200px; object-fit: cover;">
-                    {% endif %}
+            <div class="col-xl-3 col-lg-4 col-md-6">
+                <div class="card hospital-card h-100 border-0 shadow-sm overflow-hidden">
+                    <div class="hospital-img-container position-relative">
+                        <div class="hospital-img-wrapper">
+                            {% if hospital.logo %}
+                            <img src="{{ hospital.logo.url }}" class="hospital-img" alt="{{ hospital.name }}" 
+                                 loading="lazy" 
+                                 onerror="this.onerror=null;this.src='{% static 'img/coming-soon.png' %}'">;
+                            {% else %}
+                            <img src="{% static 'img/hospital-default.jpg' %}" class="hospital-img" alt="{{ hospital.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="hospital-overlay"></div>
+                        <div class="hospital-badge">
+                            <span class="badge bg-primary rounded-pill">
+                                <i class="fas fa-star me-1"></i> {{ hospital.rating|default:"4.5" }}
+                            </span>
+                        </div>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title text-center">{{ hospital.name }}</h5>
-                        <p class="card-text text-muted mb-2">
-                            <i class="fas fa-map-marker-alt"></i> {{ hospital.city.name }}
-                        </p>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ hospital.name }}</h5>
+                            <span class="text-muted small">
+                                <i class="fas fa-map-marker-alt me-1"></i> {{ hospital.city.name }}
+                            </span>
+                        </div>
+                        
                         {% if hospital.address %}
-                        <p class="card-text small mb-2">{{ hospital.address|truncatechars:100 }}</p>
+                        <p class="card-text text-muted small mb-3">
+                            <i class="fas fa-location-dot me-1"></i> {{ hospital.address|truncatechars:60 }}
+                        </p>
                         {% endif %}
-                        <div class="d-flex justify-content-between mt-3">
-                            <div class="text-primary">
-                                <i class="fas fa-user-md"></i>
-                                <span>{{ hospital.doctors_count }} طبيب</span>
+                        
+                        <div class="hospital-stats d-flex justify-content-between border-top pt-3">
+                            <div class="text-center">
+                                <div class="stat-icon text-primary">
+                                    <i class="fas fa-user-md fa-lg"></i>
+                                </div>
+                                <div class="stat-count fw-bold">{{ hospital.doctors_count }}</div>
+                                <div class="stat-label small text-muted">أطباء</div>
                             </div>
-                            <div class="text-success">
-                                <i class="fas fa-stethoscope"></i>
-                                <span>{{ hospital.specialties_count }} تخصص</span>
+                            <div class="text-center">
+                                <div class="stat-icon text-success">
+                                    <i class="fas fa-stethoscope fa-lg"></i>
+                                </div>
+                                <div class="stat-count fw-bold">{{ hospital.specialties_count }}</div>
+                                <div class="stat-label small text-muted">تخصصات</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="stat-icon text-info">
+                                    <i class="fas fa-procedures fa-lg"></i>
+                                </div>
+                                <div class="stat-count fw-bold">{{ hospital.departments_count|default:"15" }}</div>
+                                <div class="stat-label small text-muted">أقسام</div>
                             </div>
                         </div>
-                        <div class="text-center mt-3">
-                            <a href="{% url 'hospitals:hospital_details' hospital.id %}" class="btn btn-primary">
-                                <i class="fas fa-info-circle"></i> عرض التفاصيل
-                            </a>
-                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="{% url 'hospitals:hospital_details' hospital.id %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-eye me-2"></i> عرض التفاصيل
+                        </a>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center">
-                <p class="text-muted">لا توجد مستشفيات متاحة حالياً</p>
+            <div class="col-12">
+                <div class="empty-state text-center py-5">
+                    <div class="empty-state-icon bg-soft-primary rounded-circle mb-4">
+                        <i class="fas fa-hospital text-primary fa-3x"></i>
+                    </div>
+                    <h4 class="mb-3">لا توجد مستشفيات متاحة</h4>
+                    <p class="text-muted mb-4">لا توجد مستشفيات مسجلة حالياً تطابق معايير البحث</p>
+                    <a href="{% url 'hospitals:all_hospitals' %}" class="btn btn-primary">
+                        <i class="fas fa-sync me-2"></i> عرض جميع المستشفيات
+                    </a>
+                </div>
             </div>
             {% endfor %}
+        </div>
 
-            <!-- Pagination -->
-            {% if hospitals.has_other_pages %}
+        <!-- Pagination -->
+        {% if hospitals.has_other_pages %}
+        <div class="row mt-5">
             <div class="col-12">
-                <div class="pagination justify-content-center">
-                    <ul class="pagination">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
                         {% if hospitals.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ hospitals.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
@@ -104,9 +154,17 @@
                         {% endif %}
 
                         {% for num in hospitals.paginator.page_range %}
-                        <li class="page-item {% if hospitals.number == num %}active{% endif %}">
-                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
-                        </li>
+                            {% if hospitals.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% else %}
+                                {% if num > hospitals.number|add:'-3' and num < hospitals.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endif %}
                         {% endfor %}
 
                         {% if hospitals.has_next %}
@@ -117,11 +175,167 @@
                         </li>
                         {% endif %}
                     </ul>
-                </div>
+                </nav>
             </div>
-            {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 <!-- /Page Content -->
+
+<style>
+    /* Custom Styles */
+    .breadcrumb-bar-two {
+        padding: 40px 0;
+        position: relative;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .breadcrumb-bar-two .breadcrumb {
+        padding: 0;
+        margin-bottom: 0;
+    }
+    
+    .breadcrumb-bar-two .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+        color: #6c757d;
+        padding: 0 10px;
+    }
+    
+    .breadcrumb-bar-two .breadcrumb-item.active {
+        font-weight: 500;
+    }
+    
+    .breadcrumb-title {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 767.98px) {
+        .breadcrumb-bar-two {
+            padding: 30px 0;
+        }
+        
+        .breadcrumb-title {
+            font-size: 1.75rem;
+        }
+    }
+    
+    /* تحسينات الصور الجديدة */
+    .hospital-img-container {
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+        background: #f5f7fa;
+    }
+    
+    .hospital-img-wrapper {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .hospital-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+        object-position: center;
+        background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    }
+    
+    .hospital-card:hover .hospital-img {
+        transform: scale(1.1);
+    }
+    
+    .hospital-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.05) 100%);
+    }
+    
+    .hospital-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 2;
+    }
+    
+    .hospital-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .hospital-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .hospital-stats {
+        display: flex;
+        justify-content: space-around;
+    }
+    
+    .stat-icon {
+        margin-bottom: 5px;
+    }
+    
+    .stat-count {
+        font-size: 1.2rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .empty-state {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 40px;
+    }
+    
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #4a6cf7;
+        border-color: #4a6cf7;
+    }
+    
+    .page-link {
+        color: #4a6cf7;
+        border-radius: 8px !important;
+        margin: 0 5px;
+        border: 1px solid #dee2e6;
+    }
+    
+    @media (max-width: 767.98px) {
+        .breadcrumb-bar-two {
+            padding: 60px 0;
+        }
+        
+        .breadcrumb-title {
+            font-size: 2rem;
+        }
+        
+        .search-filter-card {
+            margin-top: -20px;
+        }
+        
+        .hospital-img-container {
+            height: 180px;
+        }
+    }
+</style>
 {% endblock %}

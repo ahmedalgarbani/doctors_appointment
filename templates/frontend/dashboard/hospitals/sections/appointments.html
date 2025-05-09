@@ -185,6 +185,7 @@
                                                title="عرض التفاصيل">
                                                 <i class="far fa-eye"></i>
                                             </a>
+                                            
                                             {% if booking.status == 'pending' %}
                                                 <button type="button" 
                                                         class="btn btn-sm bg-success-light accept-booking" 
@@ -194,6 +195,7 @@
                                                     <i class="fas fa-check"></i>
                                                 </button>
                                             {% endif %}
+                                            
                                             {% if booking.status == 'confirmed' %}
                                                 <button type="button" 
                                                         class="btn btn-sm bg-info-light confirmed-booking" 
@@ -203,18 +205,16 @@
                                                     <i class="fas fa-check-double"></i>
                                                 </button>
                                             {% endif %}
+                                            
                                             <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-history"></i> عرض الحالات
                                             </button>
-                                            <!-- <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
-                                                <i class="fas fa-edit"></i> تعديل
-                                            </button> -->
+                                            
                                             {% if booking.status != 'completed' and booking.status != 'cancelled' %}
                                                 <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
                                                     <i class="fas fa-trash"></i> الغاء
                                                 </button>
                                             {% endif %}
-
                                         </div>
                                     </td>
                                 </tr>
@@ -469,42 +469,93 @@
     });
 
 
-    // دالة لمعالجة تاكيد الحجز
-    document.querySelectorAll(".confirmed-booking").forEach(function(button) {
-        button.addEventListener("click", function() {
-            const bookingId = this.getAttribute("data-booking-id-confirmed");
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    // دالة لمعالجة قبول الحجز
+document.querySelectorAll(".accept-booking").forEach(function(button) {
+    button.addEventListener("click", function() {
+        if (!confirm('هل أنت متأكد من قبول هذا الحجز؟')) {
+            return;
+        }
 
-            fetch("{% url 'hospitals:completed_appointment' booking_id=0 %}".replace('0', bookingId), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrftoken
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'حدث خطأ أثناء قبول الحجز');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('تم قبول الحجز وتأكيد الدفع بنجاح');
-                    location.reload();
-                } else {
-                    throw new Error(data.message || 'حدث خطأ غير معروف');
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert(error.message || 'حدث خطأ أثناء قبول الحجز');
-            });
+        const bookingId = this.getAttribute("data-booking-id");
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'hospitals:accept_appointment' booking_id=0 %}".replace('0', bookingId), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'حدث خطأ أثناء قبول الحجز');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم قبول الحجز بنجاح');
+                location.reload();
+            } else {
+                throw new Error(data.message || 'حدث خطأ غير معروف');
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert(error.message || 'حدث خطأ أثناء قبول الحجز');
         });
     });
+});
+
+// دالة لمعالجة تاكيد اكتمال الحجز
+document.querySelectorAll(".confirmed-booking").forEach(function(button) {
+    button.addEventListener("click", function() {
+        if (!confirm('هل أنت متأكد من تأكيد اكتمال هذا الحجز؟')) {
+            return;
+        }
+
+        const bookingId = this.getAttribute("data-booking-id-confirmed");
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'hospitals:completed_appointment' booking_id=0 %}".replace('0', bookingId), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'حدث خطأ أثناء تأكيد الحجز');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم تأكيد اكتمال الحجز بنجاح');
+                location.reload();
+            } else if (data.status === 'payment_required') {
+                // إذا كان الدفع غير مكتمل، توجيه المستخدم لصفحة التفاصيل
+                alert('لا يمكن تأكيد اكتمال الحجز لأن الدفع غير مكتمل');
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                }
+            } else {
+                throw new Error(data.message || 'حدث خطأ غير معروف');
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert(error.message || 'حدث خطأ أثناء تأكيد الحجز');
+        });
+    });
+});
 
     document.querySelectorAll('.history-btn').forEach(button => {
         button.addEventListener('click', function() {
