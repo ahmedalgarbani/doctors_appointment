@@ -982,7 +982,6 @@ def accept_appointment(request, booking_id):
 
     try:
         booking = get_object_or_404(Booking, id=booking_id)
-        payment = get_object_or_404(Payment, booking=booking)
 
         if booking.hospital != request.user.hospital:
             return JsonResponse({
@@ -998,9 +997,6 @@ def accept_appointment(request, booking_id):
             doctor_shifts.save()
 
         booking.status = 'confirmed'
-        booking.payment_verified = True
-        booking.payment_verified_at = timezone.now()
-        booking.payment_verified_by = request.user
         booking.save()
 
         BookingStatusHistory.objects.create(
@@ -1010,9 +1006,6 @@ def accept_appointment(request, booking_id):
             notes='تم قبول الحجز من قبل المستشفى'
         )
 
-        payment.payment_status = 2
-        payment.save()
-
         return JsonResponse({
             'status': 'success',
             'message': 'تم قبول الحجز بنجاح',
@@ -1020,7 +1013,7 @@ def accept_appointment(request, booking_id):
             'booking_status': 'confirmed'
         })
 
-    except (Booking.DoesNotExist, Payment.DoesNotExist):
+    except Booking.DoesNotExist:
         return JsonResponse({
             'status': 'error',
             'message': 'الحجز غير موجود',
@@ -1035,7 +1028,7 @@ def accept_appointment(request, booking_id):
 
 
 def completed_appointment(request, booking_id):
-    """تأكيد اكتمال الحجز بعد الكشف"""
+    """تأكيد اكتمال الحجز بعد الكشف مع التحقق من حالة الدفع"""
     if not hasattr(request.user, 'hospital'):
         return JsonResponse({
             'status': 'error',
@@ -1052,7 +1045,23 @@ def completed_appointment(request, booking_id):
                 'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
             }, status=403)
 
-         # تحديث حالة الحجز إلى مكتمل
+        # التحقق من أن الحجز مؤكد
+        if booking.status != 'confirmed':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لا يمكن تأكيد اكتمال حجز غير مؤكد'
+            }, status=400)
+
+        # التحقق من حالة الدفع
+        payment = Payment.objects.filter(booking=booking).first()
+        if not payment or payment.payment_status != 1:  # 1 = مكتمل
+            return JsonResponse({
+                'status': 'payment_required',
+                'message': 'لم يتم استكمال عملية الدفع بعد يرجى الانتقال الى تفاصيل الحجز لاكمال الدفع',
+                'redirect_url': f'/bookings/appointment-details/{booking.id}/'
+            }, status=400)
+
+        # تحديث حالة الحجز إلى مكتمل
         booking.status = 'completed'
         booking.save()
 
@@ -1061,6 +1070,7 @@ def completed_appointment(request, booking_id):
         if doctor_shifts:
             doctor_shifts.booked_slots -= 1
             doctor_shifts.save()
+
         # إنشاء سجل جديد لحالة الحجز
         BookingStatusHistory.objects.create(
             booking=booking,
@@ -1068,6 +1078,26 @@ def completed_appointment(request, booking_id):
             created_by=request.user,
             notes='تم تأكيد اكتمال الكشف'
         )
+
+        # إرسال إشعار للمريض
+        # patient_user = booking.patient.user
+        # doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
+        
+        # message = (
+        #     f"✅ *تم تأكيد اكتمال الكشف*\n\n"
+        #     f"عزيزي المريض،\n"
+        #     f"تم تأكيد اكتمال الكشف مع الدكتور *{doctor_name}*.\n"
+        #     f"📅 التاريخ: {booking.booking_date}\n"
+        #     f"🕒 الوقت: {booking.appointment_time.start_time.strftime('%H:%M')}\n\n"
+        #     f"نشكرك لثقتك بنا، ونتمنى لك دوام الصحة والعافية."
+        # )
+
+        # Notifications.objects.create(
+        #     sender=request.user,
+        #     user=patient_user,
+        #     message=message,
+        #     notification_type='7'
+        # )
 
         return JsonResponse({
             'status': 'success',

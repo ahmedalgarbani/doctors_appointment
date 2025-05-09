@@ -121,24 +121,24 @@ class Payment(models.Model):
         """إرجاع النصوص الواضحة لحالة الدفع."""
         return dict(self.PaymentStatus_choices).get(self.payment_status, _("غير معروف"))
 
+    def can_be_verified(self):
+        """تحقق مما إذا كان يمكن تأكيد الدفع"""
+        return self.payment_status in [0, 2, 3]
+
     def __str__(self):
         return f"فاتورة رقم {self.id} - {self.booking.patient.user.get_full_name()} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
-        # احسب المبلغ الكلي قبل الحفظ
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
-
         super().save(*args, **kwargs)
 
-        # إذا تم الدفع بنجاح
         if self.payment_status == 1:
             booking = self.booking
             patient_user = booking.patient.user
             doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
             method_name = self.payment_method.payment_option.method_name
 
-            # نص الإشعار
             message = _(
                 f"💳 *تم تأكيد الدفع*\n\n"
                 f"عزيزي العميل،\n"
@@ -149,7 +149,6 @@ class Payment(models.Model):
                 f"شكرًا لاستخدامك خدمتنا، ونتطلع لخدمتك!"
             )
 
-            # التأكد من وجود admin_user
             admin_user = getattr(booking.hospital, 'admin_user', None)
             if admin_user:
                 Notifications.objects.create(

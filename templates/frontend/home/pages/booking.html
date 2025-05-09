@@ -43,23 +43,18 @@
                                 </div>
                             {% endfor %}
                         </div>
-                        
                     </div>
-                    
                    </div>
                    <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
-                   </div>
-                   <div class="booking-date choose-date-book">
+               </div>
+               <p>يرجى اختيار اليوم قبل تاريح الحجز!</p>
+               <div class="booking-date choose-date-book">
                    <p>Choose a Date</p>
-                    <div class="col-md-6 mb-3 px-0">
-                        <label class="mb-2 fw-bold">تاريخ الحجز</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="booking_date" id="datepicker" value="{{ form.booking_date }}" readonly>
-                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                        </div>
-                    </div>
-                
-                
+                   <div class="col-md-6 mb-3 px-0">
+                    <label class="mb-2 fw-bold">تاريخ الحجز</label>
+                    <input type="text" class="form-control" name="booking_date" id="datepicker" 
+                           placeholder="اختر التاريخ" readonly>
+                </div>
                </div>
                <div class="card booking-card">
                    <div class="card-body time-slot-card-body">
@@ -147,88 +142,115 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Include jQuery and jQuery UI -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-
-
 <script>
 $(document).ready(function () {
-    // تخزين أيام الأسبوع المتاحة
+    const dayMap = {
+        'السبت': 6,
+        'الأحد': 0,
+        'الاثنين': 1,
+        'الثلاثاء': 2,
+        'الأربعاء': 3,
+        'الخميس': 4,
+        'الجمعة': 5
+    };
+    
     let availableDays = [];
-
-    // تحديث أيام الأسبوع المتاحة عند اختيار يوم
-    function updateAvailableDays() {
-        availableDays = [];
-        $('.date-slider li.active').each(function() {
-            const dayName = $(this).find('h4').text().trim();
-            const dayMap = {
-                'السبت': 6,
-                'الأحد': 0,
-                'الاثنين': 1,
-                'الثلاثاء': 2,
-                'الأربعاء': 3,
-                'الخميس': 4,
-                'الجمعة': 5
-            };
-            if (dayMap.hasOwnProperty(dayName)) {
-                availableDays.push(dayMap[dayName]);
+    let flatpickrInstance = null;
+    
+    function initDatepicker() {
+        if (flatpickrInstance) {
+            flatpickrInstance.destroy();
+        }
+        
+        flatpickrInstance = flatpickr('#datepicker', {
+            locale: 'ar',
+            minDate: 'today',
+            dateFormat: 'Y-m-d',
+            disable: [
+                function(date) {
+                    // تعطيل جميع الأيام عدا الأيام المحددة
+                    return availableDays.length > 0 ? !availableDays.includes(date.getDay()) : true;
+                }
+            ],
+            onChange: function(selectedDates, dateStr) {
+                $('#booking_date_input').val(dateStr);
+                checkFormCompletion();
+                updateTimeSlots();
             }
         });
-        // إعادة تهيئة التقويم
-        $("#datepicker").datepicker("refresh");
     }
-
-    // تهيئة التقويم
-    $("#datepicker").datepicker({
-        minDate: 0,
-        dateFormat: 'yy-mm-dd',
-        beforeShowDay: function(date) {
-            const day = date.getDay();
-            return [availableDays.includes(day), ''];
-        },
-        beforeShow: function() {
-            setTimeout(function(){
-                $('.ui-datepicker').append('<div class="ui-helper-clearfix"><span style="padding:3px;color:#666;font-size:12px;">اختر التاريخ المناسب من الأيام المتاحة</span></div>');
-            }, 0);
+    
+    $('.date-slider li').on('click', function () {
+        const selectedScheduleId = $(this).data('schedule');
+        const dayName = $(this).find('h4').text().trim();
+        
+        availableDays = [dayMap[dayName]];
+        $('.date-slider li').removeClass('active');
+        $(this).addClass('active');
+        $('#day_id').val(selectedScheduleId);
+        
+        initDatepicker();
+        
+        const currentDate = flatpickrInstance.selectedDates[0];
+        if (currentDate && !availableDays.includes(currentDate.getDay())) {
+            flatpickrInstance.clear();
+            $('#booking_date_input').val('');
         }
+        
+        updateTimeSlots();
     });
 
-    // عند تغيير التاريخ من input
-    $("#datepicker").on("change", function () {
-        const dateText = $(this).val();
-        $("#booking_date_input").val(dateText);
+
+    // عند تغيير التاريخ
+    $('#datepicker').on('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // التحقق من أن التاريخ ليس في الماضي
+        if (selectedDate < today) {
+            alert('لا يمكن اختيار تاريخ ماضي');
+            $(this).val('');
+            return;
+        }
+        
+        // التحقق من أن اليوم المختار متاح
+        if (availableDays.length > 0 && !availableDays.includes(selectedDate.getDay())) {
+            alert('اليوم المحدد غير متاح، الرجاء اختيار يوم ' + 
+                  Object.keys(dayMap).find(key => dayMap[key] === availableDays[0]));
+            $(this).val('');
+            return;
+        }
+        
+        $('#booking_date_input').val(this.value);
         checkFormCompletion();
         updateTimeSlots();
     });
 
-    // عند النقر على زر المستشفى
-    $('.hospital-btn').on('click', function() {
-        $('.hospital-btn').removeClass('active');
-        $(this).addClass('active');
-        const hospitalId = $(this).data('hospital-id');
-        $('#hospital_id').val(hospitalId);
-        updateTimeSlots();
-    });
-
-    // عند النقر على يوم
-    $('.date-slider li').on('click', function () {
-        const selectedScheduleId = $(this).data('schedule');
-        const doctorId = {{ doctor.id }};
-        $('.date-slider li').removeClass('active');
-        $(this).addClass('active');
-        $('#day_id').val(selectedScheduleId);
-        // تحديث التواريخ المتاحة في التقويم
-        updateAvailableDays();
-        // مسح التاريخ المحدد إذا كان لا يتوافق مع اليوم الجديد
-        const currentDate = $("#datepicker").datepicker("getDate");
-        if (currentDate && !availableDays.includes(currentDate.getDay())) {
-            $("#datepicker").val("");
-            $("#booking_date_input").val("");
+    // دالة لإنشاء قائمة بالتواريخ المتاحة بناءً على أيام الأسبوع المحددة
+    function getNextAvailableDates(dayOfWeek) {
+        const dates = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // إيجاد أقرب تاريخ في المستقبل لهذا اليوم من الأسبوع
+        const date = new Date(today);
+        date.setDate(date.getDate() + ((dayOfWeek - date.getDay() + 7) % 7));
+        
+        // إضافة 4 أسابيع قادمة (يمكن تعديل العدد حسب الحاجة)
+        for (let i = 0; i < 4; i++) {
+            if (date >= today) {
+                dates.push(new Date(date));
+            }
+            date.setDate(date.getDate() + 7);
         }
-        updateTimeSlots();
-    });
+        
+        return dates;
+    }
 
     // تحديث المواعيد
     function updateTimeSlots() {
@@ -310,6 +332,33 @@ $(document).ready(function () {
 </script>
 
 <style>
+    /* تنسيق التقويم */
+.flatpickr-day.disabled, 
+.flatpickr-day.notAllowed {
+    opacity: 0.3 !important;
+    cursor: not-allowed;
+}
+
+.flatpickr-day {
+    transition: opacity 0.2s;
+}
+
+.flatpickr-day.selected {
+    background: #20c0f3 !important;
+    border-color: #20c0f3 !important;
+}
+
+.flatpickr-day.today {
+    border-color: #20c0f3 !important;
+}
+
+.flatpickr-day:hover {
+    background: #e6f7ff !important;
+}
+
+.flatpickr-day.selected:hover {
+    background: #20c0f3 !important;
+}
 .timing.selected {
     background-color: #20c0f3 !important;
     border-color: #20c0f3 !important;
@@ -337,21 +386,6 @@ $(document).ready(function () {
 .hospital-links {
     margin: 15px 0;
 }
-.hospital-link {
-    color: #20c0f3;
-    text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-.hospital-link:hover {
-    background-color: #e8f7fb;
-    color: #0056b3;
-}
-.hospital-link.active {
-    background-color: #20c0f3;
-    color: white;
-}
 
 .booking-price {
     margin-top: 15px;
@@ -372,6 +406,7 @@ $(document).ready(function () {
     font-weight: 600;
     margin: 0;
 }
+
 .hospital-selection {
     display: flex;
     flex-wrap: wrap;
@@ -418,11 +453,38 @@ $(document).ready(function () {
     font-weight: 500;
 }
 
+/* تنسيق حقل التاريخ */
+input[type="date"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    width: 100%;
+}
+
+input[type="date"]:focus {
+    border-color: #20c0f3;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(32, 192, 243, 0.2);
+}
+
 @media (max-width: 576px) {
     .hospital-card {
         width: 45%;
     }
+    
+    input[type="date"] {
+        padding: 8px;
+    }
 }
 
+/* تنسيق التقويم */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 5px;
+}
 </style>
 {% endblock %}
