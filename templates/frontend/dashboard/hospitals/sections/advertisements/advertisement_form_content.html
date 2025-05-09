@@ -29,7 +29,7 @@
 </div>
 
 <div class="form-group row mb-3">
-    <label class="col-form-label col-md-2">صورة الإعلان</label>
+    <label class="col-form-label col-md-2">الصورة الرئيسية</label>
     <div class="col-md-10">
         <!-- صورة الإعلان الحالية ستظهر هنا عند التعديل -->
         <div id="current-image-container" class="mb-2 d-none">
@@ -43,7 +43,73 @@
             {% endfor %}
         </div>
         {% endif %}
-        <small class="form-text text-muted">اختياري: يمكنك رفع صورة للإعلان</small>
+        <small class="form-text text-muted">الصورة الرئيسية للإعلان (ستظهر في القائمة)</small>
+    </div>
+</div>
+
+<div class="form-group row mb-3">
+    <label class="col-form-label col-md-2">صورة إضافية 1</label>
+    <div class="col-md-10">
+        {% if advertisement.image2 %}
+        <div class="mb-2">
+            <img src="{{ advertisement.image2.url }}" class="img-thumbnail" style="max-height: 200px;" alt="صورة إضافية 1">
+            <button type="button" class="btn btn-sm btn-danger delete-additional-image mt-2" data-image-id="image2" data-ad-id="{{ advertisement.id }}">
+                <i class="fas fa-trash"></i> حذف
+            </button>
+        </div>
+        {% endif %}
+        {{ form.image2 }}
+        {% if form.image2.errors %}
+        <div class="text-danger">
+            {% for error in form.image2.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="form-group row mb-3">
+    <label class="col-form-label col-md-2">صورة إضافية 2</label>
+    <div class="col-md-10">
+        {% if advertisement.image3 %}
+        <div class="mb-2">
+            <img src="{{ advertisement.image3.url }}" class="img-thumbnail" style="max-height: 200px;" alt="صورة إضافية 2">
+            <button type="button" class="btn btn-sm btn-danger delete-additional-image mt-2" data-image-id="image3" data-ad-id="{{ advertisement.id }}">
+                <i class="fas fa-trash"></i> حذف
+            </button>
+        </div>
+        {% endif %}
+        {{ form.image3 }}
+        {% if form.image3.errors %}
+        <div class="text-danger">
+            {% for error in form.image3.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="form-group row mb-3">
+    <label class="col-form-label col-md-2">صورة إضافية 3</label>
+    <div class="col-md-10">
+        {% if advertisement.image4 %}
+        <div class="mb-2">
+            <img src="{{ advertisement.image4.url }}" class="img-thumbnail" style="max-height: 200px;" alt="صورة إضافية 3">
+            <button type="button" class="btn btn-sm btn-danger delete-additional-image mt-2" data-image-id="image4" data-ad-id="{{ advertisement.id }}">
+                <i class="fas fa-trash"></i> حذف
+            </button>
+        </div>
+        {% endif %}
+        {{ form.image4 }}
+        {% if form.image4.errors %}
+        <div class="text-danger">
+            {% for error in form.image4.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 </div>
 

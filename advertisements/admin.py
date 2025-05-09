@@ -3,21 +3,22 @@ from .models import Advertisement
 
 @admin.register(Advertisement)
 class AdvertisementAdmin(admin.ModelAdmin):
-    list_display = ('title', 'hospital', 'status', 'start_date', 'end_date', 'views_count', 'clicks_count')
+    list_display = ('title', 'hospital', 'status', 'start_date', 'end_date')
     list_filter = ('status', 'hospital')
     search_fields = ('title', 'description')
     date_hierarchy = 'created_at'
 
     fieldsets = (
         (None, {
-            'fields': ('hospital', 'title', 'description', 'image')
+            'fields': ('hospital', 'title', 'description')
+        }),
+        ('Images', {
+            'fields': ('image', 'image2', 'image3', 'image4'),
+            'classes': ('collapse',),
         }),
         ('Scheduling', {
             'fields': ('start_date', 'end_date', 'status')
         }),
-        ('Statistics', {
-            'fields': ('views_count', 'clicks_count')
-        }),
     )
 
-    readonly_fields = ('views_count', 'clicks_count')
+    readonly_fields = ()

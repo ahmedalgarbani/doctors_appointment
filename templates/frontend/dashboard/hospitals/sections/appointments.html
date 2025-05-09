@@ -1,6 +1,4 @@
-
-{% csrf_token %}
-
+<!-- Appointments Section -->
 <div class="col-md-7 col-lg-8 col-xl-9 appointments section d-none">
 <div class="row mb-4">
     <div class="col-xl-3 col-sm-6 col-12">
@@ -858,4 +856,110 @@
     border-radius: 4px;
 }
 </style>
+
+<script>
+// دالة لتهيئة جدول الحجوزات
+function initAppointmentsTable() {
+    console.log("Initializing appointments table");
+    
+    // التحقق من وجود بيانات في الجدول
+    const appointmentsTable = $("#appointments-table tbody");
+    const rowCount = appointmentsTable.find("tr").length;
+    console.log("Appointments table row count:", rowCount);
+    
+    // إذا لم يكن هناك صفوف في الجدول (باستثناء صف "لا توجد حجوزات")
+    if (rowCount === 0 || (rowCount === 1 && appointmentsTable.find(".alert-info").length > 0)) {
+        console.log("No appointments found, showing message");
+        appointmentsTable.html(`
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="alert alert-info">
+                        لا توجد حجوزات متاحة حاليًا.
+                    </div>
+                </td>
+            </tr>
+        `);
+    }
+    
+    // تهيئة وظائف البحث والفلترة للجدول
+    $("#search-input").on("keyup", function() {
+        filterAppointments();
+    });
+    
+    $("#status-filter").on("change", function() {
+        filterAppointments();
+    });
+}
+
+// دالة لفلترة الحجوزات بناءً على البحث والحالة
+function filterAppointments() {
+    const searchInput = $("#search-input").val().toLowerCase();
+    const statusFilter = $("#status-filter").val();
+    
+    console.log("Filtering appointments - Search:", searchInput, "Status:", statusFilter);
+    
+    // الحصول على جميع صفوف الجدول باستثناء صف "لا توجد حجوزات"
+    const rows = $("#appointments-table tbody tr").not(".no-data-row");
+    
+    // إذا لم يكن هناك صفوف للفلترة
+    if (rows.length === 0) {
+        return;
+    }
+    
+    let visibleCount = 0;
+    
+    // فلترة كل صف
+    rows.each(function() {
+        const row = $(this);
+        const patientName = row.find("td:nth-child(1)").text().toLowerCase();
+        const doctorName = row.find("td:nth-child(2)").text().toLowerCase();
+        const bookingDate = row.find("td:nth-child(3)").text().toLowerCase();
+        const bookingStatus = row.find("td:nth-child(6)").text().toLowerCase();
+        const bookingStatusValue = row.find("td:nth-child(6) .badge").data("status");
+        
+        // التحقق من تطابق البحث
+        const matchesSearch = searchInput === "" || 
+                           patientName.includes(searchInput) || 
+                           doctorName.includes(searchInput) || 
+                           bookingDate.includes(searchInput);
+        
+        // التحقق من تطابق الحالة
+        const matchesStatus = statusFilter === "" || bookingStatusValue === statusFilter;
+        
+        // إظهار أو إخفاء الصف بناءً على الفلترة
+        if (matchesSearch && matchesStatus) {
+            row.show();
+            visibleCount++;
+        } else {
+            row.hide();
+        }
+    });
+    
+    // إذا لم يكن هناك نتائج مطابقة، عرض رسالة "لا توجد نتائج"
+    if (visibleCount === 0) {
+        // التحقق من وجود صف "لا توجد نتائج" بالفعل
+        if ($("#appointments-table tbody .no-results-row").length === 0) {
+            $("#appointments-table tbody").append(`
+                <tr class="no-results-row">
+                    <td colspan="7" class="text-center">
+                        <div class="alert alert-warning">
+                            لا توجد نتائج مطابقة للبحث.
+                        </div>
+                    </td>
+                </tr>
+            `);
+        } else {
+            $("#appointments-table tbody .no-results-row").show();
+        }
+    } else {
+        $("#appointments-table tbody .no-results-row").hide();
+    }
+}
+
+// تنفيذ الدالة عند تحميل الصفحة
+$(document).ready(function() {
+    console.log("Document ready, initializing appointments table");
+    initAppointmentsTable();
+});
+</script>
 {% endblock extra_js %}

@@ -1,4 +1,5 @@
 <!-- All Doctors Page -->
+{% csrf_token %}
 <div class="col-md-7 col-lg-8 col-xl-9 all_doctors_page section d-none">
      <!-- Quick Stats Section -->
      <div class="row mb-4">
@@ -182,7 +183,7 @@
                                     </td>
                                     <td>
                                         <div class="actions">
-                                            <a href="{% url 'home:doctor_profile' doctor.id %}" class="btn btn-sm bg-info-light">
+                                            <a href="{% url 'hospitals:doctor_details' doctor.id %}" class="btn btn-sm bg-info-light">
                                                 <i class="far fa-eye"></i> عرض
                                             </a>
                                             <button onclick="toggleEditForm({{ doctor.id }})" class="btn btn-sm bg-success-light">
@@ -226,7 +227,8 @@
                                 <!-- Edit Form Row -->
                                 <tr id="edit-form-{{ doctor.id }}" style="display: none;">
                                     <td colspan="5">
-                                        <form id="doctor-form-{{ doctor.id }}" class="edit-doctor-form" onsubmit="updateDoctor(event, {{ doctor.id }})">
+                                        <form id="doctor-form-{{ doctor.id }}" class="edit-doctor-form" onsubmit="updateDoctor(event, {{ doctor.id }})" enctype="multipart/form-data">
+                                            {% csrf_token %}
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
@@ -358,15 +360,61 @@ function toggleEditForm(doctorId) {
 
 function deleteDoctor(doctorId) {
     if (confirm('هل أنت متأكد من حذف هذا الطبيب؟')) {
-        fetch(`/hospital/doctor/${doctorId}/delete/`, {
+        // Get CSRF token from cookie
+        let csrftoken = getCookie('csrftoken');
+
+        // If not found in cookie, try to get from any form on the page
+        if (!csrftoken) {
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) {
+                csrftoken = csrfInput.value;
+            }
+        }
+
+        console.log('CSRF Token for delete:', csrftoken);
+
+        fetch(`/hospitals/doctor/${doctorId}/delete/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': csrftoken,
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Delete response status:', response.status);
+            console.log('Delete response headers:', response.headers.get('content-type'));
+
+            // Check if response is ok (status in the range 200-299)
+            if (!response.ok) {
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || `HTTP error! Status: ${response.status}`);
+                    });
+                } else {
+                    // If not JSON, get the text and throw it as an error
+                    return response.text().then(text => {
+                        console.error('Non-JSON error response:', text);
+                        throw new Error(`Server error! Status: ${response.status}`);
+                    });
+                }
+            }
+
+            // Check if the response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // If not JSON, get the text and throw it as an error
+                return response.text().then(text => {
+                    console.error('Non-JSON success response:', text);
+                    throw new Error('Server returned non-JSON response');
+                });
+            }
+        })
         .then(data => {
+            console.log('Delete response data:', data);
             if (data.status === 'success') {
                 alert('تم حذف الطبيب بنجاح');
                 window.location.reload();
@@ -375,8 +423,8 @@ function deleteDoctor(doctorId) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ أثناء حذف الطبيب');
+            console.error('Error deleting doctor:', error);
+            alert('حدث خطأ أثناء حذف الطبيب: ' + error.message);
         });
     }
 }
@@ -386,15 +434,68 @@ function updateDoctor(event, doctorId) {
     const form = document.getElementById(`doctor-form-${doctorId}`);
     const formData = new FormData(form);
 
-    fetch(`/hospital/doctor/${doctorId}/update/`, {
+    // Get CSRF token - try from cookie first, then from form
+    let csrftoken = getCookie('csrftoken');
+
+    // If not found in cookie, try to get from the form's csrf input
+    if (!csrftoken) {
+        const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (csrfInput) {
+            csrftoken = csrfInput.value;
+        }
+    }
+
+    console.log('CSRF Token for update:', csrftoken);
+
+    // Log form data for debugging
+    console.log('Form data for doctor ID:', doctorId);
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    fetch(`/hospitals/doctor/${doctorId}/update/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': csrftoken
+            // Don't set Content-Type header when using FormData
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Update response status:', response.status);
+        console.log('Update response headers:', response.headers.get('content-type'));
+
+        // Check if response is ok (status in the range 200-299)
+        if (!response.ok) {
+            // Check if the response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.error || `HTTP error! Status: ${response.status}`);
+                });
+            } else {
+                // If not JSON, get the text and throw it as an error
+                return response.text().then(text => {
+                    console.error('Non-JSON error response:', text);
+                    throw new Error(`Server error! Status: ${response.status}`);
+                });
+            }
+        }
+
+        // Check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            // If not JSON, get the text and throw it as an error
+            return response.text().then(text => {
+                console.error('Non-JSON success response:', text);
+                throw new Error('Server returned non-JSON response');
+            });
+        }
+    })
     .then(data => {
+        console.log('Update response data:', data);
         if (data.status === 'success') {
             alert('تم تحديث بيانات الطبيب بنجاح');
             window.location.reload();
@@ -403,8 +504,8 @@ function updateDoctor(event, doctorId) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ أثناء تحديث بيانات الطبيب');
+        console.error('Error updating doctor:', error);
+        alert('حدث خطأ أثناء تحديث بيانات الطبيب: ' + error.message);
     });
 }
 
@@ -429,7 +530,7 @@ function togglePriceHistory(doctorId, doctorName) {
 
     // إذا كان مخفياً، اجلب البيانات وأظهرها
     if (isHidden) {
-        fetch(`/hospital/doctor/${doctorId}/history/`, {
+        fetch(`/hospitals/doctor/${doctorId}/history/`, {
             method: 'GET',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),

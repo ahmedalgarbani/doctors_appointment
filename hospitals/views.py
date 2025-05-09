@@ -296,6 +296,36 @@ def index(request):
         print(f"Error al cargar anuncios: {str(e)}")
         advertisements = []
 
+    # التحقق مما إذا كان الطلب يطلب بيانات الحجوزات بتنسيق JSON
+    if request.GET.get('format') == 'json' and request.GET.get('section') == 'appointments':
+        # تحضير بيانات الحجوزات للاستجابة JSON
+        bookings_data = []
+        for booking in bookings:
+            booking_data = {
+                'id': booking.id,
+                'patient_name': booking.patient.user.get_full_name() if booking.patient and booking.patient.user else 'غير معروف',
+                'patient_phone': booking.patient.user.mobile_number if booking.patient and booking.patient.user else '',
+                'patient_image': booking.patient.user.profile_picture.url if booking.patient and booking.patient.user and booking.patient.user.profile_picture else None,
+                'doctor_name': booking.doctor.full_name if booking.doctor else 'غير معروف',
+                'doctor_specialty': booking.doctor.specialty.name if booking.doctor and booking.doctor.specialty else '',
+                'doctor_image': booking.doctor.photo.url if booking.doctor and booking.doctor.photo else None,
+                'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else '',
+                'booking_time': booking.booking_time.strftime('%H:%M') if booking.booking_time else '',
+                'amount': booking.amount,
+                'status': booking.status,
+                'payment_status': 'مدفوع' if booking.payment_status == 'paid' else 'غير مدفوع',
+            }
+            bookings_data.append(booking_data)
+        
+        # إرجاع استجابة JSON
+        return JsonResponse({
+            'bookings': bookings_data,
+            'total_bookings': bookings.count(),
+            'confirmed_bookings': bookings.filter(status='confirmed').count(),
+            'pending_bookings': bookings.filter(status='pending').count(),
+            'completed_bookings': bookings.filter(status='completed').count(),
+        })
+    
     context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
@@ -786,9 +816,24 @@ def add_doctor(request):
     return redirect('hospitals:index')
 
 
+@login_required(login_url='/user/login')
 def add_payment_method(request):
+    # Get the hospital associated with the logged-in user
+    try:
+        if request.user.user_type == 'hospital_manager':
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif request.user.user_type == 'hospital_staff':
+            from hospital_staff.models import HospitalStaff
+            staff_obj = get_object_or_404(HospitalStaff, user=request.user)
+            hospital = staff_obj.hospital
+        else:
+            messages.error(request, "ليس لديك صلاحية للقيام بهذه العملية")
+            return redirect('hospitals:index')
+    except Exception as e:
+        messages.error(request, f"حدث خطأ أثناء تحديد المستشفى: {str(e)}")
+        return redirect('hospitals:index')
+    
     if request.method == "POST":
-        hospital_id = 1
         payment_option_id = request.POST.get("payment_option")
         account_name = request.POST.get("account_name")
         account_number = request.POST.get("account_number")
@@ -796,24 +841,45 @@ def add_payment_method(request):
         description = request.POST.get("description")
         is_active = request.POST.get("is_active") == "1"
 
-        if not all([hospital_id, payment_option_id, account_name, account_number, iban, description]):
-            return HttpResponseBadRequest("Missing required fields")
+        if not all([payment_option_id, account_name, account_number, iban, description]):
+            messages.error(request, "يرجى ملء جميع الحقول المطلوبة")
+            return redirect('hospitals:index')
 
         try:
-            hospital = Hospital.objects.get(id=hospital_id)
             payment_option = PaymentOption.objects.get(id=payment_option_id)
-        except (Hospital.DoesNotExist, PaymentOption.DoesNotExist):
-            return HttpResponseBadRequest("Invalid hospital or payment option ID")
+            
+            # Check if this payment option already exists for this hospital
+            existing_payment = HospitalPaymentMethod.objects.filter(
+                hospital=hospital,
+                payment_option=payment_option
+            ).first()
+            
+            if existing_payment:
+                # Update the existing payment method instead of creating a new one
+                existing_payment.account_name = account_name
+                existing_payment.account_number = account_number
+                existing_payment.iban = iban
+                existing_payment.description = description
+                existing_payment.is_active = is_active
+                existing_payment.save()
+                messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+            else:
+                # Create a new payment method
+                HospitalPaymentMethod.objects.create(
+                    hospital=hospital,
+                    payment_option=payment_option,
+                    account_name=account_name,
+                    account_number=account_number,
+                    iban=iban,
+                    description=description,
+                    is_active=is_active,
+                )
+                messages.success(request, "تمت إضافة طريقة الدفع بنجاح")
+        except PaymentOption.DoesNotExist:
+            messages.error(request, "خيار الدفع غير موجود")
+        except Exception as e:
+            messages.error(request, f"حدث خطأ أثناء إضافة طريقة الدفع: {str(e)}")
 
-        HospitalPaymentMethod.objects.create(
-            hospital=hospital,
-            payment_option=payment_option,
-            account_name=account_name,
-            account_number=account_number,
-            iban=iban,
-            description=description,
-            is_active=is_active,
-        )
 
         return redirect("hospitals:index")
 
@@ -1966,10 +2032,16 @@ def update_hospital_profile(request):
             # Only hospital managers can update hospital information
             if request.user.user_type == 'hospital_manager' and hospital:
                 # Update hospital name
-                hospital_name = request.POST.get('hospital_name')
-                if hospital_name:
-                    hospital.name = hospital_name
-                    print(f"Updated hospital name to: {hospital_name}")
+                name = request.POST.get('name')
+                if name:
+                    hospital.name = name
+                    print(f"Updated hospital name to: {name}")
+                
+                # Update hospital subtitle
+                sub_title = request.POST.get('sub_title')
+                if sub_title:
+                    hospital.sub_title = sub_title
+                    print(f"Updated hospital subtitle to: {sub_title}")
 
                 # Update hospital description
                 description = request.POST.get('description')
@@ -2058,13 +2130,16 @@ def update_hospital_profile(request):
                     import traceback
                     traceback.print_exc()
 
+            # Get the return section from the form data
+            return_section = request.POST.get('return_section', 'doctor_profile_settings')
+            
             if request.user.user_type == 'hospital_manager':
                 messages.success(request, 'تم تحديث بيانات المستشفى بنجاح.')
             else:
                 messages.success(request, 'تم تحديث بياناتك الشخصية بنجاح.')
 
-            print("Redirecting to profile settings page")
-            return redirect('/hospital/?section=doctor_profile_settings')
+            print(f"Redirecting to section: {return_section}")
+            return redirect(f'/hospital/?section={return_section}')
 
         except Hospital.DoesNotExist:
             print("Hospital not found for current user")
@@ -2133,8 +2208,12 @@ def get_doctor(request, doctor_id):
         }, status=500)
 
 @login_required(login_url='/user/login')
-@csrf_exempt
+@csrf_exempt  # Note: We're keeping csrf_exempt for now but will handle CSRF manually
 def update_doctor(request, doctor_id):
+    print("="*50)
+    print(f"Update doctor request method: {request.method}")
+    print(f"CSRF Token in request: {request.META.get('HTTP_X_CSRFTOKEN', 'Not found')}")
+
     if request.method != 'POST':
         return HttpResponseBadRequest('Invalid request method')
 
@@ -2142,115 +2221,244 @@ def update_doctor(request, doctor_id):
         print("="*50)
         print(f"Updating doctor {doctor_id}")
         print(f"POST data: {request.POST}")
+        print(f"FILES data: {request.FILES}")
+        print(f"User type: {request.user.user_type}")
 
-        # Get hospital and doctor
-        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            print("Hospital not found for user")
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
+
+        # Get doctor
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+        print(f"Found doctor: {doctor.full_name}")
 
-        # Update doctor information
-        doctor.full_name = request.POST.get('full_name')
-        doctor.specialty_id = request.POST.get('specialty')
-        doctor.email = request.POST.get('email')
-        doctor.phone_number = request.POST.get('phone_number')
-        doctor.gender = request.POST.get('gender')
-        doctor.experience_years = request.POST.get('experience_years')
-        doctor.status = request.POST.get('status') == '1'
-        doctor.about = request.POST.get('about', '')
+        try:
+            # Update doctor information
+            doctor.full_name = request.POST.get('full_name')
+            print(f"Updated full_name: {doctor.full_name}")
 
-        # Handle photo upload
-        if 'photo' in request.FILES:
-            doctor.photo = request.FILES['photo']
+            specialty_id = request.POST.get('specialty')
+            if specialty_id:
+                doctor.specialty_id = specialty_id
+                print(f"Updated specialty_id: {doctor.specialty_id}")
 
-        doctor.save()
+            doctor.email = request.POST.get('email')
+            print(f"Updated email: {doctor.email}")
 
-        # Update doctor price
-        price = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
-        new_price = request.POST.get('pricing-0-amount')
+            doctor.phone_number = request.POST.get('phone_number')
+            print(f"Updated phone_number: {doctor.phone_number}")
 
-        if new_price:
-            if price:
-                # Create price history record
-                DoctorPricingHistory.objects.create(
-                    doctor=doctor,
-                    hospital=hospital,
-                    amount=new_price,
-                    previous_amount=price.amount,
-                    created_by=request.user
-                )
-                # Update current price
-                price.amount = new_price
-                price.save()
-            else:
-                # Create new price record
-                DoctorPricing.objects.create(
-                    doctor=doctor,
-                    hospital=hospital,
-                    amount=new_price
-                )
+            doctor.gender = request.POST.get('gender')
+            print(f"Updated gender: {doctor.gender}")
 
-        return JsonResponse({
-            'status': 'success',
-            'message': 'تم تحديث بيانات الطبيب بنجاح'
-        })
+            experience_years = request.POST.get('experience_years')
+            if experience_years:
+                doctor.experience_years = experience_years
+                print(f"Updated experience_years: {doctor.experience_years}")
+
+            doctor.status = request.POST.get('status') == '1'
+            print(f"Updated status: {doctor.status}")
+
+            doctor.about = request.POST.get('about', '')
+            print(f"Updated about: {doctor.about}")
+
+            # Handle photo upload
+            if 'photo' in request.FILES:
+                doctor.photo = request.FILES['photo']
+                print(f"Updated photo: {doctor.photo}")
+
+            doctor.save()
+            print("Doctor saved successfully")
+
+            # Update doctor price
+            price = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
+            new_price = request.POST.get('pricing-0-amount')
+            print(f"New price: {new_price}")
+
+            if new_price:
+                if price:
+                    print(f"Updating existing price from {price.amount} to {new_price}")
+                    # Create price history record
+                    DoctorPricingHistory.objects.create(
+                        doctor=doctor,
+                        hospital=hospital,
+                        amount=new_price,
+                        previous_amount=price.amount,
+                        created_by=request.user
+                    )
+                    # Update current price
+                    price.amount = new_price
+                    price.save()
+                    print("Price updated successfully")
+                else:
+                    print(f"Creating new price: {new_price}")
+                    # Create new price record
+                    DoctorPricing.objects.create(
+                        doctor=doctor,
+                        hospital=hospital,
+                        amount=new_price
+                    )
+                    print("New price created successfully")
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم تحديث بيانات الطبيب بنجاح'
+            })
+        except Exception as inner_e:
+            import traceback
+            print(f"Inner error updating doctor: {str(inner_e)}")
+            traceback.print_exc()
+            return JsonResponse({
+                'status': 'error',
+                'error': f'حدث خطأ أثناء تحديث بيانات الطبيب: {str(inner_e)}'
+            }, status=500)
 
     except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
             'status': 'error',
-            'error': 'لم يتم العثور على المستشفى'
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
         }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
         print(f"Error updating doctor: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
 
 @login_required(login_url='/user/login')
 def delete_doctor(request, doctor_id):
+    print("="*50)
+    print(f"Delete doctor request method: {request.method}")
+    print(f"Delete doctor URL path: {request.path}")
+    print(f"CSRF Token in request: {request.META.get('HTTP_X_CSRFTOKEN', 'Not found')}")
+
     if request.method != 'POST':
+        print(f"Invalid request method: {request.method}")
         return HttpResponseBadRequest('Invalid request method')
 
     try:
-        # Get hospital and doctor
-        hospital = get_object_or_404(Hospital, user=request.user)
-        doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+        print("="*50)
+        print(f"Deleting doctor {doctor_id}")
+        print(f"User type: {request.user.user_type}")
 
-        # Remove the doctor from this hospital
-        doctor.hospitals.remove(hospital)
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+            print(f"Found hospital for manager: {hospital.name}")
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+            print(f"Found hospital for staff: {hospital.name}")
+        else:
+            print(f"User is neither hospital manager nor staff: {request.user.user_type}")
 
-        # Delete the doctor's pricing for this hospital
-        DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).delete()
+        if not hospital:
+            print("Hospital not found for user")
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
 
-        # If the doctor is not associated with any other hospitals, delete the doctor
-        if doctor.hospitals.count() == 0:
-            doctor.delete()
+        try:
+            # Get doctor
+            doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+            print(f"Found doctor: {doctor.full_name}")
 
+            # Remove the doctor from this hospital
+            doctor.hospitals.remove(hospital)
+            print(f"Removed doctor from hospital: {hospital.name}")
+
+            # Delete the doctor's pricing for this hospital
+            pricing_count = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).count()
+            DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).delete()
+            print(f"Deleted {pricing_count} pricing records")
+
+            # If the doctor is not associated with any other hospitals, delete the doctor
+            hospitals_count = doctor.hospitals.count()
+            print(f"Doctor is associated with {hospitals_count} hospitals")
+            if hospitals_count == 0:
+                doctor.delete()
+                print(f"Deleted doctor completely as no more hospital associations")
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم حذف الطبيب بنجاح'
+            })
+        except Exception as inner_e:
+            import traceback
+            print(f"Inner error deleting doctor: {str(inner_e)}")
+            traceback.print_exc()
+            return JsonResponse({
+                'status': 'error',
+                'error': f'حدث خطأ أثناء حذف الطبيب: {str(inner_e)}'
+            }, status=500)
+
+    except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
-            'status': 'success',
-            'message': 'تم حذف الطبيب بنجاح'
-        })
-
+            'status': 'error',
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+        }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
         print(f"Error deleting doctor: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
 
 @login_required(login_url='/user/login')
 def get_doctor_history(request, doctor_id):
     try:
-        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
+        print("="*50)
+        print(f"Getting history for doctor {doctor_id}")
+        print(f"User type: {request.user.user_type}")
+
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
+
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
 
         # جلب سجل أسعار الطبيب
@@ -2283,19 +2491,24 @@ def get_doctor_history(request, doctor_id):
         })
 
     except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
             'status': 'error',
-            'error': 'لم يتم العثور على المستشفى'
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
         }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
+        print(f"Error getting doctor history: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
 
 @login_required(login_url='/user/login')
@@ -2381,7 +2594,21 @@ def add_doctor_form(request):
 def doctor_details(request, doctor_id):
     try:
         print(f"Accessing doctor details for ID: {doctor_id}")  # Debug print
-        hospital = get_object_or_404(Hospital, user=request.user)
+        print(f"User type: {request.user.user_type}")
+
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            messages.error(request, 'لم يتم العثور على المستشفى المرتبط بالمستخدم')
+            return redirect('hospitals:index')
+
         doctor = get_object_or_404(Doctor.objects.select_related('specialty'), id=doctor_id, hospitals=hospital)
 
         # Get current price

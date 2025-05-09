@@ -2,6 +2,7 @@ from django.db import models
 from hospitals.models import BaseModel, Hospital
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.core.validators import FileExtensionValidator
 
 def advertisement_image_path(instance, filename):
     # Use the hospital ID to create a unique path for advertisement images
@@ -32,7 +33,25 @@ class Advertisement(BaseModel):
         upload_to=advertisement_image_path,
         blank=True,
         null=True,
-        verbose_name=_("صورة الإعلان")
+        verbose_name=_("صورة الإعلان الرئيسية")
+    )
+    image2 = models.ImageField(
+        upload_to=advertisement_image_path,
+        blank=True,
+        null=True,
+        verbose_name=_("صورة إضافية 1")
+    )
+    image3 = models.ImageField(
+        upload_to=advertisement_image_path,
+        blank=True,
+        null=True,
+        verbose_name=_("صورة إضافية 2")
+    )
+    image4 = models.ImageField(
+        upload_to=advertisement_image_path,
+        blank=True,
+        null=True,
+        verbose_name=_("صورة إضافية 3")
     )
     start_date = models.DateField(
         default=timezone.now,
@@ -49,14 +68,6 @@ class Advertisement(BaseModel):
         choices=STATUS_CHOICES,
         default='active',
         verbose_name=_("الحالة")
-    )
-    views_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_("عدد المشاهدات")
-    )
-    clicks_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_("عدد النقرات")
     )
 
     class Meta:
@@ -88,3 +99,35 @@ class Advertisement(BaseModel):
             self.save(update_fields=['status'])
 
         return self.status
+
+
+def advertisement_additional_image_path(instance, filename):
+    # Use the advertisement ID to create a unique path for additional images
+    return f'advertisements/hospital_{instance.advertisement.hospital.id}/ad_{instance.advertisement.id}/{filename}'
+
+
+class AdvertisementImage(BaseModel):
+    """Model for additional advertisement images"""
+    advertisement = models.ForeignKey(
+        Advertisement,
+        on_delete=models.CASCADE,
+        related_name='additional_images',
+        verbose_name=_("الإعلان")
+    )
+    image = models.ImageField(
+        upload_to=advertisement_additional_image_path,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'gif'])],
+        verbose_name=_("الصورة")
+    )
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name=_("الترتيب")
+    )
+
+    class Meta:
+        verbose_name = _("صورة إعلان")
+        verbose_name_plural = _("صور الإعلانات")
+        ordering = ['advertisement', 'order']
+
+    def __str__(self):
+        return f"{self.advertisement.title} - صورة {self.order + 1}"

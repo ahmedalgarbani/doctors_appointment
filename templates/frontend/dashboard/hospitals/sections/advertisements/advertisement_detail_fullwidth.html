@@ -1,0 +1,311 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  /* تنسيقات صفحة تفاصيل الإعلان */
+  .advertisement_detail .card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .advertisement_detail .card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .advertisement_detail .card-header {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .advertisement_detail .theme-bg-primary {
+    background-color: #20c0f3 !important;
+    border-color: #20c0f3 !important;
+  }
+
+  .advertisement_detail .theme-text-primary {
+    color: #20c0f3 !important;
+  }
+
+  .advertisement_detail .theme-btn-primary {
+    background-color: #20c0f3 !important;
+    border-color: #20c0f3 !important;
+  }
+
+  .advertisement_detail .theme-btn-primary:hover {
+    background-color: #0eaad8 !important;
+    border-color: #0eaad8 !important;
+  }
+
+  .advertisement_detail .btn-hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .advertisement_detail .theme-icon {
+    color: #20c0f3;
+  }
+
+  .advertisement_detail .inner-card {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+  }
+
+  .advertisement_detail .inner-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .advertisement_detail .rtl-text {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .advertisement_detail .border-bottom {
+    border-bottom: 2px solid rgba(32, 192, 243, 0.2) !important;
+  }
+
+  .advertisement_detail .bg-light {
+    background-color: #f8f9fa !important;
+  }
+
+  .advertisement_detail .fs-1 {
+    font-size: 2.5rem !important;
+  }
+
+  .advertisement_detail .fs-5 {
+    font-size: 1.25rem !important;
+  }
+
+  .advertisement_detail .fw-bold {
+    font-weight: 600 !important;
+  }
+
+  .advertisement_detail .rounded {
+    border-radius: 8px !important;
+  }
+
+  .advertisement_detail .shadow-sm {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+  <div class="container">
+    <div class="row align-items-center inner-banner">
+      <div class="col-md-12 col-12 text-center">
+        <h2 class="breadcrumb-title">تفاصيل الإعلان</h2>
+        <nav aria-label="breadcrumb" class="page-breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="{% url 'home:home' %}">الرئيسية</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="/hospitals/?section=advertisements_list">إدارة الإعلانات</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              تفاصيل الإعلان
+            </li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content advertisement_detail rtl-text">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header py-3">
+            <div class="row align-items-center">
+              <div class="col">
+                <h4 class="card-title fw-bold">{{ advertisement.title }}</h4>
+              </div>
+              <div class="col text-end">
+                <a href="/hospitals/?section=advertisements_list" class="btn btn-sm btn-secondary shadow-sm">
+                  <i class="fas fa-arrow-left"></i> العودة للقائمة
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-7">
+                <div class="info-widget">
+                  <div class="doctor-details mb-3">
+                    <h5>تاريخ الإنشاء: {{ advertisement.created_at|date:"Y-m-d H:i" }}</h5>
+                    {% if advertisement.updated_at %}
+                    <h5>آخر تحديث: {{ advertisement.updated_at|date:"Y-m-d H:i" }}</h5>
+                    {% endif %}
+                  </div>
+
+                  <div class="about-doctor mb-4">
+                    <h4 class="fw-bold theme-text-primary">الوصف</h4>
+                    <p>{{ advertisement.description }}</p>
+                  </div>
+
+                  <div class="doctor-details mb-4">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="widget about-widget">
+                          <h4 class="fw-bold theme-text-primary">تاريخ البدء</h4>
+                          <p>{{ advertisement.start_date }}</p>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="widget about-widget">
+                          <h4 class="fw-bold theme-text-primary">تاريخ الانتهاء</h4>
+                          <p>{{ advertisement.end_date|default:"غير محدد" }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="doctor-details mb-4">
+                    <h4 class="fw-bold theme-text-primary">الحالة</h4>
+                    <div>
+                      {% if advertisement.status == 'active' %}
+                      <span class="badge bg-success">نشط</span>
+                      {% elif advertisement.status == 'inactive' %}
+                      <span class="badge bg-secondary">غير نشط</span>
+                      {% elif advertisement.status == 'scheduled' %}
+                      <span class="badge bg-info">مجدول</span>
+                      {% elif advertisement.status == 'expired' %}
+                      <span class="badge bg-danger">منتهي</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-5">
+                <div class="doctor-widget">
+                  <div class="doc-info-right">
+                    <div class="clinic-booking">
+                      <!-- الصورة الرئيسية -->
+                      {% if advertisement.image %}
+                      <div class="main-image mb-5">
+                        <h5 class="text-center mb-4 fw-bold theme-text-primary">الصورة الرئيسية</h5>
+                        <div class="text-center">
+                          <a href="{{ advertisement.image.url }}" target="_blank" class="d-block">
+                            <img src="{{ advertisement.image.url }}" alt="{{ advertisement.title }}" class="img-fluid rounded shadow" style="max-height: 500px; width: auto; max-width: 100%;">
+                          </a>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="main-image text-center p-5 bg-light mb-5 rounded shadow-sm">
+                        <h5 class="text-center mb-4 fw-bold theme-text-primary">الصورة الرئيسية</h5>
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                        <p class="mt-3 text-muted">لا توجد صورة رئيسية للإعلان</p>
+                      </div>
+                      {% endif %}
+
+                      <!-- الصور الإضافية -->
+                      <div class="additional-images mt-5">
+                        <h5 class="text-center mb-4 fw-bold theme-text-primary">الصور الإضافية</h5>
+
+                        <!-- عرض الصور الإضافية بشكل مباشر -->
+                        <div class="row">
+                          {% if advertisement.image2 %}
+                          <div class="col-md-12 mb-5">
+                            <div class="text-center">
+                              <a href="{{ advertisement.image2.url }}" target="_blank" class="d-block">
+                                <img src="{{ advertisement.image2.url }}" class="img-fluid rounded shadow" alt="صورة إضافية 1" style="max-height: 400px; width: auto; max-width: 100%;">
+                              </a>
+                              <p class="mt-2 text-muted">صورة إضافية 1</p>
+                            </div>
+                          </div>
+                          {% endif %}
+
+                          {% if advertisement.image3 %}
+                          <div class="col-md-12 mb-5">
+                            <div class="text-center">
+                              <a href="{{ advertisement.image3.url }}" target="_blank" class="d-block">
+                                <img src="{{ advertisement.image3.url }}" class="img-fluid rounded shadow" alt="صورة إضافية 2" style="max-height: 400px; width: auto; max-width: 100%;">
+                              </a>
+                              <p class="mt-2 text-muted">صورة إضافية 2</p>
+                            </div>
+                          </div>
+                          {% endif %}
+
+                          {% if advertisement.image4 %}
+                          <div class="col-md-12 mb-5">
+                            <div class="text-center">
+                              <a href="{{ advertisement.image4.url }}" target="_blank" class="d-block">
+                                <img src="{{ advertisement.image4.url }}" class="img-fluid rounded shadow" alt="صورة إضافية 3" style="max-height: 400px; width: auto; max-width: 100%;">
+                              </a>
+                              <p class="mt-2 text-muted">صورة إضافية 3</p>
+                            </div>
+                          </div>
+                          {% endif %}
+
+                          {% if not advertisement.image2 and not advertisement.image3 and not advertisement.image4 %}
+                          <div class="col-12 text-center">
+                            <div class="alert alert-info">
+                              <i class="fas fa-info-circle me-2"></i> لا توجد صور إضافية لهذا الإعلان
+                            </div>
+                          </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // تطبيق التنسيقات والأنماط
+    function applyStyles() {
+      // تطبيق تنسيقات Bootstrap
+      $(".advertisement_detail .card").addClass("shadow-sm");
+      $(".advertisement_detail .card-header").addClass("py-3");
+      $(".advertisement_detail .btn").addClass("shadow-sm");
+
+      // تطبيق تنسيقات خاصة بالموقع
+      $(".advertisement_detail .card-title").addClass("fw-bold");
+      $(".advertisement_detail .text-primary").addClass("theme-text-primary");
+      $(".advertisement_detail .bg-primary").addClass("theme-bg-primary");
+      $(".advertisement_detail .btn-primary").addClass("theme-btn-primary");
+
+      // تطبيق تنسيقات للصور
+      $(".advertisement_detail img").addClass("rounded shadow-sm");
+
+      // تطبيق تنسيقات للأيقونات
+      $(".advertisement_detail i.fas, .advertisement_detail i.far").addClass("theme-icon");
+
+      // تطبيق تنسيقات للبطاقات الداخلية
+      $(".advertisement_detail .card .card").addClass("inner-card");
+
+      // إضافة تأثيرات حركية
+      $(".advertisement_detail .btn").hover(
+        function() { $(this).addClass("btn-hover"); },
+        function() { $(this).removeClass("btn-hover"); }
+      );
+
+      console.log("Styles applied to advertisement detail page");
+    }
+
+    // تطبيق التنسيقات عند تحميل الصفحة
+    applyStyles();
+  });
+</script>
+{% endblock %}

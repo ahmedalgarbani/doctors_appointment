@@ -17,7 +17,7 @@
                 <div class="card-header">
                     <h4 class="card-title">إدارة الموظفين</h4>
                     <div class="float-end">
-                        <a href="/hospital/staff/add/" class="btn btn-primary me-2">
+                        <a href="{% url 'hospital_staff:add_staff' %}" class="btn btn-primary me-2">
                             <i class="fas fa-plus"></i> إضافة موظف جديد
                         </a>
                         <a href="javascript:;" class="btn btn-success" onclick="refreshStaffList()">
