@@ -187,7 +187,16 @@
                                                title="عرض التفاصيل">
                                                 <i class="far fa-eye"></i>
                                             </a>
-                                            
+                                            {% if booking.invoice %}
+        <a href="{% url 'hospitals:invoice_view' booking.invoice.id %}" class="btn btn-sm bg-info-light text-primary">
+            <i class="fas fa-file-invoice me-1" style="color: #0d6efd;"></i>الفاتورة
+        </a>
+    {% else %}
+        <span class="text-muted">لا توجد فاتورة</span>
+    {% endif %}
+                                        
+                                        
+
                                             {% if booking.status == 'pending' %}
                                                 <button type="button" 
                                                         class="btn btn-sm bg-success-light accept-booking" 

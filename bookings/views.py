@@ -199,13 +199,20 @@ def booking_success(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, patient__user=request.user)
     return render(request, 'frontend/home/pages/booking_success.html', {'booking': booking})
 
+
+
 def appointment_details(request, booking_id):
-    """عرض تفاصيل الحجز في صفحة منفصلة"""
-    booking = get_object_or_404(Booking, id=booking_id)
-    
+    booking = get_object_or_404(
+        Booking.objects.prefetch_related('payments'),
+        id=booking_id
+    )
+
+    # إذا كانت payments تمثل الفواتير
+    booking.invoice = booking.payments.first() if booking.payments.exists() else None
+
     context = {
         'booking': booking,
         'page_title': 'تفاصيل الحجز'
     }
-    
+
     return render(request, 'frontend/dashboard/hospitals/sections/appointment_details.html', context)
