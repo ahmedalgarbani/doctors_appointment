@@ -5,10 +5,11 @@
     <div class="container">
         <div class="row align-items-center inner-banner">
             <div class="col-md-12 col-12 text-center">
+                <h2 class="breadcrumb-title"> الحجز<h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item" aria-current="page">{% if is_online %}Online Consultation{% else %}Booking{% endif %}</li>
+                        <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                        <li class="breadcrumb-item" aria-current="page">{% if is_online %}استشارة عبر الإنترنت{% else %}الحجز{% endif %}</li>
                     </ol>
                 </nav>
             </div>
@@ -45,15 +46,23 @@
                         </div>
                     </div>
                    </div>
-                   <p>{{ doctor.specialty.name }} • {% for hospital in doctor.hospitals.all %}{{ hospital.name }}{% if not forloop.last %} ، {% endif %}{% endfor %}</p>
+                   <p class="specialty-name"><span class="badge bg-primary-light">{{ doctor.specialty.name }}</span></p>
                </div>
-               <p>يرجى اختيار اليوم قبل تاريح الحجز!</p>
+               <div class="alert alert-info booking-alert" role="alert">
+                   <i class="fas fa-info-circle me-2"></i>
+                   <strong>يرجى اختيار اليوم قبل تاريخ الحجز!</strong>
+               </div>
                <div class="booking-date choose-date-book">
-                   <p>Choose a Date</p>
+                   <p><i class="fas fa-calendar-alt me-2 text-primary"></i>اختر تاريخًا</p>
                    <div class="col-md-6 mb-3 px-0">
                     <label class="mb-2 fw-bold">تاريخ الحجز</label>
-                    <input type="text" class="form-control" name="booking_date" id="datepicker" 
-                           placeholder="اختر التاريخ" readonly>
+                    <div class="position-relative date-picker-container">
+                        <input type="text" class="form-control date-input-with-icon" name="booking_date" id="datepicker" 
+                               placeholder="اختر التاريخ" readonly>
+                        <span class="date-icon-container">
+                            <i class="fas fa-calendar-alt text-primary"></i>
+                        </span>
+                    </div>
                 </div>
                </div>
                <div class="card booking-card">
@@ -87,7 +96,7 @@
                    <input type="hidden" name="hospital_id" id="hospital_id" value="{{ selected_hospital_id }}">
                    <div class="booking-btn">
                        <button type="submit" id="next-btn" class="btn btn-primary prime-btn justify-content-center align-items-center" disabled>
-                           Next <i class="feather-arrow-right-circle"></i>
+                           التالي <i class="feather-arrow-right-circle"></i>
                        </button>
                    </div>
                </form>
@@ -95,7 +104,7 @@
 
            <div class="col-lg-4 col-md-12">
                <div class="booking-header">
-                   <h4 class="booking-title">Booking Summary</h4>
+                   <h4 class="booking-title">ملخص الحجز</h4>
                </div>
                <div class="card booking-card">
                    <div class="card-body booking-card-body">
@@ -109,26 +118,26 @@
                                    {% endif %}
                                </div>
                                <div class="booking-doctor-info">
-                                   <h4><a href="{% url 'doctors:doctor_detail' doctor.id %}">Dr. {{ doctor.full_name }}</a></h4>
+                                   <h4><a href="{% url 'doctors:doctor_detail' doctor.id %}">د. {{ doctor.full_name }}</a></h4>
                                    <p>{{ doctor.specialty.name }}</p>
                                    {% if doctor_price %}
-                                   <div class="booking-price">
-                                       <h5>Consultation Fee:</h5>
-                                       <p class="price-amount">{{ doctor_price.amount }}  ريال يمني </p>
-                                   </div>
+                                    <div class="booking-price">
+                                        <h5>رسوم الاستشارة:</h5>
+                                        <p class="price-amount">{{ doctor_price.amount }}  ريال يمني </p>
+                                    </div>
                                    {% endif %}
                                </div>
                            </div>
                        </div>
                        <div class="booking-availability">
-                           <h5>Available Days:</h5>
-                           <ul class="list-group">
+                            <h5>الأيام المتاحة:</h5>
+                            <ul class="list-group">
                                {% for schedule in dayes %}
                                <li class="list-group-item">
                                    <i class="fas fa-calendar-alt"></i> {{ schedule.get_day_display }}
                                </li>
                                {% empty %}
-                               <li class="list-group-item">No schedules available.</li>
+                                <li class="list-group-item">لا توجد مواعيد متاحة.</li>
                                {% endfor %}
                            </ul>
                        </div>
@@ -188,18 +197,25 @@ $(document).ready(function () {
         const selectedScheduleId = $(this).data('schedule');
         const dayName = $(this).find('h4').text().trim();
         
+        // Store previous day if exists
+        const previousDay = availableDays.length > 0 ? availableDays[0] : null;
+        
+        // Set new available day
         availableDays = [dayMap[dayName]];
         $('.date-slider li').removeClass('active');
         $(this).addClass('active');
         $('#day_id').val(selectedScheduleId);
         
-        initDatepicker();
-        
-        const currentDate = flatpickrInstance.selectedDates[0];
-        if (currentDate && !availableDays.includes(currentDate.getDay())) {
+        // Always reset the date when the day changes
+        if (previousDay !== null && previousDay !== availableDays[0]) {
+            // Clear the datepicker and hidden input
             flatpickrInstance.clear();
             $('#booking_date_input').val('');
+            $('#datepicker').val('');
         }
+        
+        // Reinitialize datepicker with new available days
+        initDatepicker();
         
         updateTimeSlots();
     });
@@ -213,16 +229,17 @@ $(document).ready(function () {
         
         // التحقق من أن التاريخ ليس في الماضي
         if (selectedDate < today) {
-            alert('لا يمكن اختيار تاريخ ماضي');
+            // بدلاً من إظهار رسالة، فقط نقوم بإفراغ الحقل
             $(this).val('');
+            $('#booking_date_input').val('');
             return;
         }
         
         // التحقق من أن اليوم المختار متاح
         if (availableDays.length > 0 && !availableDays.includes(selectedDate.getDay())) {
-            alert('اليوم المحدد غير متاح، الرجاء اختيار يوم ' + 
-                  Object.keys(dayMap).find(key => dayMap[key] === availableDays[0]));
+            // بدلاً من إظهار رسالة، فقط نقوم بإفراغ الحقل
             $(this).val('');
+            $('#booking_date_input').val('');
             return;
         }
         
@@ -485,6 +502,34 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     padding: 5px;
+}
+
+/* تنسيقات مربع اختيار التاريخ مع الأيقونة */
+.date-picker-container {
+    position: relative;
+}
+
+.date-input-with-icon {
+    padding-left: 40px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.date-input-with-icon:focus {
+    border-color: #20c0f3;
+    box-shadow: 0 0 0 3px rgba(32, 192, 243, 0.2);
+}
+
+.date-icon-container {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #20c0f3;
+    font-size: 18px;
+    pointer-events: none;
 }
 </style>
 {% endblock %}

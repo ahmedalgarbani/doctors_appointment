@@ -19,21 +19,6 @@ class Patients(BaseModel):
         choices=[('Male', _('ذكر')), ('Female', _('أنثى'))],
         verbose_name=_("الجنس"),
     )
-    weight = models.FloatField(null=True, blank=True, verbose_name=_("الوزن (كجم)"))
-    height = models.FloatField(null=True, blank=True, verbose_name=_("الطول (سم)"))
-    age = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("العمر"))
-    blood_group = models.CharField(
-        max_length=5,
-        choices=[
-            ('A+', 'A+'), ('A-', 'A-'),
-            ('B+', 'B+'), ('B-', 'B-'),
-            ('AB+', 'AB+'), ('AB-', 'AB-'),
-            ('O+', 'O+'), ('O-', 'O-'),
-        ],
-        null=True,
-        blank=True,
-        verbose_name=_("فصيلة الدم"),
-    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("ملاحظات"))
 
     def __str__(self):
@@ -50,8 +35,6 @@ class Patients(BaseModel):
         )
     
     def save(self, *args, **kwargs):
-        if self.birth_date and not self.age:
-            self.age = self.calculate_age()
         super().save(*args, **kwargs)
 
 

@@ -21,7 +21,7 @@ def patient_signup(request):
     hospital_user_message = None
     if 'hospital_user_message' in request.session:
         hospital_user_message = request.session.pop('hospital_user_message')
-        
+
     if request.method == "POST":
         username = request.POST.get('username')
         first_name = request.POST.get('first_name')
@@ -63,25 +63,47 @@ def patient_signup(request):
 
 def register_step1(request):
     """الخطوة الثانية من التسجيل: رفع الصورة وإدخال بيانات العنوان."""
+    # التحقق من وجود البيانات الأساسية في الجلسة
+    username = request.session.get('username')
+    if not username:
+        messages.error(request, 'يرجى إكمال بيانات الحساب الأساسية أولاً')
+        return redirect('users:patient_signup')
+
     if request.method == "POST":
+        # معالجة صورة الملف الشخصي
         profile_image = request.FILES.get('profile_image')
         if profile_image:
-            path = default_storage.save(f'uploads/profile_pictures/{profile_image.name}', ContentFile(profile_image.read()))
-            request.session['profile_image'] = path
+            try:
+                path = default_storage.save(f'uploads/profile_pictures/{profile_image.name}', ContentFile(profile_image.read()))
+                request.session['profile_image'] = path
+            except Exception as e:
+                messages.error(request, f'حدث خطأ أثناء رفع الصورة: {str(e)}')
+                return render(request, 'frontend/auth/patient-register-step1.html')
 
-        birth_date = request.POST.get('birth_date')
-        gender = request.POST.get('gender')
+        # استخراج البيانات من النموذج
         address = request.POST.get('address')
         city = request.POST.get('city')
         state = request.POST.get('state')
 
+        # التحقق من البيانات المطلوبة
+        if not address:
+            messages.error(request, 'يرجى إدخال العنوان')
+            return render(request, 'frontend/auth/patient-register-step1.html')
+
+        if not city:
+            messages.error(request, 'يرجى إدخال المدينة')
+            return render(request, 'frontend/auth/patient-register-step1.html')
+
         # حفظ البيانات في الجلسة
-        request.session['birth_date'] = birth_date
-        request.session['gender'] = gender
         request.session['address'] = address
         request.session['city'] = city
         request.session['state'] = state
 
+        # تهيئة بيانات الخطوة الثانية
+        if 'step2_data' not in request.session:
+            request.session['step2_data'] = {}
+
+        request.session.modified = True
         return redirect('users:register_step2')
 
     return render(request, 'frontend/auth/patient-register-step1.html')
@@ -89,67 +111,98 @@ def register_step1(request):
 
 def register_step2(request):
     """الخطوة الثالثة من التسجيل: إدخال بيانات المريض وحفظها مباشرة."""
+    # تحضير البيانات للعرض في القالب
+    if 'step2_data' not in request.session:
+        request.session['step2_data'] = {}
+
+    # استرجاع بيانات الجلسة الأساسية للتحقق
+    username = request.session.get('username')
+    first_name = request.session.get('first_name')
+    last_name = request.session.get('last_name')
+    email = request.session.get('email')
+    mobile_number = request.session.get('mobile_number')
+    password = request.session.get('password')
+    profile_picture = request.session.get('profile_image')
+    address = request.session.get('address')
+    city = request.session.get('city')
+    state = request.session.get('state')
+
+    # التحقق من أن البيانات الأساسية موجودة
+    if not all([username, first_name, last_name, email, mobile_number, password]):
+        messages.error(request, 'بيانات الحساب غير مكتملة. يرجى العودة وإكمال البيانات الأساسية.')
+        return redirect('users:patient_signup')
+
     if request.method == "POST":
+        # استخراج البيانات من النموذج
         birth_date = request.POST.get('birth_date')
         gender = request.POST.get('gender')
-        weight = request.POST.get('weight')
-        height = request.POST.get('height')
-        age = request.POST.get('age')
-        blood_group = request.POST.get('blood_group')
-        notes = request.POST.get('notes')
+        notes = request.POST.get('notes', '')
 
-        # استرجاع بيانات الجلسة
-        username = request.session.get('username')
-        first_name = request.session.get('first_name')
-        last_name = request.session.get('last_name')
-        email = request.session.get('email')
-        mobile_number = request.session.get('mobile_number')
-        password = request.session.get('password')
-        profile_picture = request.session.get('profile_image')
-        address = request.session.get('address')
-        city = request.session.get('city')
-        state = request.session.get('state')
-        birth_date = request.session.get('birth_date')
-        gender = request.session.get('gender')
+        # حفظ البيانات في الجلسة للعرض في حالة الخطأ
+        request.session['step2_data'] = {
+            'birth_date': birth_date,
+            'gender': gender,
+            'notes': notes
+        }
 
-        # التحقق من أن جميع البيانات موجودة
-        if not all([username, first_name, last_name, email, mobile_number, password, profile_picture, address, city, state]):
-            return render(request, 'frontend/auth/patient-register-step1.html', {
-                'error': 'حدث خطأ في البيانات. تأكد من إدخال جميع البيانات.'
-            })
+        # التحقق من البيانات المطلوبة
+        if not birth_date:
+            messages.error(request, 'يرجى إدخال تاريخ الميلاد')
+            return render(request, 'frontend/auth/patient-register-step2.html')
 
-        # إنشاء المستخدم
-        user = CustomUser.objects.create_user(
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            mobile_number=mobile_number,
-            password=password,
-            profile_picture=profile_picture,
-            address=address,
-            city=city,
-            state=state,
-            user_type='patient',
-        )
+        if not gender:
+            messages.error(request, 'يرجى اختيار الجنس')
+            return render(request, 'frontend/auth/patient-register-step2.html')
 
-        # إنشاء سجل مريض في جدول Patients
-        Patients.objects.create(
-            user=user,
-            birth_date=birth_date,
-            gender=gender,
-        )
+        try:
+            # إنشاء المستخدم
+            user = CustomUser.objects.create_user(
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                mobile_number=mobile_number,
+                password=password,
+                address=address,
+                city=city,
+                state=state,
+                user_type='patient',
+            )
 
-        # مسح الجلسة بعد التسجيل
-        request.session.flush()
+            # إضافة صورة الملف الشخصي إذا كانت موجودة
+            if profile_picture:
+                user.profile_picture = profile_picture
+                user.save()
 
-        # تسجيل الدخول مباشرة بعد التسجيل
-        login(request, user)
+            # إنشاء سجل مريض في جدول Patients
+            patient = Patients.objects.create(
+                user=user,
+                birth_date=birth_date,
+                gender=gender,
+                notes=notes
+            )
 
-        # التوجه إلى لوحة تحكم المريض
-        return redirect('patients:patient_dashboard')
+            # مسح الجلسة بعد التسجيل
+            request.session.flush()
 
-    return render(request, 'frontend/auth/patient-register-step1.html')
+            # تسجيل الدخول مباشرة بعد التسجيل
+            login(request, user)
+
+            # إضافة رسالة نجاح
+            messages.success(request, 'تم إنشاء حسابك بنجاح!')
+
+            # التوجه إلى لوحة تحكم المريض
+            return redirect('patients:patient_dashboard')
+
+        except Exception as e:
+            # في حالة حدوث خطأ، عرض رسالة الخطأ
+            messages.error(request, f'حدث خطأ أثناء إنشاء الحساب: {str(e)}')
+            return render(request, 'frontend/auth/patient-register-step2.html')
+
+    # في حالة GET، عرض الصفحة مع البيانات المخزنة في الجلسة
+
+    request.session.modified = True
+    return render(request, 'frontend/auth/patient-register-step2.html')
 
 
 def patient_dashboard(request):
@@ -169,7 +222,7 @@ from django.contrib.auth.hashers import make_password, check_password
 def login_view(request):
     if request.user.is_authenticated:
         logout(request)
-        
+
     # Check if there's a message parameter in the URL
     if request.GET.get('message') == 'login_required' and 'login_required_message' not in request.session:
         request.session['login_required_message'] = 'يجب تسجيل الدخول أولاً لحجز موعد مع الطبيب'
@@ -329,8 +382,9 @@ def hospital_account_request(request):
 
             messages.success(request, 'تم استلام طلبك بنجاح. سنقوم بمراجعته والرد عليك قريباً.')
             print("\n\n*** تم حفظ طلب فتح حساب المستشفى بنجاح. جاري التوجيه إلى صفحة النجاح ***\n\n")
-            # استخدام المسار الكامل للتوجيه
-            success_url = '/hospital/account/request/success/'
+            # استخدام اسم المسار للتوجيه بدلاً من المسار المطلق
+            from django.urls import reverse
+            success_url = reverse('users:hospital_request_success')
             print(f"\n\n*** جاري التوجيه إلى: {success_url} ***\n\n")
             return redirect(success_url)
 

@@ -1,6 +1,6 @@
 {% load static %}
 
-<div class="col-md-7 col-lg-8 col-xl-9 my_patient section d-none">
+<div class="col-md-7 col-lg-8 col-xl-9 my_patient section">
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -81,13 +81,12 @@
     <!-- Patient Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="patientGrid">
         {% for patient in patients %}
-        <div class="col patient-card" data-name="{{ patient.full_name }}" data-id="{{ patient.id }}"
-            data-gender="{{ patient.gender }}" data-age="{{ patient.age|default:0 }}"
-            data-location="{{ patient.address }}">
+        <div class="col patient-card" data-name="{{ patient.user.get_full_name }}" data-id="{{ patient.id }}"
+            data-gender="{{ patient.gender }}" data-age="{{ patient.age|default:0 }}">
             <div class="card h-100 shadow-sm hover-shadow">
                 <div class="position-relative">
-                    <img src="{{ patient.profile_picture.url|default:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&h=500&fit=crop' }}"
-                        class="card-img-top patient-img" alt="{{ patient.full_name }}">
+                    <img src="{{ patient.user.profile_picture.url|default:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&h=500&fit=crop' }}"
+                        class="card-img-top patient-img" alt="{{ patient.user.get_full_name }}">
                     <div class="patient-id-badge">
                         ID: {{ patient.id }}
                     </div>
@@ -95,38 +94,37 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h5 class="card-title mb-1">{{ patient.full_name }}</h5>
+                            <h5 class="card-title mb-1">{{ patient.user.get_full_name }}</h5>
                             <p class="text-muted small mb-0">
-                                <i class="fas fa-map-marker-alt me-1"></i>{{ patient.address }}
+                                <i class="fas fa-envelope me-1"></i>{{ patient.user.email }}
                             </p>
                         </div>
                         <span class="badge bg-primary">
-                            {% if patient.gender == '0' %}
-                            Male
+                            {% if patient.gender == 'Male' %}
+                            ذكر
                             {% else %}
-                            Female
+                            أنثى
                             {% endif %}
                         </span>
-
                     </div>
                     <div class="patient-details">
                         <div class="detail-item">
-                            <i class="fas fa-phone text-primary"></i>
-                            <span>{{ patient.phone_number }}</span>
+                            <i class="fas fa-calendar-check text-success"></i>
+                            <span>عدد الحجوزات: {{ patient.booking_count }}</span>
                         </div>
+                        {% if patient.last_booking %}
                         <div class="detail-item">
-                            <i class="fas fa-user text-primary"></i>
-                            <span class="badge bg-primary">
-                                {% if patient.gender == '0' %}
-                                Male
-                                {% else %}
-                                Female
-                                {% endif %}
-                            </span>
+                            <i class="fas fa-clock text-warning"></i>
+                            <span>آخر حجز: {{ patient.last_booking.booking_date }}</span>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
-
+                <div class="card-footer bg-white">
+                    <a href="#" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-eye me-1"></i>عرض التفاصيل
+                    </a>
+                </div>
             </div>
         </div>
         {% endfor %}

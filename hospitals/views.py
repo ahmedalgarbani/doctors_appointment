@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.db import models
+from django.db import transaction, IntegrityError, models
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
 from patients.models import Patients
@@ -38,6 +38,7 @@ from doctors.models import (
     DoctorShifts,
     Specialty,
 )
+from advertisements.models import Advertisement
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
@@ -112,7 +113,8 @@ def index(request):
     )
     phoneNumber = PhoneNumber.objects.filter(hospital=hospital)
     city = City.objects.filter(status=True)
-    patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
+    # Get patients who have made bookings at this hospital
+    patients = Patients.objects.filter(bookings__hospital=hospital).distinct()
 
 
     # Get current date and first day of month
@@ -126,13 +128,23 @@ def index(request):
     total_specialties = specialties.count()
     specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target
 
+    # Get total revenue (all completed payments)
+    total_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_status=1  # 1 = مكتمل (completed), 2 = فشل (failed)
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    print(f"\n\nDEBUG - Total Revenue: {total_revenue}\n\n")
+    
     # Get monthly revenue
     monthly_revenue = Payment.objects.filter(
         booking__hospital=hospital,
         payment_date__year=today.year,
         payment_date__month=today.month,
-        payment_status=2
+        payment_status=1  # 1 = مكتمل (completed), 2 = فشل (failed)
     ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    print(f"\n\nDEBUG - Monthly Revenue: {monthly_revenue}\n\n")
 
     # Calculate revenue percentage (compared to target)
     monthly_target = 50000  # مثال للهدف الشهري
@@ -343,7 +355,8 @@ def index(request):
         'payment_statuses': Payment.PaymentStatus_choices,
         'specialties': specialties,
         'specialties_count_percentage': specialties_count_percentage,
-        'total_revenue': monthly_revenue,
+        'total_revenue': total_revenue,
+        'monthly_revenue': monthly_revenue,
         'revenue_percentage': revenue_percentage,
         'total_appointments': total_appointments,
         'appointments_percentage': appointments_percentage,
@@ -861,25 +874,42 @@ def add_payment_method(request):
                 existing_payment.iban = iban
                 existing_payment.description = description
                 existing_payment.is_active = is_active
-                existing_payment.save()
-                messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+                try:
+                    existing_payment.save()
+                    messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+                except IntegrityError:
+                    # Check which field caused the error
+                    if HospitalPaymentMethod.objects.filter(account_number=account_number).exists():
+                        messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+                    elif HospitalPaymentMethod.objects.filter(iban=iban).exists():
+                        messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+                    else:
+                        messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
             else:
                 # Create a new payment method
-                HospitalPaymentMethod.objects.create(
-                    hospital=hospital,
-                    payment_option=payment_option,
-                    account_name=account_name,
-                    account_number=account_number,
-                    iban=iban,
-                    description=description,
-                    is_active=is_active,
-                )
-                messages.success(request, "تمت إضافة طريقة الدفع بنجاح")
+                try:
+                    HospitalPaymentMethod.objects.create(
+                        hospital=hospital,
+                        payment_option=payment_option,
+                        account_name=account_name,
+                        account_number=account_number,
+                        iban=iban,
+                        description=description,
+                        is_active=is_active,
+                    )
+                    messages.success(request, "تمت إضافة طريقة الدفع بنجاح")
+                except IntegrityError:
+                    # Check which field caused the error
+                    if HospitalPaymentMethod.objects.filter(account_number=account_number).exists():
+                        messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+                    elif HospitalPaymentMethod.objects.filter(iban=iban).exists():
+                        messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+                    else:
+                        messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
         except PaymentOption.DoesNotExist:
             messages.error(request, "خيار الدفع غير موجود")
         except Exception as e:
             messages.error(request, f"حدث خطأ أثناء إضافة طريقة الدفع: {str(e)}")
-
 
         return redirect("hospitals:index")
 
@@ -901,19 +931,44 @@ def update_payment_method(request):
         is_active = request.POST.get("is_active") == "1"
 
         if not all([method_id, account_name, account_number, iban, description]):
-            return HttpResponseBadRequest("Missing required fields")
+            messages.error(request, "يرجى ملء جميع الحقول المطلوبة")
+            return redirect("hospitals:index")
 
         try:
             payment_method = HospitalPaymentMethod.objects.get(id=method_id)
         except HospitalPaymentMethod.DoesNotExist:
-            return HttpResponseBadRequest("Payment method not found")
+            messages.error(request, "طريقة الدفع غير موجودة")
+            return redirect("hospitals:index")
+
+        # Check if the account number or IBAN is changing
+        account_number_changed = payment_method.account_number != account_number
+        iban_changed = payment_method.iban != iban
+
+        # If either is changing, check for duplicates
+        if account_number_changed and HospitalPaymentMethod.objects.filter(account_number=account_number).exclude(id=method_id).exists():
+            messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+            return redirect("hospitals:index")
+        
+        if iban_changed and HospitalPaymentMethod.objects.filter(iban=iban).exclude(id=method_id).exists():
+            messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+            return redirect("hospitals:index")
 
         payment_method.account_name = account_name
         payment_method.account_number = account_number
         payment_method.iban = iban
         payment_method.description = description
         payment_method.is_active = is_active
-        payment_method.save()
+        
+        try:
+            payment_method.save()
+            messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+        except IntegrityError:
+            if account_number_changed:
+                messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+            elif iban_changed:
+                messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+            else:
+                messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
 
         return redirect("hospitals:index")
 
@@ -1782,15 +1837,40 @@ from .models import Hospital
 
 def all_hospitals(request):
     search_query = request.GET.get('search', '')
+    rating_filter = request.GET.get('rating', '')
     hospitals = Hospital.objects.filter(status=True)
 
     if search_query:
-        hospitals = hospitals.filter(name__icontains=search_query)
-
+        # البحث في اسم المستشفى أو المدينة أو التخصص
+        from django.db.models import Q
+        hospitals = hospitals.filter(
+            Q(name__icontains=search_query) |  # البحث في اسم المستشفى
+            Q(city__name__icontains=search_query) |  # البحث في اسم المدينة
+            Q(doctors__specialty__name__icontains=search_query)  # البحث في التخصصات
+        ).distinct()
+    
+    # حساب متوسط تقييم المستشفى من جدول التقييمات
+    from reviews.models import Review
+    from django.db.models import Avg, Count, F, FloatField
+    
     hospitals = hospitals.annotate(
         doctors_count=models.Count('doctors', distinct=True),
-        specialties_count=models.Count('doctors__specialty', distinct=True)
+        specialties_count=models.Count('doctors__specialty', distinct=True),
+        avg_rating=models.Avg(
+            models.Case(
+                models.When(reviews__doctor__isnull=True, then=models.F('reviews__rating')),
+                default=None,
+                output_field=models.FloatField()
+            )
+        )
     )
+    
+    # فلترة حسب التقييم إذا تم تحديده
+    if rating_filter and rating_filter.isdigit():
+        rating_value = int(rating_filter)
+        if 1 <= rating_value <= 5:
+            # فلترة المستشفيات التي لها تقييم أكبر من أو يساوي القيمة المحددة
+            hospitals = hospitals.filter(avg_rating__gte=rating_value)
 
     # Pagination
     paginator = Paginator(hospitals, 6)  # Show 6 hospitals per page
@@ -1814,8 +1894,8 @@ def all_hospitals(request):
 def hospital_details(request, hospital_id):
     hospital = get_object_or_404(Hospital, id=hospital_id)
 
-    # Get doctors with their ratings
-    doctors = hospital.doctors.select_related('specialty').all()
+    # Get only active doctors with their ratings
+    doctors = hospital.doctors.filter(status=True).select_related('specialty').all()
 
     # Ensure all doctors have slugs
     from django.utils.text import slugify
@@ -1844,14 +1924,84 @@ def hospital_details(request, hospital_id):
 
         updated_doctors.append(doctor)
 
-    # Now get the doctors again with annotations
-    doctors = hospital.doctors.select_related('specialty').annotate(
+    # Get hospital-specific advertisements that are active
+    today = timezone.now().date()
+    ads = Advertisement.objects.filter(
+        hospital=hospital,
+        status='active',
+        start_date__lte=today
+    ).filter(
+        models.Q(end_date__gte=today) | models.Q(end_date=None)
+    ).order_by('-created_at')
+
+    # Now get the active doctors again with annotations
+    doctors = hospital.doctors.filter(status=True).select_related('specialty').annotate(
         rating=models.Avg('reviews__rating'),
         reviews_count=models.Count('reviews')
     ).all()
+    
+    # Get pricing information for each doctor in this hospital
+    pricing_map = {}
+    doctor_pricing = DoctorPricing.objects.filter(hospital=hospital).select_related('doctor')
+    for pricing in doctor_pricing:
+        pricing_map[pricing.doctor_id] = pricing.amount
+    
+    # Add pricing to doctor objects
+    for doctor in doctors:
+        doctor.price = pricing_map.get(doctor.id)
 
     # Get unique specialties count
     specialties_count = doctors.values('specialty').distinct().count()
+
+    # جلب تقييمات المستشفى بشكل منفصل عن تقييمات الأطباء
+    from reviews.models import Review
+    from django.db.models import Avg, Count
+    
+    # جلب تقييمات المستشفى فقط (وليس تقييمات الأطباء)
+    hospital_reviews = Review.objects.filter(
+        hospital=hospital,
+        doctor__isnull=True,  # تأكد من أن التقييم للمستشفى وليس لطبيب
+        status=True  # تقييمات نشطة فقط
+    ).select_related('user').order_by('-created_at')
+    
+    # حساب متوسط تقييم المستشفى
+    hospital_rating = hospital_reviews.aggregate(
+        avg_rating=Avg('rating'),
+        reviews_count=Count('id')
+    )
+    
+    # إضافة معلومات التقييم للمستشفى
+    hospital.avg_rating = hospital_rating['avg_rating'] or 0
+    hospital.reviews_count = hospital_rating['reviews_count'] or 0
+    
+    # تحقق مما إذا كان المستخدم الحالي قد قام بتقييم المستشفى من قبل
+    user_review = None
+    can_review = False
+    
+    if request.user.is_authenticated:
+        try:
+            # التحقق مما إذا كان المستخدم مريضًا
+            from patients.models import Patients
+            patient = Patients.objects.filter(user=request.user).first()
+            
+            if patient:
+                # التحقق مما إذا كان المريض قد قام بتقييم المستشفى من قبل
+                user_review = Review.objects.filter(
+                    hospital=hospital,
+                    doctor__isnull=True,
+                    user=patient
+                ).first()
+                
+                # التحقق مما إذا كان المريض قد قام بحجز في هذا المستشفى من قبل
+                has_booking = Booking.objects.filter(
+                    patient=patient,
+                    hospital=hospital
+                ).exists()
+                
+                # يمكن للمريض تقييم المستشفى إذا كان لديه حجز سابق ولم يقم بالتقييم من قبل
+                can_review = has_booking and not user_review
+        except Exception as e:
+            print(f"Error checking user review status: {str(e)}")
 
     # Final verification
     for doctor in doctors:
@@ -1864,7 +2014,11 @@ def hospital_details(request, hospital_id):
         'doctors': doctors,
         'doctors_count': doctors.count(),
         'specialties_count': specialties_count,
-        'title': hospital.name
+        'advertisements': ads,
+        'title': hospital.name,
+        'hospital_reviews': hospital_reviews,
+        'user_review': user_review,
+        'can_review': can_review
     }
 
     return render(request, 'frontend/hospitals/hospital_details.html', context)
@@ -2020,7 +2174,7 @@ def update_hospital_profile(request):
             if username and username != request.user.username:
                 if CustomUser.objects.filter(username=username).exclude(id=request.user.id).exists():
                     messages.error(request, 'اسم المستخدم مستخدم بالفعل. يرجى اختيار اسم مستخدم آخر.')
-                    return redirect('/hospital/?section=doctor_profile_settings')
+                    return redirect('/hospitals/?section=doctor_profile_settings')
                 request.user.username = username
                 user_updated = True
                 print(f"Updated username to: {username}")
@@ -2029,7 +2183,7 @@ def update_hospital_profile(request):
             if email and email != request.user.email:
                 if CustomUser.objects.filter(email=email).exclude(id=request.user.id).exists():
                     messages.error(request, 'البريد الإلكتروني مستخدم بالفعل. يرجى اختيار بريد إلكتروني آخر.')
-                    return redirect('/hospital/?section=doctor_profile_settings')
+                    return redirect('/hospitals/?section=doctor_profile_settings')
                 request.user.email = email
                 user_updated = True
                 print(f"Updated email to: {email}")
@@ -2169,7 +2323,7 @@ def update_hospital_profile(request):
                 messages.success(request, 'تم تحديث بياناتك الشخصية بنجاح.')
 
             print(f"Redirecting to section: {return_section}")
-            return redirect(f'/hospital/?section={return_section}')
+            return redirect(f'/hospitals/?section={return_section}')
 
         except Hospital.DoesNotExist:
             print("Hospital not found for current user")
@@ -2183,7 +2337,7 @@ def update_hospital_profile(request):
     else:
         print("Not a POST request")
 
-    return redirect('/hospital/?section=doctor_profile_settings')
+    return redirect('/hospitals/?section=doctor_profile_settings')
 
 @login_required(login_url='/user/login')
 def get_doctor(request, doctor_id):
@@ -2662,4 +2816,42 @@ def doctor_details(request, doctor_id):
     except Exception as e:
         print(f"Error in doctor_details view: {str(e)}")  # Debug print
         messages.error(request, str(e))
+        return redirect('hospitals:index')
+
+@login_required(login_url='/user/login')
+def hospital_patients(request):
+    """
+    عرض المرضى الذين قاموا بالحجز في المستشفى
+    """
+    try:
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif request.user.user_type == 'hospital_staff':
+            from hospital_staff.models import HospitalStaff
+            staff = get_object_or_404(HospitalStaff, user=request.user)
+            hospital = staff.hospital
+        else:
+            messages.error(request, "ليس لديك صلاحية الوصول إلى هذه الصفحة.")
+            return redirect('users:logout')
+            
+        # Get patients who have made bookings at this hospital with their details
+        patients = Patients.objects.filter(bookings__hospital=hospital).distinct().select_related('user')
+        
+        # Get booking counts for each patient
+        for patient in patients:
+            patient.booking_count = Booking.objects.filter(patient=patient, hospital=hospital).count()
+            patient.last_booking = Booking.objects.filter(patient=patient, hospital=hospital).order_by('-created_at').first()
+        
+        context = {
+            'patients': patients,
+            'section': 'my_patient'
+        }
+        
+        return render(request, 'frontend/dashboard/hospitals/sections/my-patients.html', context)
+        
+    except Exception as e:
+        print(f"Error in hospital_patients view: {str(e)}")  # Debug print
+        messages.error(request, f"حدث خطأ: {str(e)}")
         return redirect('hospitals:index')

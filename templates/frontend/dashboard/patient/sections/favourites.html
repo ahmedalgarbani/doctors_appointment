@@ -1,4 +1,4 @@
-<div class="col-md-7 col-lg-8 col-xl-9 d-none favourites section">
+<div class="col-md-7 col-lg-8 col-xl-9 favourites section">
     <div class="row row-grid">
         {% for doctor in favourite_doctors %}
             <div class="col-md-6 col-lg-4 col-xl-3">
@@ -32,25 +32,32 @@
                                 <i class="fas fa-map-marker-alt"></i> {{ doctor.sub_title }}
                             </li>
                             <li>
-                                <i class="far fa-clock"></i> Available on Fri, 22 Mar
+                                <i class="far fa-clock"></i> {{ doctor.specialty.name }}
                             </li>
                             <li>
-								<i class="far fa-money-bill-alt"></i> $500 - $2500 
-								<i class="fas fa-info-circle" data-bs-toggle="tooltip" title="Lorem Ipsum"></i>                            </li>
+								<i class="far fa-hospital"></i> {{ doctor.hospitals.first.name|default:"" }}
+                            </li>
                         </ul>
                         <div class="row row-sm">
                             <div class="col-6">
-                                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}" class="btn view-btn">View Profile</a>
+                                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}" class="btn view-btn">عرض الملف</a>
                             </div>
                             <div class="col-6">
-                                <a href="{% url 'home:booking' doctor.id %}" class="btn book-btn">Book Now</a>
+                                <a href="{% url 'home:booking' doctor.id %}" class="btn book-btn">حجز موعد</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         {% empty %}
-            <p>No favourite doctors found.</p>
+            <div class="col-12 text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">لا يوجد لديك أطباء مفضلين حتى الآن</h4>
+                    <p class="text-muted">يمكنك إضافة الأطباء إلى قائمة المفضلة من صفحة الطبيب</p>
+                    <a href="{% url 'doctors:doctors_list' %}" class="btn btn-primary mt-3">استعرض الأطباء</a>
+                </div>
+            </div>
         {% endfor %}
     </div>
 </div>

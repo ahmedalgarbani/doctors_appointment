@@ -14,7 +14,8 @@ urlpatterns = [
     path('users/', include('users.urls', namespace='users')),
     path('hospitals/', include(('hospitals.urls', 'hospitals'), namespace='hospitals')),
     path('hospital/staff/', include(('hospital_staff.urls', 'hospital_staff'), namespace='hospital_staff')),
-    path('patients/', include(('patients.urls', 'patients'), namespace='patients'),name='patients'),  # رابط المرضى
+    path('patients/', include(('patients.urls', 'patients'), namespace='patients')),  # رابط المرضى
+    path('reviews/', include(('reviews.urls', 'reviews'), namespace='reviews')),  # رابط المراجعات
     path('api/', include('api.urls')),
     path('notifications/', include('notifications.urls')),
     path('advertisements/', include(('advertisements.urls', 'advertisements'), namespace='advertisements')),

@@ -29,8 +29,8 @@ class HospitalPaymentMethod(models.Model):
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='hospital_payment_methods', verbose_name=_("المستشفى"))
     payment_option = models.ForeignKey(PaymentOption, on_delete=models.CASCADE, verbose_name=_("طريقة الدفع"))
     account_name = models.CharField(max_length=100, verbose_name=_("اسم الحساب"))
-    account_number = models.CharField(max_length=50, verbose_name=_("رقم الحساب"))
-    iban = models.CharField(max_length=50, verbose_name=_("رقم الآيبان"))
+    account_number = models.CharField(max_length=50, verbose_name=_("رقم الحساب"), unique=True)
+    iban = models.CharField(max_length=50, verbose_name=_("رقم الآيبان"), unique=True)
     description = models.TextField(verbose_name=_("تعليمات الدفع"))
     is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
     
@@ -40,13 +40,14 @@ class HospitalPaymentMethod(models.Model):
     class Meta:
         verbose_name = _("طريقة دفع المستشفى")
         verbose_name_plural = _("طرق دفع المستشفى")
-        unique_together = ['hospital', 'payment_option']
+        unique_together = [
+            ['hospital', 'payment_option']
+        ]
 
 # ------------Payment-------------
 
 class Payment(models.Model):
     Type_choices = [
-        ('cash', _('نقدي')),
         ('e_pay', _('دفع إلكتروني')),
     ]
 

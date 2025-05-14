@@ -27,12 +27,34 @@ import logging
 @login_required(login_url='/user/login')
 def patient_dashboard(request):
     user = request.user
-    patient = get_object_or_404(Patients, user_id=user)
+
+    # التحقق من نوع المستخدم
+    if user.user_type != 'patient':
+        messages.error(request, "ليس لديك صلاحية للوصول إلى لوحة تحكم المريض.")
+        return redirect('/')
+
+    # محاولة العثور على سجل المريض
+    try:
+        patient = Patients.objects.get(user=user)
+    except Patients.DoesNotExist:
+        # إذا لم يكن هناك سجل للمريض، قم بإنشاء سجل جديد
+        from datetime import date
+        try:
+            # إنشاء سجل مريض جديد بالحد الأدنى من البيانات المطلوبة
+            patient = Patients.objects.create(
+                user=user,
+                birth_date=date.today(),  # تاريخ ميلاد افتراضي
+                gender='Male',  # جنس افتراضي
+            )
+            messages.info(request, "تم إنشاء ملف المريض الخاص بك. يرجى تحديث بياناتك الشخصية.")
+        except Exception as e:
+            messages.error(request, f"حدث خطأ أثناء إنشاء ملف المريض: {str(e)}")
+            return redirect('/')
 
     # التحقق إذا تم إرسال تحديث للملف الشخصي
     if request.method == 'POST' and 'update_profile' in request.POST:
         return update_patient_profile(request, patient)
-    
+
     # حذف إشعارات إذا تم تحديد ذلك
     if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
         import json
@@ -41,38 +63,46 @@ def patient_dashboard(request):
         result = delete_notification(notification_id, user)
         return JsonResponse(result)
 
-    # جلب الأطباء المفضلين والتقييمات
-    favourite_doctors, ratings_context = get_favourites_and_ratings(patient)
-    for doctor in favourite_doctors:
-        average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
-        doctor.average_rating = average_rating if average_rating is not None else 0
+    try:
+        # جلب الأطباء المفضلين والتقييمات
+        favourite_doctors, ratings_context = get_favourites_and_ratings(patient)
+        for doctor in favourite_doctors:
+            average_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg']
+            doctor.average_rating = average_rating if average_rating is not None else 0
 
-    # عدد الحجوزات
-    bookings_count = Booking.objects.filter(patient=patient).count()
+        # عدد الحجوزات
+        bookings_count = Booking.objects.filter(patient=patient).count()
 
-    # جلب المدفوعات الخاصة بالمريض
-    payments = Payment.objects.select_related('booking__doctor').filter(booking__patient=patient)
+        # جلب المدفوعات الخاصة بالمريض
+        payments = Payment.objects.select_related('booking__doctor').filter(booking__patient=patient)
 
-    # حساب مجموع المدفوعات المكتملة
-    total_paid = payments.filter(payment_status=1).aggregate(
-        total=Sum('payment_totalamount')
-    )['total'] or 0
+        # حساب مجموع المدفوعات المكتملة
+        total_paid = payments.filter(payment_status=1).aggregate(
+            total=Sum('payment_totalamount')
+        )['total'] or 0
 
-    # تحديد العملة (إذا لا توجد دفعات، تعيين عملة افتراضية)
-    currency = payments.filter(payment_status=1).first().payment_currency if total_paid > 0 else 'RYL'
+        # تحديد العملة (إذا لا توجد دفعات، تعيين عملة افتراضية)
+        currency = payments.filter(payment_status=1).first().payment_currency if total_paid > 0 and payments.filter(payment_status=1).exists() else 'RYL'
 
-    context = {
-        'patient': patient,
-        'user': patient.user,
-        'favourites': Favourites.objects.filter(patient=patient),
-        'bookings': Booking.objects.filter(patient=patient),
-        'favourite_doctors': favourite_doctors,
-        'ratings_context': ratings_context,
-        'bookings_count': bookings_count,
-        'payments': payments,
-        'total_paid': total_paid,
-        'currency': currency,
-    }
+        context = {
+            'patient': patient,
+            'user': patient.user,
+            'favourites': Favourites.objects.filter(patient=patient),
+            'bookings': Booking.objects.filter(patient=patient),
+            'favourite_doctors': favourite_doctors,
+            'ratings_context': ratings_context,
+            'bookings_count': bookings_count,
+            'payments': payments,
+            'total_paid': total_paid,
+            'currency': currency,
+        }
+    except Exception as e:
+        # في حالة حدوث أي خطأ، عرض صفحة بسيطة
+        context = {
+            'patient': patient,
+            'user': user,
+            'error_message': f"حدث خطأ أثناء تحميل البيانات: {str(e)}",
+        }
 
     return render(request, 'frontend/dashboard/patient/index.html', context)
 
@@ -82,23 +112,40 @@ def get_favourites_and_ratings(patient):
     """
     دالة لجلب الأطباء المفضلين وحساب تقييماتهم.
     """
-    favourites = Favourites.objects.filter(patient=patient)
+    # طباعة معلومات تصحيح للمساعدة في تحديد المشكلة
+    print(f"Getting favorites for patient ID: {patient.id}")
+    
+    # جلب المفضلات مباشرة مع الأطباء
+    favourites = Favourites.objects.filter(patient=patient).select_related('doctor', 'doctor__specialty')
+    print(f"Found {favourites.count()} favorites")
+    
+    # استخراج الأطباء من المفضلات
     favourite_doctors = [favourite.doctor for favourite in favourites]
     
-    doctors_with_reviews = Doctor.objects.prefetch_related(
-        Prefetch('reviews', queryset=Review.objects.all(), to_attr='doctor_reviews')
-    ).filter(id__in=[doctor.id for doctor in favourite_doctors])
+    # إذا لم تكن هناك مفضلات، أرجع قائمة فارغة
+    if not favourite_doctors:
+        return [], {}
+    
+    # جلب التقييمات للأطباء المفضلين
+    doctor_ids = [doctor.id for doctor in favourite_doctors]
     
     # حساب متوسط التقييمات لكل طبيب
     ratings_context = {}
-    for doctor in doctors_with_reviews:
-        reviews = doctor.doctor_reviews
-        if reviews:
+    for doctor in favourite_doctors:
+        # جلب تقييمات الطبيب
+        reviews = Review.objects.filter(doctor=doctor)
+        if reviews.exists():
+            # حساب متوسط التقييم
             total_rating = sum(review.rating for review in reviews)
-            average_rating = total_rating / len(reviews)
+            average_rating = total_rating / reviews.count()
         else:
             average_rating = 0
+        
+        # تخزين متوسط التقييم للطبيب
         ratings_context[str(doctor.id)] = average_rating
+        
+        # إضافة متوسط التقييم للطبيب مباشرة
+        doctor.average_rating = average_rating
 
     return favourite_doctors, ratings_context
 
@@ -134,17 +181,6 @@ def update_patient_profile(request, patient):
 
     patient.birth_date = request.POST.get('birth_date') or None
     patient.gender = request.POST.get('gender') or None
-
-    weight = request.POST.get('weight')
-    patient.weight = float(weight) if weight and weight.lower() != 'none' else None
-
-    height = request.POST.get('height')
-    patient.height = float(height) if height and height.lower() != 'none' else None
-
-    age = request.POST.get('age')
-    patient.age = int(age) if age and age.lower() != 'none' else None
-
-    patient.blood_group = request.POST.get('blood_group') or None
     patient.notes = request.POST.get('notes') or ''
 
     patient.save()
@@ -166,12 +202,12 @@ def invoice_view(request, payment_id):
 def appointment_details(request, booking_id):
     """عرض تفاصيل الحجز في صفحة منفصلة"""
     booking = get_object_or_404(Booking, id=booking_id)
-    
+
     context = {
         'booking': booking,
         'page_title': 'تفاصيل الحجز'
     }
-    
+
     return render(request, 'frontend/dashboard/patient/sections/appointment_details.html', context)
 
 
@@ -183,47 +219,47 @@ logger = logging.getLogger(__name__)
 def cancel_booking(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id)
-        
+
         # التحقق من ملكية الحجز
         if booking.patient.user != request.user:
             logger.warning(f"User {request.user.id} tried to cancel booking {booking_id} they don't own")
             raise PermissionDenied("ليس لديك صلاحية لإلغاء هذا الحجز")
-        
+
         # التحقق من حالة الحجز
         if booking.status not in ['pending', 'confirmed']:
             return JsonResponse({
                 'success': False,
                 'message': 'لا يمكن إلغاء الحجز في حالته الحالية'
             }, status=400)
-        
+
         # إلغاء الحجز
         booking.status = 'cancelled'
         booking.cancellation_reason = 'تم الإلغاء من قبل المريض'
         booking.save()
-        
+
         # هنا يمكنك إضافة إرسال إشعار للطبيب أو أي إجراءات أخرى
-        
+
         logger.info(f"Booking {booking_id} cancelled successfully by user {request.user.id}")
         return JsonResponse({
-            'success': True, 
+            'success': True,
             'message': 'تم إلغاء الحجز بنجاح',
             'new_status': 'cancelled',
             'status_display': booking.get_status_display()
         })
-        
+
     except PermissionDenied as e:
         return JsonResponse({
-            'success': False, 
+            'success': False,
             'message': str(e)
         }, status=403)
-        
+
     except Exception as e:
         logger.error(f"Error cancelling booking {booking_id}: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': 'حدث خطأ غير متوقع أثناء معالجة الطلب'
         }, status=500)
-    
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import BookingForm
 from bookings.models import Booking, DoctorSchedules, DoctorShifts, HospitalPaymentMethod

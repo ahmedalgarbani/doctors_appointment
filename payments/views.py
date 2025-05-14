@@ -41,7 +41,7 @@ def payment_process(request, doctor_id):
 
         # Get doctor's price for this hospital
         doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
-        
+
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
         selected_shift = get_object_or_404(DoctorShifts, id=date_id, doctor_schedule=selected_schedule)
@@ -69,24 +69,19 @@ def payment_process(request, doctor_id):
         if not payment_method_id:
             return HttpResponseBadRequest('يرجى اختيار طريقة الدفع')
 
-        transfer_number = None
-        account_image = None
-
-        if payment_type == 'transfer':
-            transfer_number = request.POST.get('transfer_number')
-            if not transfer_number:
-                return HttpResponseBadRequest('يرجى إدخال رقم الحوالة')
-            if not transfer_number.isdigit() or len(transfer_number) < 5:
-                return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
-        else:  # payment_type == 'account'
-            # صورة السند اختيارية
-            if 'account_image' in request.FILES:
-                account_image = request.FILES['account_image']
+        # Check for payment receipt
+        payment_receipt = None
+        if 'payment_receipt' in request.FILES:
+            payment_receipt = request.FILES['payment_receipt']
+        else:
+            return HttpResponseBadRequest('يرجى إرفاق صورة سند الدفع')
 
         try:
             payment_method = payment_methods.get(id=payment_method_id)
         except HospitalPaymentMethod.DoesNotExist:
             return HttpResponseBadRequest('طريقة الدفع غير صالحة')
+
+        # We've removed the transfer_number and account_image fields, so we don't need to validate them anymore
 
         # Re-check appointment availability
         if not selected_shift.is_available:
@@ -98,6 +93,10 @@ def payment_process(request, doctor_id):
         except Patients.DoesNotExist:
             return HttpResponseBadRequest('عذراً، لم يتم العثور على بيانات المريض')
 
+        # Payment method validation
+        if not payment_method:
+            return HttpResponseBadRequest('طريقة الدفع غير صالحة')
+
         # Create the booking
         booking = Booking.objects.create(
             doctor=doctor,
@@ -108,9 +107,8 @@ def payment_process(request, doctor_id):
             booking_date=booking_date,
             amount=doctor_price.amount,
             status='pending',
-            transfer_number=transfer_number,
             payment_method=payment_method,
-            account_image=account_image if payment_type == 'account' else None
+            payment_receipt=payment_receipt
         )
 
         # Create the payment
@@ -187,14 +185,14 @@ def verify_payment(request, booking_id):
             # Get booking with select_for_update to lock the record
             booking = Booking.objects.select_for_update().get(id=booking_id)
             payment = booking.payments.first()
-            
+
             if not payment:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'لا يوجد سجل دفع لهذا الحجز',
                     'toast_class': 'bg-danger'
                 }, status=404)
-            
+
             # Check if payment is already verified
             if booking.payment_verified:
                 return JsonResponse({
@@ -202,7 +200,7 @@ def verify_payment(request, booking_id):
                     'message': 'تم التحقق من هذا الدفع مسبقاً',
                     'toast_class': 'bg-warning'
                 }, status=400)
-            
+
             # Validate payment status
             valid_statuses = [0, 2, 3]  # pending, failed, refunded
             if payment.payment_status not in valid_statuses:
@@ -211,23 +209,23 @@ def verify_payment(request, booking_id):
                     'message': 'لا يمكن تأكيد الدفع في هذه الحالة',
                     'toast_class': 'bg-danger'
                 }, status=400)
-            
+
             # Update payment
             payment.payment_status = 1  # completed
             payment.payment_note = request.POST.get('notes', '')
             payment.save()
-            
+
             # Update booking payment verification
             booking.payment_verified = True
             booking.payment_verified_at = timezone.now()
             booking.payment_verified_by = request.user
-            
+
             # Update booking status if pending
             if booking.status == 'pending':
                 booking.status = 'confirmed'
-            
+
             booking.save()
-            
+
             return JsonResponse({
                 'status': 'success',
                 'message': 'تم تأكيد الدفع بنجاح',
@@ -235,7 +233,7 @@ def verify_payment(request, booking_id):
                 'verified_at': booking.payment_verified_at.strftime("%Y-%m-%d %H:%M"),
                 'verified_by': booking.payment_verified_by.get_full_name()
             })
-            
+
     except Booking.DoesNotExist:
         return JsonResponse({
             'status': 'error',

@@ -4,8 +4,8 @@ from .models import Patients, Favourites
 
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
-    list_filter = ('gender','age')  # Filters on the right panel
-    search_fields = ('age', 'phone_number', 'email')  # Searchable fields
+    list_filter = ('gender',)  # Filters on the right panel
+    search_fields = ('user__email', 'user__mobile_number')  # Searchable fields
     ordering = ('-gender',)  # Default ordering
     readonly_fields = ('gender',)  # Fields that can't be edited
 

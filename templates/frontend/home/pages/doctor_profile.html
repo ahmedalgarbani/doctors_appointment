@@ -237,11 +237,11 @@
 				<div class="container">
 					<div class="row align-items-center inner-banner">
 						<div class="col-md-12 col-12 text-center">
-							<h2 class="breadcrumb-title">Doctor Profile</h2>
+							<h2 class="breadcrumb-title">تفاصيل الطبيب<h2>
 							<nav aria-label="breadcrumb" class="page-breadcrumb">
 								<ol class="breadcrumb">
-									<li class="breadcrumb-item"><a href="index.html">Home</a></li>
-									<li class="breadcrumb-item" aria-current="page">Doctor Profile</li>
+									<li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+									<li class="breadcrumb-item" aria-current="page"> تفاصيل الطبيب</li>
 								</ol>
 							</nav>
 						</div>
@@ -317,23 +317,23 @@
 	  
 	  <!-- Hospitals & Pricing Section -->
 	  <div class="hospitals-section">
-		<h3 class="section-title">المستشفيات المتواجد فيها</h3>
-		
-		<div class="hospitals-list">
-		  {% for hospital in doctor_prices %}
-		  <div class="hospital-item">
-			<div class="hospital-info">
-			  <i class="fas fa-hospital"></i>
-			  <div>
-				<h4>{{ hospital.hospital.name }}</h4>
-				<div class="price">سعر الكشف: <span>{{ hospital.amount }} ر.ي</span></div>
-			  </div>
-			</div>
-			<a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital.hospital.id }}" class="book-btn">
-			  حجز <i class="fas fa-arrow-left"></i>
-			</a>
-		  </div>
-		  {% endfor %}
+        <h3 class="section-title">المستشفيات المتواجد فيها</h3>
+        
+        <div class="hospitals-list">
+          {% for hospital_data in doctor_hospitals %}
+          <div class="hospital-item">
+            <div class="hospital-info">
+              <i class="fas fa-hospital"></i>
+              <div>
+                <h4>{{ hospital_data.hospital.name }}</h4>
+                <div class="price">سعر الكشف: <span>{{ hospital_data.price }} ر.ي</span></div>
+              </div>
+            </div>
+            <a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital_data.hospital.id }}" class="book-btn">
+              حجز <i class="fas fa-arrow-left"></i>
+            </a>
+          </div>
+          {% endfor %}
 		</div>
 	  </div>
 	</div>

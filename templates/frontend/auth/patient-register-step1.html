@@ -12,61 +12,48 @@
                         <img src="{% static 'img/logo.png' %}" alt="doccure-logo">
                     </div>
 
+                    {% if messages %}
+                    <div class="alert-container mt-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <!-- Register Form -->
                     <form id="profile_pic_form" method="post" enctype="multipart/form-data" action="{% url 'users:register_step1' %}">
                         {% csrf_token %}
+                        <h4 class="mt-3">معلومات الملف الشخصي</h4>
+                        <p class="text-muted mb-3">الخطوة الأولى من إنشاء حسابك. يرجى إدخال صورة الملف الشخصي ومعلومات العنوان.</p>
+
                         <div class="profile-pic-col">
-                            <h3>صورة الملف الشخصي</h3>
+                            <h5>صورة الملف الشخصي</h5>
                             <div class="profile-pic-upload">
                                 <div class="cam-col">
                                     <img src="{% static 'img/icons/camera.svg' %}" id="prof-avatar" alt="camera-image" class="img-fluid">
                                 </div>
                                 <span>رفع صورة الملف الشخصي</span>
-                                <input type="file" id="profile_image" name="profile_image"> 
+                                <input type="file" id="profile_image" name="profile_image">
                             </div>
                         </div>
 
                         <br>
 
-                        <h4 class="mt-3">اختار الجنس</h4>
-                        <div class="select-gender-col">
-                            <div class="row">
-                                <div class="col-6 pe-2">
-                                    <input type="radio" id="male" name="gender" value="Male" {% if request.session.gender == 'Male' %}checked{% endif %}>
-                                    <label for="male">
-                                        <span class="gender-icon">
-                                            <img src="{% static 'img/icons/male.png' %}" alt="male-icon">
-                                        </span>
-                                        <span>ذكر</span>
-                                    </label>
-                                </div>
-                                <div class="col-6 ps-2">
-                                    <input type="radio" id="female" name="gender" value="Female" {% if request.session.gender == 'Female' %}checked{% endif %}>
-                                    <label for="female">
-                                        <span class="gender-icon">
-                                            <img src="{% static 'img/icons/female.png' %}" alt="female-icon">
-                                        </span>
-                                        <span>انثى</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="mb-2">تاريخ الميلاد</label>
-                            <input type="date" class="form-control" name="birth_date" id="birth_date" value="{{ request.session.birth_date }}">
-                        </div>
+                        <h4 class="mt-3">معلومات العنوان</h4>
 
                         <div class="mb-3 form-focus">
                             <input type="text" name="address" class="form-control floating" value="{{ request.session.address }}" required>
                             <label class="focus-label">العنوان</label>
                         </div>
-                        
+
                         <div class="mb-3 form-focus">
                             <input type="text" name="city" class="form-control floating" value="{{ request.session.city }}" required>
                             <label class="focus-label">المدينة</label>
                         </div>
-                        
+
                         <div class="mb-3 form-focus">
                             <input type="text" name="state" class="form-control floating" value="{{ request.session.state }}" required>
                             <label class="focus-label">المديرية</label>

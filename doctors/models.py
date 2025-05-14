@@ -49,6 +49,10 @@ class Doctor(BaseModel):
         return self.full_name
 
     def save(self, *args, **kwargs):
+        # Set show_at_home to True for all new doctors
+        if not self.pk:  # This is a new doctor being created
+            self.show_at_home = True
+            
         if not self.slug and self.full_name:
             base_slug = slugify(self.full_name)
             if not base_slug:  # If name doesn't generate valid slug
@@ -131,8 +135,34 @@ class DoctorShifts(models.Model):
         # التحقق من عدم وجود تعارض في مواعيد الطبيب بين المستشفيات المختلفة
         doctor = self.doctor_schedule.doctor
         day = self.doctor_schedule.day
+        
+        # التحقق من عدم وجود تعارض في نفس المستشفى
+        if self.pk:  # إذا كان هذا تحديثًا لموعد موجود
+            same_hospital_conflicts = DoctorShifts.objects.filter(
+                doctor_schedule__doctor=doctor,
+                doctor_schedule__day=day,
+                hospital=self.hospital,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            ).exclude(pk=self.pk)
+        else:  # إذا كان هذا موعدًا جديدًا
+            same_hospital_conflicts = DoctorShifts.objects.filter(
+                doctor_schedule__doctor=doctor,
+                doctor_schedule__day=day,
+                hospital=self.hospital,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            )
+            
+        if same_hospital_conflicts.exists():
+            conflicting_shift = same_hospital_conflicts.first()
+            shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+            raise ValidationError(
+                f'يوجد تعارض في المواعيد: الطبيب لديه موعد بالفعل في نفس المستشفى '
+                f'في نفس اليوم من الساعة {shift_time}'
+            )
 
-        # البحث عن جميع مواعيد الطبيب في نفس اليوم في جميع المستشفيات
+        # البحث عن جميع مواعيد الطبيب في نفس اليوم في المستشفيات الأخرى
         conflicting_schedules = DoctorSchedules.objects.filter(
             doctor=doctor,
             day=day

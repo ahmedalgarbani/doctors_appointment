@@ -13,7 +13,8 @@ urlpatterns = [
     path('reviews/create/', views.review_create, name='review_create'),
     path('reviews/<int:review_id>/update/', views.review_update, name='review_update'),
     path('reviews/<int:review_id>/delete/', views.review_delete, name='review_delete'),
-
+    # مسار جديد لإضافة تقييم للمستشفى
+    path('hospital/<int:hospital_id>/add-review/', views.add_hospital_review, name='add_hospital_review'),
 ]
 
 

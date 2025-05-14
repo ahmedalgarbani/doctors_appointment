@@ -107,7 +107,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
+                            <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب)..." onkeyup="filterAppointments()">
                         </div>
                     </div>
 
@@ -120,7 +120,6 @@
                                     <th>التخصص</th>
                                     <th>موعد الحجز</th>
                                     <th>المبلغ</th>
-                                    <th>رقم الحوالة</th>
                                     <th>حالة الحجز</th>
                                     <th>الإجراءات</th>
                                 </tr>
@@ -159,13 +158,7 @@
                                     <td>
                                         <span class="text-primary fw-bold">{{ booking.amount }} ريال</span>
                                     </td>
-                                    <td>
-                                        {% if booking.transfer_number %}
-                                            <span class="badge bg-info">{{ booking.transfer_number }}</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">لم يتم التحويل</span>
-                                        {% endif %}
-                                    </td>
+
                                     <td>
                                         {% if booking.status == 'pending' %}
                                             <span class="badge rounded-pill bg-warning">قيد الانتظار</span>

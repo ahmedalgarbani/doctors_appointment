@@ -182,6 +182,21 @@ def doctor_profile(request, doctor_id):
     day_date = day_date.strftime("%Y-%m-%d")
     patient = get_object_or_404(Patients,id=1)
     isFavorite = patient.favourites.filter(doctor=doctor)
+    
+    # Get all hospitals for this doctor without filtering by status
+    all_hospitals = doctor.hospitals.all()
+    
+    # Create a hospitals list with prices
+    doctor_hospitals = []
+    for hospital in all_hospitals:
+        # Get price for this doctor at this hospital
+        pricing = doctor.pricing.filter(hospital=hospital).first()
+        price_amount = pricing.amount if pricing else "-"
+        
+        doctor_hospitals.append({
+            'hospital': hospital,
+            'price': price_amount
+        })
 
     ctx = {
         'doctor': doctor,
@@ -191,7 +206,8 @@ def doctor_profile(request, doctor_id):
         'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
         'day_date':day_date,
-        'isFavorite':isFavorite
+        'isFavorite':isFavorite,
+        'doctor_hospitals': doctor_hospitals
     }
 
     return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
@@ -200,6 +216,14 @@ import json
 
 def add_to_favorites(request):
     try:
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'يجب تسجيل الدخول لإضافة طبيب إلى المفضلة'})
+            
+        # Check if user is a patient
+        if request.user.user_type != 'patient':
+            return JsonResponse({'status': 'error', 'message': 'فقط المرضى يمكنهم إضافة أطباء إلى المفضلة'})
+            
         data = json.loads(request.body)
         doctor_id = data.get('doctor_id')
 
@@ -207,15 +231,21 @@ def add_to_favorites(request):
             return JsonResponse({'status': 'error', 'message': 'No doctor ID provided'})
 
         doctor = get_object_or_404(Doctor, id=doctor_id)
+        
+        # Get the current user's patient record
+        try:
+            patient = Patients.objects.get(user=request.user)
+        except Patients.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'لم يتم العثور على سجل المريض'})
 
-        favorite_entry = Favourites.objects.filter(patient=get_object_or_404(Patients,id=1), doctor=doctor).first()
+        favorite_entry = Favourites.objects.filter(patient=patient, doctor=doctor).first()
 
         if favorite_entry:
             favorite_entry.delete()
-            return JsonResponse({'status': 'success', 'message': 'Doctor removed from favorites'})
+            return JsonResponse({'status': 'success', 'message': 'تم إزالة الطبيب من المفضلة'})
         else:
-            Favourites.objects.create(patient=get_object_or_404(Patients,id=1), doctor=doctor)
-            return JsonResponse({'status': 'success', 'message': 'Doctor added to favorites'})
+            Favourites.objects.create(patient=patient, doctor=doctor)
+            return JsonResponse({'status': 'success', 'message': 'تم إضافة الطبيب إلى المفضلة'})
 
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
@@ -239,11 +269,15 @@ def search_view(request):
     doctor_name = request.GET.get('doctor_name', '')
 
     filters = {}
-    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
+    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, doctor_name: {doctor_name}, page: {page}")
 
     # البدء بجميع الأطباء
     doctors = Doctor.objects.all().distinct()
-
+    
+    # البحث باسم الطبيب
+    if doctor_name:
+        doctors = doctors.filter(full_name__icontains=doctor_name)
+        
     if search_text:
         filters['full_name__icontains'] = search_text
         filters['hospitals__name__icontains'] = search_text 

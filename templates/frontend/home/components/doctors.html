@@ -6,14 +6,23 @@
         display: flex;
         flex-direction: column;
         margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    
+
+    .doctor-profile-widget:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
     .doc-pro-img {
         position: relative;
         padding-top: 100%; /* 1:1 Aspect Ratio */
         overflow: hidden;
+        border-radius: 8px 8px 0 0;
     }
-    
+
     .doctor-profile-img {
         position: absolute;
         top: 0;
@@ -21,36 +30,57 @@
         width: 100%;
         height: 100%;
     }
-    
+
     .doctor-profile-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
     }
-    
+
+    .doctor-profile-widget:hover .doctor-profile-img img {
+        transform: scale(1.05);
+    }
+
     .doc-content {
         flex: 1;
         padding: 15px;
         background: #fff;
         border-radius: 0 0 8px 8px;
     }
-    
+
     .doc-pro-name {
         margin-bottom: 10px;
     }
-    
+
     .doc-pro-name a {
         font-size: 18px;
         font-weight: 600;
         color: #272b41;
         margin-bottom: 5px;
         display: block;
+        transition: color 0.3s ease;
     }
-    
+
+    .doc-pro-name a:hover {
+        color: #20c0f3;
+    }
+
     .doc-pro-name p {
         font-size: 14px;
         margin-bottom: 0;
         color: #757575;
+    }
+
+    .doc-pro-location {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #757575;
+    }
+
+    .doc-pro-location i {
+        margin-right: 5px;
+        color: #20c0f3;
     }
 </style>
 
@@ -101,8 +131,21 @@
                             </div>
                         </div>
                         <div class="doc-pro-location">
-                            {% if doctor.hospitals.first %}
-                                <p><i class="feather-map-pin"></i> {{ doctor.hospitals.first.city.name }}</p>
+                            {% if doctor.hospitals.all %}
+                                {% for hospital in doctor.hospitals.all|slice:":1" %}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="feather-map-pin text-primary me-1"></i>
+                                        <span>
+                                        {% if hospital.city %}
+                                            {{ hospital.city.name }}
+                                        {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="feather-home text-primary me-1"></i>
+                                        <span class="text-truncate" style="max-width: 150px;" title="{{ hospital.name }}">{{ hospital.name }}</span>
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </div>
                     </div>

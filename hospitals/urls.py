@@ -59,7 +59,7 @@ urlpatterns = [
     path('invoice/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
     path('update-hospital-profile/', views.update_hospital_profile, name='update_hospital_profile'),
     path('notifications/', include('notifications.urls',namespace='notifications'),name='notifications'),
-
+    path('patients/', views.hospital_patients, name='hospital_patients'),
 
 
 

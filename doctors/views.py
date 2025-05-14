@@ -16,8 +16,30 @@ def specialties_list(request):
 
 def doctor_detail(request, slug):
     doctor = get_object_or_404(Doctor, slug=slug)
+    
+    # Get all hospitals for this doctor without filtering by status
+    all_hospitals = doctor.hospitals.all()
+    
+    # Get doctor prices
+    from .models import DoctorPricing
+    doctor_prices = DoctorPricing.objects.filter(doctor=doctor)
+    
+    # Create a hospitals list with prices
+    doctor_hospitals = []
+    for hospital in all_hospitals:
+        # Get price for this doctor at this hospital
+        pricing = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
+        price_amount = pricing.amount if pricing else "-"
+        
+        doctor_hospitals.append({
+            'hospital': hospital,
+            'price': price_amount
+        })
+    
     return render(request, 'frontend/home/pages/doctor_profile.html', {
         'doctor': doctor,
+        'doctor_hospitals': doctor_hospitals,
+        'doctor_prices': doctor_prices,
         'title': doctor.full_name
     })
 

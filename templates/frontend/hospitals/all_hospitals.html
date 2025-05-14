@@ -27,10 +27,11 @@
     <div class="container">
         <!-- Search and Filter Section -->
         <div class="row mb-5">
-            <div class="col-lg-8 mx-auto">
+            <div class="col-lg-10 mx-auto">
                 <div class="search-filter-card shadow-sm rounded-lg p-4">
                     <form method="GET" class="row g-3">
-                        <div class="col-md-8">
+                        <!-- البحث -->
+                        <div class="col-md-6">
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-white border-end-0">
                                     <i class="fas fa-search text-muted"></i>
@@ -39,15 +40,36 @@
                                        placeholder="ابحث عن مستشفى، مدينة، أو تخصص..." value="{{ search_query }}">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        
+                        <!-- فلتر التقييم -->
+                        <div class="col-md-3">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-star text-warning"></i>
+                                </span>
+                                <select name="rating" class="form-select border-start-0 ps-0">
+                                    <option value="" {% if not request.GET.rating %}selected{% endif %}>جميع التقييمات</option>
+                                    <option value="5" {% if request.GET.rating == '5' %}selected{% endif %}>★★★★★ (5 نجوم)</option>
+                                    <option value="4" {% if request.GET.rating == '4' %}selected{% endif %}>★★★★ (4 نجوم وأعلى)</option>
+                                    <option value="3" {% if request.GET.rating == '3' %}selected{% endif %}>★★★ (3 نجوم وأعلى)</option>
+                                    <option value="2" {% if request.GET.rating == '2' %}selected{% endif %}>★★ (2 نجمة وأعلى)</option>
+                                    <option value="1" {% if request.GET.rating == '1' %}selected{% endif %}>★ (1 نجمة وأعلى)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- زر البحث -->
+                        <div class="col-md-3">
                             <button class="btn btn-primary btn-lg w-100" type="submit">
-                                <i class="fas fa-search me-2"></i> بحث
+                                <i class="fas fa-filter me-2"></i> تصفية
                             </button>
                         </div>
-                        {% if search_query and search_query != '' %}
-                        <div class="col-12 text-center">
+                        
+                        <!-- إعادة تعيين البحث -->
+                        {% if search_query or request.GET.rating %}
+                        <div class="col-12 text-center mt-2">
                             <a href="{% url 'hospitals:all_hospitals' %}" class="text-decoration-none text-primary small">
-                                <i class="fas fa-sync me-1"></i> إعادة تعيين البحث
+                                <i class="fas fa-sync me-1"></i> إعادة تعيين البحث والفلاتر
                             </a>
                         </div>
                         {% endif %}
@@ -59,14 +81,14 @@
         <!-- Hospitals Grid -->
         <div class="row g-4">
             {% for hospital in hospitals %}
-            <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                 <div class="card hospital-card h-100 border-0 shadow-sm overflow-hidden">
                     <div class="hospital-img-container position-relative">
                         <div class="hospital-img-wrapper">
                             {% if hospital.logo %}
                             <img src="{{ hospital.logo.url }}" class="hospital-img" alt="{{ hospital.name }}" 
                                  loading="lazy" 
-                                 onerror="this.onerror=null;this.src='{% static 'img/coming-soon.png' %}'">;
+                                 onerror="this.onerror=null;this.src='/static/img/coming-soon.png'">
                             {% else %}
                             <img src="{% static 'img/hospital-default.jpg' %}" class="hospital-img" alt="{{ hospital.name }}">
                             {% endif %}
@@ -74,7 +96,7 @@
                         <div class="hospital-overlay"></div>
                         <div class="hospital-badge">
                             <span class="badge bg-primary rounded-pill">
-                                <i class="fas fa-star me-1"></i> {{ hospital.rating|default:"4.5" }}
+                                <i class="fas fa-star me-1"></i> {{ hospital.avg_rating|default:"0"|floatformat:1 }}
                             </span>
                         </div>
                     </div>
