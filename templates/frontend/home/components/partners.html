@@ -1,34 +1,26 @@
 {% load static %}
 {% if partnersSection %}
-
-<section class="partners-section">
-    
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="section-header-one text-center aos" data-aos="fade-up">
-                    <h2 class="section-title">Our Partners</h2>
+    <section class="partners-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="section-header-one text-center aos" data-aos="fade-up">
+                        <h2 class="section-title">شركاؤنا</h2>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="partners-info aos" data-aos="fade-up">
-            <ul class="owl-carousel partners-slider d-flex">
-           {% for partner in partnersSection %}
-           
-           <li>
-               <a href="javascript:void(0);">
-                   <img class="img-fluid" src="{{ partner.pertner_image.url }}" alt="partners">
-                   </a>
-           </li>
-           
-           {% endfor %}
-             
-              
-                
-              
-             </ul>
+            <div class="partners-info aos" data-aos="fade-up">
+                <ul class="owl-carousel partners-slider d-flex">
+                    {% for partner in partnersSection %}
+                        <li>
+                            <a href="javascript:void(0);">
+                                <img class="img-fluid" src="{{ partner.partner_image.url }}" alt="شركاء">
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 {% endif %}

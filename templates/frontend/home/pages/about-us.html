@@ -3,15 +3,16 @@
 {% block content %}
 
 <!-- Breadcrumb -->
+
 <div class="breadcrumb-bar-two">
   <div class="container">
     <div class="row align-items-center inner-banner">
       <div class="col-md-12 col-12 text-center">
-        <h2 class="breadcrumb-title">About Us</h2>
+        <h2 class="breadcrumb-title">{{ about.title|default:"" }}</h2>
         <nav aria-label="breadcrumb" class="page-breadcrumb">
           <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-            <li class="breadcrumb-item" aria-current="page">About Us</li>
+            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+            <li class="breadcrumb-item" aria-current="page">من نحن</li>
           </ol>
         </nav>
       </div>
@@ -20,96 +21,86 @@
 </div>
 <!-- /Breadcrumb -->
 
-<!-- About Us -->
-<section class="about-section">
+
+<!-- About Us Section -->
+<!-- About Us Section -->
+<section class="about-section py-5 bg-light">
   <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-6 col-md-12">
-        <div class="about-img-info">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="about-inner-img">
-                <div class="about-img">
-                  <img
-                    src="assets/img/about-img1.jpg"
-                    class="img-fluid"
-                    alt="about-image"
-                  />
+    <div class="row align-items-center flex-md-row-reverse"> <!-- صورة على اليمين -->
+
+      <!-- صورة -->
+      <div class="col-lg-6 mb-4 mb-lg-0 text-center">
+        {% if about.image1 %}
+          <div class="overflow-hidden rounded-4 shadow-lg d-inline-block w-75">
+            <img src="{{ about.image1.url }}" class="img-fluid rounded-4" alt="عن موعدي" />
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- نص -->
+      <div class="col-lg-6">
+        <div class="pe-lg-4 ps-lg-4">
+          {% if about.subtitle %}
+            <div class="bg-primary text-white p-3 rounded-3 mb-3 d-inline-block">
+              <h5 class="mb-0">{{ about.subtitle }}</h5>
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <span class="badge bg-primary-soft text-primary mb-2">عن موعدي</span>
+            <h2 class="fw-bold display-6 mb-3">{{ about.title|default:"تعرف علينا أكثر" }}</h2>
+            <p class="text-muted lead">
+              {{ about.content|safe|default:"نحن فريق متخصص نقدم خدمات طبية مميزة لضمان راحتكم وشفائكم." }}
+            </p>
+          </div>
+
+          <!-- مميزات -->
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <div class="d-flex align-items-start bg-white p-3 rounded-3 shadow-sm h-100">
+                <div class="bg-primary-soft rounded-circle p-2 me-3">
+                  <i class="fas fa-check text-primary fs-5"></i>
                 </div>
-                <div class="about-img">
-                  <img
-                    src="assets/img/about-img2.jpg"
-                    class="img-fluid"
-                    alt="about-image"
-                  />
+                <div>
+                  <h5 class="mb-1">خبرة واسعة</h5>
+                  <p class="text-muted small mb-0">فريق من الخبراء المتخصصين</p>
                 </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="about-inner-img">
-                <div class="about-box">
-                  <h4>Over 25+ Years Experience</h4>
+            <div class="col-sm-6">
+              <div class="d-flex align-items-start bg-white p-3 rounded-3 shadow-sm h-100">
+                <div class="bg-primary-soft rounded-circle p-2 me-3">
+                  <i class="fas fa-check text-primary fs-5"></i>
                 </div>
-                <div class="about-img">
-                  <img
-                    src="assets/img/about-img3.jpg"
-                    class="img-fluid"
-                    alt="about-image"
-                  />
+                <div>
+                  <h5 class="mb-1">أحدث التقنيات</h5>
+                  <p class="text-muted small mb-0">استخدام أحدث الأجهزة الطبية</p>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- رقم التواصل -->
+          {% if about.phone_number %}
+            <div class="about-contact bg-white p-4 rounded-4 shadow-sm d-flex align-items-center">
+              <div class="about-contact-icon bg-primary-soft rounded-circle p-3 me-3">
+                <i class="fas fa-phone-alt text-primary fs-4"></i>
+              </div>
+              <div>
+                <p class="text-muted mb-1">هل تحتاج إلى مساعدة طارئة؟</p>
+                <h4 class="mb-0">
+                  <a href="tel:{{ about.phone_number }}" class="text-dark">{{ about.phone_number }}</a>
+                </h4>
+              </div>
+            </div>
+          {% endif %}
         </div>
       </div>
-      <div class="col-lg-6 col-md-12">
-        <div class="section-inner-header about-inner-header">
-          <h6>About Our Company</h6>
-          <h2>We Are Always Ensure Best Medical Treatment For Your Health</h2>
-        </div>
-        <div class="about-content">
-          <div class="about-content-details">
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur.
-            </p>
-            <p>
-              Sed ut perspiciatis unde omnis iste natus sit voluptatem
-              accusantium doloremque eaque ipsa quae architecto beatae vitae
-              dicta sunt explicabo.
-            </p>
-          </div>
-          <div class="about-contact">
-            <div class="about-contact-icon">
-              <span
-                ><img src="assets/img/icons/phone-icon.svg" alt="phone-image"
-              /></span>
-            </div>
-            <div class="about-contact-text">
-              <p>Need Emergency?</p>
-              <h4>+1 315 369 5943</h4>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   </div>
 </section>
-<!-- /About Us -->
-
-{% include "frontend/components/why-choose-us.html" %}
-
-{% include "frontend/components/way.html" %}
-
-{% include "frontend/components/doctors.html" %}
-
-{% include "frontend/components/testimonial.html" %} 
-
-{% include "frontend/components/faq.html" %}
 
 
- {% endblock content %}
+
+{% endblock content %}

@@ -1,102 +1,99 @@
 {% load static %}
 
 <!-- Footer -->
-<footer class="footer footer-one">
-<div class="footer-top aos" data-aos="fade-up">
-    <div class="container">
+<footer class="footer" style="background-color: #f8f9fa; color: #495057; border-top: 1px solid #e9ecef;">
+    <div class="container py-5">
         <div class="row">
-            <div class="col-lg-3 col-md-4">
-                <div class="footer-widget footer-about">
-                    <div class="footer-logo">
-                        <a href="/"><img src="{{ setting.footer_logo.url }}" alt="logo"></a>
-                    </div>
-                    <div class="footer-about-content">
-                        <p>{{ setting.description }}</p>
-                    </div>
+            <!-- Column 1: Logo and Description -->
+            <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                <div class="footer-brand mb-3">
+                    <a href="/">
+                        <img src="{{ setting.footer_logo.url }}" alt="{{ setting.site_name }}" style="height: 40px;">
+                    </a>
                 </div>
+                <p class="text-muted small" style="line-height: 1.6;">{{ setting.description }}</p>
             </div>
-            <div class="col-lg-6">
-                <div class="row">
-                    <div class="col-lg-3 col-md-4">
-                        <div class="footer-widget footer-menu">
-                            <h2 class="footer-title">For YOU</h2>
-                            <ul>
-                                <li><a href="/#bannerSection">Search for Doctors</a></li>
-                                <li><a href="{% url 'users:login' %}">Login</a></li>
-                                <li><a href="{% url 'users:signup' %}">Register</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="col-lg-6 col-md-4">
-                        <div class="footer-widget footer-contact">
-                            <h2 class="footer-title">Contact Us</h2>
-                            <div class="footer-contact-info">
-                                <div class="footer-address">
-                                    <p><i class="feather-map-pin"></i> 3556 Beech Street, USA</p>
-                                </div>
-                                <div class="footer-address">
-                                    <p><i class="feather-phone-call"></i> +1 315 369 5943</p>
-                                </div>
-                                <div class="footer-address mb-0">
-                                    <p><i class="feather-mail"></i> doccure@example.com</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-7">
-                <div class="footer-widget">
-                    <h2 class="footer-title">Join Our Newsletter</h2>
-                    <div class="subscribe-form">
-                        <form action="#">
-                            <input type="email" class="form-control" placeholder="Enter Email">
-                            <button type="submit" class="btn">Submit</button>
-                        </form>
-                    </div>
-                    {% if socialMediaLinks %}
-                    <div class="social-icon">
-                        <ul>
-                            {% for socialMediaLinks in socialMediaLinks %}
-                            <li>
-                                <a href="{{ socialMediaLinks.link }}"><i class="fab fa-{{socialMediaLinks.icon}}"></i></a>
-                            </li>
-                            {% endfor %}
-                          
-                        </ul>
-                    </div>
-                    {% endif %}
 
+            <!-- Column 2: Quick Links -->
+            <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                <h6 class="text-uppercase mb-4" style="color: #212529;">روابط سريعة</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/" class="text-muted" style="text-decoration: none;">البحث عن طبيب</a></li>
+                    <li class="mb-2"><a href="{% url 'users:login' %}" class="text-muted" style="text-decoration: none;">تسجيل دخول</a></li>
+                    <li><a href="{% url 'users:signup' %}" class="text-muted" style="text-decoration: none;">انشاء حساب</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Contact Info -->
+            <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                <h6 class="text-uppercase mb-4" style="color: #212529;">اتصل بنا</h6>
+                {% if admin_user %}
+                <ul class="list-unstyled text-muted">
+                    {% if admin_user.address %}
+                    <li class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2" style="width: 20px;"></i>
+                        {{ admin_user.city }}
+                    </li>
+                    {% endif %}
+                    {% if admin_user.mobile_number %}
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2" style="width: 20px;"></i>
+                        {{ admin_user.mobile_number }}
+                    </li>
+                    {% endif %}
+                    {% if admin_user.email %}
+                    <li>
+                        <i class="fas fa-envelope me-2" style="width: 20px;"></i>
+                        {{ admin_user.email }}
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Column 4: Newsletter and Social -->
+            <div class="col-lg-4 col-md-6">
+                <h6 class="text-uppercase mb-4" style="color: #212529;">النشرة البريدية</h6>
+                <form class="mb-4">
+                    <div class="input-group">
+                        <input type="email" class="form-control form-control-sm" placeholder="البريد الإلكتروني" style="border-radius: 0; border: 1px solid #ced4da;">
+                        <a href="{% url 'users:signup' %}" class="btn btn-dark btn-sm" style="border-radius: 0; background-color: #343a40;">
+                            اشتراك
+                        </a>
+                                            </div>
+                </form>
+                
+                {% if socialMediaLinks %}
+                <h6 class="text-uppercase mb-3" style="color: #212529;">تابعنا</h6>
+                <div class="social-links">
+                    {% for social in socialMediaLinks %}
+                    <a href="{{ social.link }}" class="text-muted me-2" style="font-size: 1.2rem;">
+                        <i class="fab fa-{{ social.icon }}"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="py-3" style="background-color: #e9ecef; border-top: 1px solid #dee2e6;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="small mb-0" style="color: #6c757d;">
+                        &copy; {% now "Y" %} {{ setting.site_name }}. جميع الحقوق محفوظة.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <ul class="list-inline small mb-0">
+                        <li class="list-inline-item"><a href="/privacy-policy" class="text-muted" style="text-decoration: none;">سياسة الخصوصية</a></li>
+                        <li class="list-inline-item mx-2">•</li>
+                        <li class="list-inline-item"><a href="/terms-condition" class="text-muted" style="text-decoration: none;">الشروط والأحكام</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="footer-bottom">
-    <div class="container">
-        <!-- Copyright -->
-        <div class="copyright">
-            <div class="row">
-                <div class="col-md-6 col-lg-6">
-                    <div class="copyright-text">
-                        <p class="mb-0"> Copyright © {% now "Y" %}  <a href="/">{{ setting.site_name }}</a> All Rights Reserved</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-6">
-                    <!-- Copyright Menu -->
-                    <div class="copyright-menu">
-                        <ul class="policy-menu">
-                            <li><a href="/privacy-policy">Privacy Policy</a></li>
-                            <li><a href="/terms-condition">Terms and Conditions</a></li>
-                        </ul>
-                    </div>
-                    <!-- /Copyright Menu -->
-                </div>
-            </div>
-        </div>
-        <!-- /Copyright -->                    
-    </div>
-</div>
 </footer>
-<!-- /Footer -->

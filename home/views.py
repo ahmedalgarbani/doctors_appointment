@@ -138,6 +138,15 @@ def index(request):
     logger.info('Context created successfully')
     return render(request, 'frontend/home/index.html', ctx)
 
+from django.shortcuts import render
+from .models import AboutUsPage
+
+def about_us(request):
+    about = AboutUsPage.objects.first()  # نأخذ أول سجل (أو الوحيد غالبًا)
+    return render(request, 'frontend/home/pages/about-us.html', {'about': about})
+
+
+
 def faq_page(request):
     faqs = FAQSection.objects.first()
 
@@ -223,8 +232,16 @@ def add_to_favorites(request):
         return JsonResponse({'status': 'error', 'message': str(e)})
 
 
+from django.shortcuts import render
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Q, Avg, Min, Max
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
 def search_view(request):
-    search_text = request.GET.get('search', '').strip()  
+    doctor_name = request.GET.get('doctor_name', '').strip()
     city_slug = request.GET.get('city', '').strip()
     gender = request.GET.get('gender')
     availability = request.GET.get('availability')
@@ -236,24 +253,28 @@ def search_view(request):
     page = request.GET.get('page', 1)
     date_str = request.GET.get('date', '')
     experience = request.GET.get('experience', '')
-    doctor_name = request.GET.get('doctor_name', '')
 
     filters = {}
     logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
 
-    # البدء بجميع الأطباء
     doctors = Doctor.objects.all().distinct()
 
-    if search_text:
-        filters['full_name__icontains'] = search_text
-        filters['hospitals__name__icontains'] = search_text 
+    # البحث بالاسم أو التخصص
+    if doctor_name:
+        doctors = doctors.filter(
+            Q(full_name__icontains=doctor_name) |
+            Q(specialty__name__icontains=doctor_name)
+        )
 
+    # المدينة (فلترة حسب المدينة المرتبطة بالمستشفى وليس بالطبيب مباشرة)
     if city_slug:
         doctors = doctors.filter(hospitals__city__slug=city_slug)
 
+    # التخصص
     if specialty:
         doctors = doctors.filter(specialty_id=specialty)
 
+    # الجنس
     if gender:
         gender_map = {
             'male': 1,
@@ -263,7 +284,7 @@ def search_view(request):
         if gender_value is not None:
             doctors = doctors.filter(gender=gender_value)
 
-    # فلترة حسب نطاق السعر
+    # السعر
     if fee_range:
         fee_ranges = {
             'low': (0, 2000),
@@ -279,30 +300,29 @@ def search_view(request):
             ).values_list('doctor_id', flat=True).distinct()
             doctors = doctors.filter(id__in=doctor_ids)
 
-    # فلترة حسب سنوات الخبرة
+    # سنوات الخبرة (فلتر مباشر)
     if experience_min:
         doctors = doctors.filter(experience_years__gte=int(experience_min))
 
-    # فلترة حسب التقييم
+    # تقييم الطبيب
     if rating:
         rating_value = float(rating)
-        # احصل على معرفات الأطباء الذين لديهم متوسط تقييم أعلى من أو يساوي القيمة المحددة
         doctor_ids = Review.objects.filter(
             doctor__isnull=False,
-            status=True  # فقط المراجعات النشطة
+            status=True
         ).values('doctor').annotate(
             avg_rating=Avg('rating')
         ).filter(
             avg_rating__gte=rating_value
         ).values_list('doctor', flat=True)
-        
         doctors = doctors.filter(id__in=doctor_ids)
 
-    # تطبيق باقي الفلاتر
+    # توفر الطبيب حسب التاريخ
     if date_str:
         try:
             available_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            doctors = doctors.filter(schedules__day=available_date.strftime('%A'))
+            day_name = available_date.strftime('%A')
+            doctors = doctors.filter(schedules__day=day_name)
         except ValueError:
             pass
 
@@ -313,6 +333,7 @@ def search_view(request):
         tomorrow = (datetime.now() + timedelta(days=1)).strftime('%A')
         doctors = doctors.filter(schedules__day=tomorrow)
 
+    # فلترة حسب مدى الخبرة
     if experience:
         experience_ranges = {
             '0-2': (0, 2),
@@ -324,7 +345,7 @@ def search_view(request):
             min_exp, max_exp = experience_ranges[experience]
             doctors = doctors.filter(experience_years__gte=min_exp, experience_years__lte=max_exp)
 
-    # تطبيق الفلاتر الأساسية
+    # فلترة إضافية إن وُجدت
     doctors = doctors.filter(**filters).distinct()
 
     # الترقيم
@@ -336,7 +357,7 @@ def search_view(request):
     except EmptyPage:
         doctors_page = paginator.page(paginator.num_pages)
 
-    # إضافة بيانات إضافية لكل طبيب
+    # بيانات إضافية لكل طبيب
     for doctor in doctors_page:
         doctor.avg_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
         doctor.review_count = doctor.reviews.count()
@@ -369,7 +390,6 @@ def search_view(request):
         return render(request, 'frontend/home/components/doctors_list.html', context)
 
     return render(request, 'frontend/home/pages/search.html', context)
-
 
 
 
@@ -458,5 +478,4 @@ def get_time_slots(request,schedule_id,doctor_id,):
         return JsonResponse({
             'error': str(e)
         }, status=500)
-
 

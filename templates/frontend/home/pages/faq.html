@@ -1,31 +1,31 @@
 {% extends "frontend/layouts/master.html" %}
 
 {% block content %}
-    <!-- Breadcrumb -->
+    <!-- شريط التنقل -->
     <div class="breadcrumb-bar-two">
         <div class="container">
             <div class="row align-items-center inner-banner">
                 <div class="col-md-12 col-12 text-center">
-                    <h2 class="breadcrumb-title">FAQ</h2>
+                    <h2 class="breadcrumb-title">الأسئلة الشائعة</h2>
                     <nav aria-label="breadcrumb" class="page-breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Home</a></li>
-                            <li class="breadcrumb-item" aria-current="page">FAQ</li>
+                            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                            <li class="breadcrumb-item" aria-current="page">الأسئلة الشائعة</li>
                         </ol>
                     </nav>
                 </div>
             </div>
         </div>
     </div>
-    <!-- /Breadcrumb -->
+    <!-- /شريط التنقل -->
 
-    <!-- FAQ Section -->
+    <!-- قسم الأسئلة الشائعة -->
     <section class="faq-inner-page">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="section-inner-header text-center">
-                        <h2>{{faqs.sub_title}}</h2>
+                        <h2>{{ faqs.sub_title }}</h2>
                     </div>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                         <div class="accordion" id="faq-details">
                             {% for faq in faqs.questions.all %}
                                 {% if forloop.counter <= 5 %}
-                                    <!-- FAQ Item -->
+                                    <!-- عنصر سؤال شائع -->
                                     <div class="accordion-item">
                                         <h2 class="accordion-header" id="heading{{ forloop.counter }}">
                                             <a href="javascript:void(0);" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapse{{ faq.order }}" aria-expanded="false" aria-controls="collapse{{ faq.order }}">
@@ -50,7 +50,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- /FAQ Item -->
+                                    <!-- /عنصر سؤال شائع -->
                                 {% endif %}
                             {% endfor %}
                         </div>
@@ -62,7 +62,7 @@
                         <div class="accordion" id="faq-details-info">
                             {% for faq in faqs.questions.all %}
                                 {% if forloop.counter > 5 and forloop.counter <= 10 %}
-                                    <!-- FAQ Item -->
+                                    <!-- عنصر سؤال شائع -->
                                     <div class="accordion-item">
                                         <h2 class="accordion-header" id="heading{{ forloop.counter }}">
                                             <a href="javascript:void(0);" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapse{{ faq.order }}" aria-expanded="false" aria-controls="collapse{{ faq.order }}">
@@ -77,7 +77,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- /FAQ Item -->
+                                    <!-- /عنصر سؤال شائع -->
                                 {% endif %}
                             {% endfor %}
                         </div>
@@ -86,5 +86,5 @@
             </div>
         </div>
     </section>
-    <!-- /FAQ Section -->
+    <!-- /قسم الأسئلة الشائعة -->
 {% endblock %}

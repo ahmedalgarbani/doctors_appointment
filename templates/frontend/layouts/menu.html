@@ -135,46 +135,29 @@
                 </div>
                 <ul class="main-nav">
                     <!-- Direct hospitals link -->
-                    <li>
-                        <a href="{% url 'hospitals:all_hospitals' %}">المستشفيات</a>
-                    </li>
-                    <!-- Other menu items -->
                     {% for item in top_menu %}
-                    {% if item.name != "المستشفيات" %}
                     <li {% if item.submenu %}class="has-submenu"{% endif %}>
-                        {% if item.name == "المستشفيات" %}
-                        <a href="{% url 'hospitals:all_hospitals' %}">{{ item.name }}</a>
-                        {% else %}
-                        <a href="{{ item.url }}">{{item.name}} 
-                        {% if item.submenu %}
-                        <i class="fas fa-chevron-down"></i>
-                        {% endif %}    
+                        <a href="{{ item.url }}">
+                            {{ item.name }}
+                            {% if item.submenu %}
+                                <i class="fas fa-chevron-down"></i>
+                            {% endif %}
                         </a>
-                        {% endif %}
                         {% if item.submenu %}
                         <ul class="submenu">
                             {% for menu in item.submenu %}
-                            <li><a href="{{ menu.url }}">{{menu.name}}</a></li>
+                            <li><a href="{{ menu.url }}">{{ menu.name }}</a></li>
                             {% endfor %}
                         </ul>
                         {% endif %}
                     </li>
-                    {% endif %}
                     {% endfor %}
-                    <li class="searchbar">
-                        <a href="javascript:void(0);"><i class="feather-search"></i></a>
-                        <div class="togglesearch">
-                            <form action="">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Search...">
-                                    <button type="submit" class="btn">Search</button>
-                                </div>
-                            </form>
-                        </div>
-                    </li>
+                    <li style="margin-bottom: 20px;"></li>
+
                     {% if request.user.is_authenticated %}
                   <!-- Notifications -->
                   <div>
+                    <br>
                     <li class="nav-item dropdown noti-nav me-3 pe-0 position-relative">
                         <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
                             <i class="fa-solid fa-bell"></i>

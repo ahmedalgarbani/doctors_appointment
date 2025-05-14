@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-md-12 aos" data-aos="fade-up">
                 <div class="section-header-one text-center">
-                    <h2 class="section-title">احدث المقالات </h2>
+                    <h2 class="section-title">أحدث المقالات</h2>
                 </div>
             </div>
         </div>
@@ -26,23 +26,23 @@
                             <div class="articles-content">
                                 <ul class="articles-list nav">
                                     <li>
-                                        <i class="feather-user"></i> {{ post.author.name|default:"Author" }}
+                                        <i class="feather-user"></i> {{ post.author.name|default:"الكاتب" }}
                                     </li>
                                     <li>
-                                        <i class="feather-calendar"></i>{{ post.created_at|date:"F j, Y" }}
+                                        <i class="feather-calendar"></i> {{ post.created_at|date:"d M Y" }}
                                     </li>
                                     <li>
-                                        <i class="feather-eye"></i> {{ post.views_count }}
+                                        <i class="feather-eye"></i> {{ post.views_count }} مشاهدة
                                     </li>
                                     <li>
-                                        <i class="feather-message-square"></i> {{ post.comments.count }}
+                                        <i class="feather-message-square"></i> {{ post.comments.count }} تعليق
                                     </li>
                                 </ul>
                                 <h4>
                                     <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
                                 </h4>
-                                <p>{{ post.content|truncatechars:70 }} </p>
-                                <a href="{{ post.get_absolute_url }}" class="btn">View Blog</a>
+                                <p>{{ post.content|truncatechars:70 }}</p>
+                                <a href="{{ post.get_absolute_url }}" class="btn">عرض المقال</a>
                             </div>
                         </div>
                     </div>

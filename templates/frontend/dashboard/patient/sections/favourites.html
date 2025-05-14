@@ -5,12 +5,11 @@
                 <div class="profile-widget">
                     <div class="doc-img">
                         <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">
-							<img class="img-fluid" alt="User Image" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
+							<img class="img-fluid" alt="صورة الطبيب" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
                         </a>
                         <a href="javascript:void(0)" class="fav-btn" data-doctor-id="{{ doctor.id }}">
                             <i class="far fa-bookmark"></i>
                         </a>
-
                     </div>
                     <div class="pro-content">
                         <h3 class="title">
@@ -31,31 +30,26 @@
                             <li>
                                 <i class="fas fa-map-marker-alt"></i> {{ doctor.sub_title }}
                             </li>
-                            <li>
-                                <i class="far fa-clock"></i> Available on Fri, 22 Mar
-                            </li>
-                            <li>
-								<i class="far fa-money-bill-alt"></i> $500 - $2500 
-								<i class="fas fa-info-circle" data-bs-toggle="tooltip" title="Lorem Ipsum"></i>                            </li>
+                           
                         </ul>
                         <div class="row row-sm">
                             <div class="col-6">
-                                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}" class="btn view-btn">View Profile</a>
+                                <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}" class="btn view-btn">عرض الملف الشخصي</a>
                             </div>
                             <div class="col-6">
-                                <a href="{% url 'home:booking' doctor.id %}" class="btn book-btn">Book Now</a>
+                                <a href="{% url 'home:booking' doctor.id %}" class="btn book-btn">احجز الآن</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         {% empty %}
-            <p>No favourite doctors found.</p>
+            <p>لم يتم العثور على أطباء مفضلين.</p>
         {% endfor %}
     </div>
 </div>
 
-<!-- JavaScript section -->
+<!-- قسم الجافا سكربت -->
 <script>
 	document.querySelectorAll('.fav-btn').forEach(function(button) {
 		button.addEventListener('click', function() {
@@ -91,7 +85,7 @@
 				}
 			})
 			.catch(error => {
-				console.error('Error:', error);
+				console.error('خطأ:', error);
 			});
 		});
 	});

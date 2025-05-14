@@ -11,12 +11,12 @@
                     <table class="table table-hover table-center mb-0">
                         <thead>
                             <tr>
-                                <th>Payment Image</th>
-                                <th>Account Name</th>
-                                <th>Account Number</th>
-                                <th>IBAN</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>صورة الدفع</th>
+                                <th>اسم الحساب</th>
+                                <th>رقم الحساب</th>
+                                <th>رقم الآيبان (IBAN)</th>
+                                <th>الحالة</th>
+                                <th>الإجراء</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -26,9 +26,9 @@
                                     <h2 class="table-avatar">
                                         <a href="javascript:void(0);" class="avatar avatar-sm me-2">
                                             {% if method.payment_option.logo %}
-                                                <img class="avatar-img rounded-circle" src="{{ method.payment_option.logo.url }}" alt="Payment Image">
+                                                <img class="avatar-img rounded-circle" src="{{ method.payment_option.logo.url }}" alt="صورة الدفع">
                                             {% else %}
-                                                <img class="avatar-img rounded-circle" src="" alt="Default Payment Image">
+                                                <img class="avatar-img rounded-circle" src="" alt="صورة افتراضية">
                                             {% endif %} </a>
                                         <a href="javascript:void(0);">
                                             {{ method.payment_option.method_name }} 
@@ -48,7 +48,7 @@
                                             data-method-id="{{ method.id }}" 
                                             {% if method.is_active %} checked {% endif %}
                                         >
-                                        <label for="status_{{ method.id }}" class="checktoggle">checkbox</label>
+                                        <label for="status_{{ method.id }}" class="checktoggle">تفعيل</label>
                                     </div>
                                 </td>
                                 <td>
@@ -61,16 +61,15 @@
                                            data-iban="{{ method.iban }}" 
                                            data-method-name="{{ method.payment_option.method_name }}" 
                                            data-currency="{{ method.payment_option.currency }}"
-                                           data-description="{{ method.description }}"
-                                           >
-                                            <i class="far fa-eye"></i> Edit
+                                           data-description="{{ method.description }}">
+                                            <i class="far fa-eye"></i> تعديل
                                         </a>
                                         <a href="javascript:void(0);" 
-                                        class="btn btn-sm bg-danger-light delete-payment-btn" 
-                                        data-hospital-id="{{ method.hospital.id }}" 
-                                        data-method-id="{{ method.id }}">
-                                         <i class="fas fa-times"></i> Delete
-                                     </a>
+                                           class="btn btn-sm bg-danger-light delete-payment-btn" 
+                                           data-hospital-id="{{ method.hospital.id }}" 
+                                           data-method-id="{{ method.id }}">
+                                            <i class="fas fa-times"></i> حذف
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -83,43 +82,42 @@
     </div>
 </div>
 
-<!-- Edit Payment Section -->
+<!-- قسم تعديل طريقة الدفع -->
 <div id="editPaymentSection" class="col-md-7 col-lg-8 col-xl-9 section d-none"> 
     <form id="editPaymentForm" action="{% url 'hospitals:update_payment_method' %}" method="POST">
         {% csrf_token %}
         <input type="hidden" id="edit-method-id" name="method_id">
         <div class="mb-3">
-            <label for="edit-account-name" class="form-label">Account Name</label>
+            <label for="edit-account-name" class="form-label">اسم الحساب</label>
             <input type="text" id="edit-account-name" name="account_name" class="form-control" required>
         </div>
         <div class="mb-3">
-            <label for="edit-account-number" class="form-label">Account Number</label>
+            <label for="edit-account-number" class="form-label">رقم الحساب</label>
             <input type="text" id="edit-account-number" name="account_number" class="form-control" required>
         </div>
         <div class="mb-3">
-            <label for="edit-iban" class="form-label">IBAN</label>
+            <label for="edit-iban" class="form-label">رقم الآيبان (IBAN)</label>
             <input type="text" id="edit-iban" name="iban" class="form-control" required>
         </div>
-         <!-- Description -->
-         <div class="col-md-12 mb-3">
+        <div class="col-md-12 mb-3">
             <label for="description" class="form-label">تعليمات الدفع</label>
             <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
         </div>
-
         <div class="mb-3">
-            <label for="edit-method-name" class="form-label">Method Name</label>
+            <label for="edit-method-name" class="form-label">اسم الطريقة</label>
             <input type="text" id="edit-method-name" class="form-control" disabled>
         </div>
         <div class="mb-3">
-            <label for="edit-currency" class="form-label">Currency</label>
+            <label for="edit-currency" class="form-label">العملة</label>
             <input type="text" id="edit-currency" class="form-control" disabled>
         </div>
         <div class="d-flex justify-content-between">
-            <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" id="cancelEditBtn" class="btn btn-secondary">إلغاء</button>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
         </div>
     </form>
 </div>
+
 
 <script>
 
