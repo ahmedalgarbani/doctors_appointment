@@ -6,7 +6,7 @@ from hospitals.models import Hospital
 from django.contrib.auth import get_user_model
 from django.db.models import Min, Max, Avg
 from notifications.models import Notifications
-from patients.models import Favourites
+from patients.models import Favourites, Patients
 from payments.models import HospitalPaymentMethod, Payment, PaymentOption
 from reviews.models import Review
 from datetime import date
@@ -274,7 +274,13 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 
-
+class PatientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patients
+        fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True},
+        }
 
 
 
@@ -391,10 +397,6 @@ class HospitalDetailSerializer(serializers.ModelSerializer):
 
 
 
-
-from rest_framework import serializers
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 
 
 class ChangePasswordSerializer(serializers.Serializer):

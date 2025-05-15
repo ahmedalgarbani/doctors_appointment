@@ -7,7 +7,7 @@ from hospitals.models import Hospital
 from notifications.models import Notifications
 from payments.models import HospitalPaymentMethod, Payment
 from reviews.models import Review
-from .serializers import BookingSerializer, ChangePasswordSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, PaymentSerializer, RegisterSerializer, ReviewSerializer, SpecialtiesSerializer, UserSerializer
+from .serializers import BookingSerializer, ChangePasswordSerializer, DoctorSerializer, FavouritesSerializer, HospitalPaymentMethodSerializer, HospitalSerializer, PatientSerializer, PaymentSerializer, RegisterSerializer, ReviewSerializer, SpecialtiesSerializer, UserSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,7 +17,7 @@ from patients.models import Favourites, Patients
 from django.db.utils import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser,MultiPartParser, FormParser
-from datetime import datetime
+from datetime import date, datetime
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from .serializers import NotificationSerializer
@@ -420,6 +420,41 @@ class UserProfileView(APIView):
                 },
                 
             }, status=status.HTTP_200_OK)
+    
+    
+    def put(self, request):
+        try:
+            user = request.user
+            patient = get_object_or_404(Patients, user=user)
+            data = request.data
+
+            user_fields = ['username', 'email', 'first_name', 'last_name', 'address', 'city', 'state']
+            for field in user_fields:
+                if field in data:
+                    setattr(user, field, data[field])
+            
+            user.save()
+
+            patient_fields = ['mobile_number', 'birth_date', 'gender', 'weight', 
+                             'height', 'blood_group']
+            for field in patient_fields:
+                if field in data:
+                    setattr(patient, field, data[field])
+            
+            if 'birth_date' in data:
+                birth_date = datetime.strptime(data['birth_date'], '%Y-%m-%d').date()
+                patient.age = calculate_age(birth_date)
+            
+            patient.save()
+
+            return Response({'detail': 'Profile updated successfully'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def calculate_age(birth_date):
+    today = date.today()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
 
 
