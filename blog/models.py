@@ -7,7 +7,8 @@ from hospitals.models import Hospital
 
 
 def author_directory_path(instance, filename):
-    return f'blog/{instance.author.name}/{filename}'
+    # Use the hospital ID instead of name to avoid path issues with special characters
+    return f'blog/hospital_{instance.author.id}/{filename}'
 
 
 class Category(BaseModel):
@@ -51,6 +52,7 @@ class Post(BaseModel):
     categories = models.ForeignKey('Category', on_delete=models.CASCADE, related_name="posts", verbose_name="التصنيف")
     tags = models.ManyToManyField('Tag', related_name="posts", verbose_name="الوسوم")
     status = models.BooleanField(default=False, verbose_name="الحالة")
+    views_count = models.PositiveIntegerField(default=0, verbose_name="عدد المشاهدات")
 
     class Meta:
         ordering = ('-created_at',)
@@ -61,7 +63,8 @@ class Post(BaseModel):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.slug:
+        # Always ensure we have a valid slug
+        if not self.slug or self.slug.strip() == '':
             self.slug = self.generate_unique_slug()
         super(Post, self).save(*args, **kwargs)
 
@@ -77,6 +80,9 @@ class Post(BaseModel):
         return slug
 
     def get_absolute_url(self):
+        # Make sure we don't try to reverse with an empty slug
+        if not self.slug or self.slug.strip() == '':
+            return '#'  # Return a safe fallback URL
         return reverse('home:blog:post_detail', args=[self.slug])
 
 

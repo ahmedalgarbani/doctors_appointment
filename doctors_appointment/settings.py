@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'patients',
     'bookings',
     'payments',
-    'registrations',
     'notifications',
     'reports',
     'reviews',
@@ -40,6 +39,7 @@ INSTALLED_APPS = [
     'home',
     'blog',
     'hospital_staff',
+    'advertisements',
     'menu_generator',
     'ckeditor',
     'widget_tweaks',
@@ -60,16 +60,16 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/minute',  
-        'user': '100/minute' 
+        'anon': '100/minute',
+        'user': '100/minute'
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10, 
+    'PAGE_SIZE': 10,
 
-    
+
 
 }
     #'EXCEPTION_HANDLER': '/api/handle.py'
@@ -79,14 +79,14 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),  
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  
-    "ROTATE_REFRESH_TOKENS": True,  
-    "BLACKLIST_AFTER_ROTATION": True,  
-    "UPDATE_LAST_LOGIN": True, 
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY, 
+    "SIGNING_KEY": SECRET_KEY,
     "VERIFYING_KEY": "",
     "AUDIENCE": None,
     "ISSUER": None,
@@ -178,7 +178,7 @@ DATABASES = {
         'USER': os.environ.get('DB_USER', 'root'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),  
+        'PORT': os.environ.get('DB_PORT', '54321'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'",
             'charset': 'utf8mb4',
@@ -253,46 +253,50 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NAV_MENU_TOP = [
     {
-        "name": "FAQ",
+        "name": "الأسئلة الشائعة",
         "url": "/faq",
     },
     {
-        "name": "About",
+        "name": "عن الموقع",
         "url": "/about",
     },
     {
-        "name": "Pricing Plan",
+        "name": "خطط الأسعار",
         "url": "/about",
     },
     {
-        "name": "Pages",
+        "name": "الصفحات",
         "url": "/",
 
         "submenu": [
             {
-                "name": "About Us",
+                "name": "من نحن",
                 "url": "/",
             },
             {
-                "name": "Contact Us",
+                "name": "اتصل بنا",
                 "url": "/",
 
             },
             {
-                "name": "Terms & Condition",
+                "name": "الشروط والأحكام",
                 "url": "/terms-condition",
 
             },
             {
-                "name": "Privacy Policy",
+                "name": "سياسة الخصوصية",
                 "url": "/privacy-policy",
 
             }
         ],
     },
     {
-        "name": "Blog",
-        "url": "/blog",
+        "name": "المستشفيات",
+        "url": "/hospitals/all/",
+    },
+    {
+        "name": "المدونة",
+        "url": "/blog/",
     },
 ]
 

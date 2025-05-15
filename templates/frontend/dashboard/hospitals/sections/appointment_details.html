@@ -11,7 +11,7 @@
         <nav aria-label="breadcrumb" class="page-breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home:home' %}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Doctor Blog</li>
+            <li class="breadcrumb-item active" aria-current="page">تفاصيل الحجز</li>
           </ol>
         </nav>
       </div>
@@ -20,499 +20,607 @@
 </div>
 <!-- /Breadcrumb -->
 
-<!-- Page Content 
--->
 <div class="content">
   <div class="container">
     
-      <!-- Include Sections -->      
-<!-- Toast Notification -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="successToast" class="toast align-items-center text-white bg-success" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body" id="toastMessage">
-          <!-- Message will appear here -->
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11"></div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-primary">
+            <h4 class="card-title text-white mb-0">
+              <i class="fas fa-calendar-check me-2"></i>تفاصيل الحجز
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="container-fluid">
+              <div class="row">
+                <!-- معلومات الحجز -->
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header bg-primary text-white">
+                      <h5 class="card-title mb-0">معلومات الحجز</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>رقم الحجز:</strong></div>
+                        <div class="col-sm-8">{{ booking.id }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>حالة الحجز:</strong></div>
+                        <div class="col-sm-8">
+                          <span class="badge {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'confirmed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'completed' %}bg-info{% endif %}">
+                            {{ booking.get_status_display }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>تاريخ الحجز:</strong></div>
+                        <div class="col-sm-8">{{ booking.booking_date|date:"Y-m-d" }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>وقت الحجز:</strong></div>
+                        <div class="col-sm-8">{{ booking.appointment_time.start_time|time:"h:i A" }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>تاريخ الإنشاء:</strong></div>
+                        <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d / H:i" }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- معلومات المريض -->
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header bg-info text-white">
+                      <h5 class="card-title mb-0">معلومات المريض</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>اسم المريض:</strong></div>
+                        <div class="col-sm-8">{{ booking.patient.user.get_full_name }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
+                        <div class="col-sm-8">
+                          <a href="tel:{{ booking.patient.user.mobile_number }}" class="text-decoration-none">
+                            {{ booking.patient.user.mobile_number }}
+                            <i class="fas fa-phone-alt ms-2"></i>
+                          </a>
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>تاريخ الميلاد:</strong></div>
+                        <div class="col-sm-8">{{ booking.patient.birth_date|date:"Y-m-d" }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>الجنس:</strong></div>
+                        <div class="col-sm-8">{{ booking.patient.get_gender_display }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>العنوان:</strong></div>
+                        <div class="col-sm-8">{{ booking.patient.user.address }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <!-- معلومات الطبيب -->
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header bg-success text-white">
+                      <h5 class="card-title mb-0">معلومات الطبيب</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>اسم الطبيب:</strong></div>
+                        <div class="col-sm-8">{{ booking.doctor.full_name }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>التخصص:</strong></div>
+                        <div class="col-sm-8">{{ booking.doctor.specialty.name }}</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>سنوات الخبرة:</strong></div>
+                        <div class="col-sm-8">{{ booking.doctor.experience_years }} سنة</div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
+                        <div class="col-sm-8">
+                          <a href="tel:{{ booking.doctor.phone_number }}" class="text-decoration-none">
+                            {{ booking.doctor.phone_number }}
+                            <i class="fas fa-phone-alt ms-2"></i>
+                          </a>
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-sm-4"><strong>البريد الإلكتروني:</strong></div>
+                        <div class="col-sm-8">
+                          <a href="mailto:{{ booking.doctor.email }}" class="text-decoration-none">
+                            {{ booking.doctor.email }}
+                            <i class="fas fa-envelope ms-2"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+<!-- معلومات الدفع -->
+<div class="col-md-6">
+  <div class="card">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="card-title mb-0">معلومات الدفع</h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>حالة الدفع:</strong></div>
+        <div class="col-sm-8">
+          <span class="badge payment-status-badge 
+            {% if booking.payments.first.payment_status == 1 %}bg-success
+            {% elif booking.payments.first.payment_status == 0 %}bg-warning
+            {% elif booking.payments.first.payment_status == 2 %}bg-danger
+            {% elif booking.payments.first.payment_status == 3 %}bg-info
+            {% endif %}">
+            {{ booking.payments.first.get_status_display }}
+          </span>
+          {% if booking.payment_verified %}
+          <div class="verification-info text-muted small mt-1">
+            تم التحقق في: {{ booking.payment_verified_at|date:"Y-m-d H:i" }}
+            {% if booking.payment_verified_by %}
+            بواسطة: {{ booking.payment_verified_by.get_full_name }}
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>المبلغ:</strong></div>
+        <div class="col-sm-8">{{ booking.payments.first.payment_totalamount }} {{ booking.payments.first.payment_currency }}</div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>طريقة الدفع:</strong></div>
+        <div class="col-sm-8">
+          <span class="badge bg-primary">{{ booking.payments.first.payment_method.payment_option.method_name }}</span>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>نوع الدفع:</strong></div>
+        <div class="col-sm-8">
+          دفع إلكتروني
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>تاريخ الدفع:</strong></div>
+        <div class="col-sm-8">{{ booking.payments.first.payment_date|date:"Y-m-d H:i" }}</div>
+      </div>
+
+      {% if booking.payment_receipt %}
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>صورة سند الدفع:</strong></div>
+        <div class="col-sm-8">
+          <a href="{{ booking.payment_receipt.url }}" target="_blank" class="btn btn-sm btn-primary">
+            <i class="fas fa-eye me-1"></i> عرض الصورة
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if booking.payments.first.payment_note %}
+      <div class="row mb-3">
+        <div class="col-sm-4"><strong>ملاحظات الدفع:</strong></div>
+        <div class="col-sm-8">{{ booking.payments.first.payment_note }}</div>
+      </div>
+      {% endif %}
+      
+      <!-- رسائل توضيحية حسب حالة الدفع -->
+      {% if booking.payments.first.payment_status == 2 %}
+      <div class="alert alert-warning mt-3">
+        <i class="fas fa-exclamation-triangle"></i> 
+        تم تسجيل الدفع كفاشل سابقاً، يمكنك محاولة تأكيده مرة أخرى
+      </div>
+      {% elif booking.payments.first.payment_status == 3 %}
+      <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle"></i> 
+        تم استرداد المبلغ سابقاً، يمكنك تأكيد الدفع إذا تم استلام المبلغ
+      </div>
+      {% endif %}
+      
+      <!-- زر تأكيد الدفع -->
+      {% if booking.payments.first.payment_status != 1 %}
+      <div class="row mt-4">
+        <div class="col-12">
+          <button id="verifyPaymentBtn" class="btn btn-success w-100" 
+                  onclick="verifyPayment({{ booking.id }})"
+                  {% if booking.payment_verified %}disabled{% endif %}>
+            <i class="fas fa-check-circle me-1"></i> 
+            {% if booking.payment_verified %}تم التحقق{% else %}تأكيد الدفع{% endif %}
+          </button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+              </div>
+
+              <!-- أزرار الإجراءات -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      {% if booking.status == 'pending' %}
+                      <button class="btn btn-success me-2" onclick="acceptAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="قبول الحجز">
+                        <i class="fas fa-check me-1"></i> قبول
+                      </button>
+                      <button class="btn btn-danger me-2" onclick="cancelAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="رفض الحجز">
+                        <i class="fas fa-times me-1"></i> رفض
+                      </button>
+                      {% elif booking.status == 'confirmed' %}
+                      <button class="btn btn-info me-2" onclick="completeAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="تأكيد اكتمال الكشف">
+                        <i class="fas fa-check-double me-1"></i> اكتمال الكشف
+                      </button>
+                      {% endif %}
+                      
+                      {% if not booking.is_online %}
+                      <button class="btn btn-primary me-2" onclick="printAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="طباعة تفاصيل الحجز">
+                        <i class="fas fa-print me-1"></i> طباعة
+                      </button>
+                      {% endif %}
+                      <a href="javascript:history.back()" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة للصفحة السابقة">
+                        <i class="fas fa-arrow-left me-1"></i> رجوع
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-      
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-primary">
-                        <h4 class="card-title text-white mb-0">
-                            <i class="fas fa-calendar-check me-2"></i>تفاصيل الحجز
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <!-- معلومات الحجز -->
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header bg-primary text-white">
-                                            <h5 class="card-title mb-0">معلومات الحجز</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>رقم الحجز:</strong></div>
-                                                <div class="col-sm-8">{{ booking.id }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>حالة الحجز:</strong></div>
-                                                <div class="col-sm-8">
-                                                    <span class="badge {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'confirmed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'completed' %}bg-info{% endif %}">
-                                                        {{ booking.get_status_display }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>تاريخ الحجز:</strong></div>
-                                                <div class="col-sm-8">{{ booking.booking_date|date:"Y-m-d" }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>وقت الحجز:</strong></div>
-                                                <div class="col-sm-8">{{ booking.appointment_time.start_time|time:"h:i A" }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>تاريخ الإنشاء:</strong></div>
-                                                <div class="col-sm-8">{{ booking.created_at|date:"Y-m-d / H:i" }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- معلومات المريض -->
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header bg-info text-white">
-                                            <h5 class="card-title mb-0">معلومات المريض</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>اسم المريض:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.user.get_full_name }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
-                                                <div class="col-sm-8">
-                                                    <a href="tel:{{ booking.patient.user.mobile_number }}" class="text-decoration-none">
-                                                        {{ booking.patient.user.mobile_number }}
-                                                        <i class="fas fa-phone-alt ms-2"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>تاريخ الميلاد:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.birth_date|date:"Y-m-d" }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>الجنس:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.get_gender_display }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>العنوان:</strong></div>
-                                                <div class="col-sm-8">{{ booking.patient.user.address }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-4">
-                                <!-- معلومات الطبيب -->
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header bg-success text-white">
-                                            <h5 class="card-title mb-0">معلومات الطبيب</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>اسم الطبيب:</strong></div>
-                                                <div class="col-sm-8">{{ booking.doctor.full_name }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>التخصص:</strong></div>
-                                                <div class="col-sm-8">{{ booking.doctor.specialty.name }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>سنوات الخبرة:</strong></div>
-                                                <div class="col-sm-8">{{ booking.doctor.experience_years }} سنة</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>رقم الهاتف:</strong></div>
-                                                <div class="col-sm-8">
-                                                    <a href="tel:{{ booking.doctor.phone_number }}" class="text-decoration-none">
-                                                        {{ booking.doctor.phone_number }}
-                                                        <i class="fas fa-phone-alt ms-2"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>البريد الإلكتروني:</strong></div>
-                                                <div class="col-sm-8">
-                                                    <a href="mailto:{{ booking.doctor.email }}" class="text-decoration-none">
-                                                        {{ booking.doctor.email }}
-                                                        <i class="fas fa-envelope ms-2"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- معلومات الدفع -->
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header bg-warning text-dark">
-                                            <h5 class="card-title mb-0">معلومات الدفع</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>المبلغ:</strong></div>
-                                                <div class="col-sm-8">{{ booking.amount }} ريال</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>حالة الدفع:</strong></div>
-                                                <div class="col-sm-8">
-                                                    <span class="badge {% if booking.is_paid %}bg-success{% else %}bg-danger{% endif %}">
-                                                        {{ booking.is_paid|yesno:"تم الدفع,لم يتم الدفع" }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            {% if booking.transfer_number %}
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>رقم الحوالة:</strong></div>
-                                                <div class="col-sm-8">{{ booking.transfer_number }}</div>
-                                            </div>
-                                            {% endif %}
-                                            <div class="row mb-3">
-                                                <div class="col-sm-4"><strong>تاريخ الدفع:</strong></div>
-                                                <div class="col-sm-8">{{ booking.payment_date|default:"لم يتم الدفع بعد"|date:"Y-m-d H:i" }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- أزرار الإجراءات -->
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <div class="card">
-                                        <div class="card-body text-center">
-                                            {% if booking.status == 'pending' %}
-                                            <button class="btn btn-success me-2" onclick="acceptAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="قبول الحجز">
-                                                <i class="fas fa-check me-1"></i> قبول
-                                            </button>
-                                            <button class="btn btn-danger me-2" onclick="cancelAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="رفض الحجز">
-                                                <i class="fas fa-times me-1"></i> رفض
-                                            </button>
-                                            {% elif booking.status == 'confirmed' %}
-                                            <button class="btn btn-info me-2" onclick="completeAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="تأكيد اكتمال الكشف">
-                                                <i class="fas fa-check-double me-1"></i> اكتمال الكشف
-                                            </button>
-                                            {% endif %}
-                                            
-                                            {% if not booking.is_online %}
-                                            <button class="btn btn-primary me-2" onclick="printAppointment({{ booking.id }})" data-bs-toggle="tooltip" title="طباعة تفاصيل الحجز">
-                                                <i class="fas fa-print me-1"></i> طباعة
-                                            </button>
-                                            {% endif %}
-                                            <a href="javascript:history.back()" class="btn btn-secondary" data-bs-toggle="tooltip" title="العودة للصفحة السابقة">
-                                                <i class="fas fa-arrow-left me-1"></i> رجوع
-                                            </a>
-                                            
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- إضافة سكربت للتعامل مع الإجراءات -->
-                        <script>
-                            // تفعيل tooltips
-                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                                return new bootstrap.Tooltip(tooltipTriggerEl)
-                            })
-
-                            // دالة قبول الحجز مع Toast
-                            function acceptAppointment(bookingId) {
-                                if (confirm('هل أنت متأكد من قبول هذا الحجز؟')) {
-                                    fetch(`/hospital/accept_appointment/${bookingId}/`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRFToken': getCookie('csrftoken'),
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({})
-                                    })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        // عرض Toast
-                                        showToast(data.message, data.toast_class || 'bg-success');
-                                        
-                                        // تحديث الصفحة بعد ثانية إذا كانت العملية ناجحة
-                                        if (data.status === 'success') {
-                                            setTimeout(() => {
-                                                location.reload();
-                                            }, 1000);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        showToast('حدث خطأ أثناء معالجة الطلب', 'bg-danger');
-                                        console.error('Error:', error);
-                                    });
-                                }
-                            }
-
-                            // دالة مساعدة للحصول على CSRF Token
-                            function getCookie(name) {
-                                let cookieValue = null;
-                                if (document.cookie && document.cookie !== '') {
-                                    const cookies = document.cookie.split(';');
-                                    for (let i = 0; i < cookies.length; i++) {
-                                        const cookie = cookies[i].trim();
-                                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                            break;
-                                        }
-                                    }
-                                }
-                                return cookieValue;
-                            }
-
-                            // دالة لعرض Toast
-                            function showToast(message, toastClass = 'bg-success') {
-                                const toastContainer = document.getElementById('toastContainer') || createToastContainer();
-                                const toastEl = document.createElement('div');
-                                
-                                toastEl.className = `toast show align-items-center text-white ${toastClass}`;
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                
-                                toastEl.innerHTML = `
-                                    <div class="d-flex">
-                                        <div class="toast-body">
-                                            ${message}
-                                        </div>
-                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                                    </div>
-                                `;
-                                
-                                toastContainer.appendChild(toastEl);
-                                
-                                // إزالة Toast بعد 3 ثوان
-                                setTimeout(() => {
-                                    toastEl.remove();
-                                }, 3000);
-                            }
-
-                            function createToastContainer() {
-                                const container = document.createElement('div');
-                                container.id = 'toastContainer';
-                                container.style.position = 'fixed';
-                                container.style.top = '20px';
-                                container.style.right = '20px';
-                                container.style.zIndex = '9999';
-                                document.body.appendChild(container);
-                                return container;
-}
-                            // دالة رفض الحجز
-function cancelAppointment(bookingId) {
-    if (confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
-        fetch(`/hospital/cancel_appointment/${bookingId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'حدث خطأ في الخادم');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                showToast(data.message, data.toast_class || 'bg-success');
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
-                showToast(data.message, data.toast_class || 'bg-danger');
-            }
-        })
-        .catch(error => {
-            showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
-            console.error('Error:', error);
-        });
-    }
-}
-
-                            // دالة اكتمال الكشف
-                            function completeAppointment(bookingId) {
-                                if (confirm('هل تريد تأكيد اكتمال الكشف؟')) {
-                                    fetch(`/hospital/completed_appointment/${bookingId}/`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRFToken': getCookie('csrftoken'),
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({})
-                                    })
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            return response.json().then(err => {
-                                                throw new Error(err.message || 'حدث خطأ في الخادم');
-                                            });
-                                        }
-                                        return response.json();
-                                    })
-                                    .then(data => {
-                                        if (data.status === 'success') {
-                                            showToast(data.message, 'bg-success');
-                                            setTimeout(() => {
-                                                location.reload();
-                                            }, 1000);
-                                        } else {
-                                            showToast(data.message, 'bg-danger');
-                                        }
-                                    })
-                                    .catch(error => {
-                                        showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
-                                        console.error('Error:', error);
-                                    });
-                                }
-                            }
-
-                            // دالة طباعة تفاصيل الحجز
-                            function printAppointment(bookingId) {
-                                window.print();
-                            }
-                        </script>
-                    </div>
-                </div>
-            </div>
-        </div>
-   
 </div>
 
 <style>
-.card {
-    border: none;
-    border-radius: 15px;
-    margin-bottom: 1.5rem;
-}
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
 
-.card-header {
-    border-radius: 15px 15px 0 0 !important;
-    padding: 1.25rem 1.5rem;
-}
-
-.card-body {
-    padding: 1.5rem;
-}
-
-.info-group label {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.badge {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-}
-
-.btn {
-    padding: 0.6rem 1.5rem;
-    border-radius: 8px;
-}
-
-.shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-}
-
-.rounded-circle {
-    border: 4px solid #fff;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-}
-</style>
-
-<style>
-    .toast {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        min-width: 300px;
-        text-align: center;
-
-        .toast {
+  .toast {
     min-width: 300px;
     text-align: center;
     animation: fadeIn 0.3s;
-}
+    margin-bottom: 10px;
+  }
 
-@keyframes fadeIn {
+  @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-}
-    }
-    </style>
-    </div>
-  </div>
-</div>
-<!-- /Page Content -->
+  }
+
+  .card {
+    border: none;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .info-group label {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+  }
+
+  .shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+
+  .rounded-circle {
+    border: 4px solid #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+</style>
+
 {% endblock content %}
 
 {% block extra_js %}
+<!-- تضمين المكتبات المطلوبة -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-  $(document).ready(function () {
-    function showSection(targetSection) {
-      $(".section").addClass("d-none");
-      
-      $(`.${targetSection}`).removeClass("d-none");
-    }
+// دالة لعرض رسائل Toast
+function showToast(message, toastClass = 'bg-success') {
+  const toastContainer = document.getElementById('toastContainer');
+  const toastEl = document.createElement('div');
   
-    $("a[data-method]").on("click", function () {
-      const methodName = $(this).data("method");
-      showSection(methodName)
-     
+  toastEl.className = `toast show align-items-center text-white ${toastClass}`;
+  toastEl.setAttribute('role', 'alert');
+  toastEl.setAttribute('aria-live', 'assertive');
+  toastEl.setAttribute('aria-atomic', 'true');
+  
+  toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        ${message}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toastEl);
+  
+  // إزالة الرسالة بعد 5 ثواني
+  setTimeout(() => {
+    toastEl.remove();
+  }, 5000);
+}
+
+// دالة للحصول على CSRF token
+function getCSRFToken() {
+  let csrfToken = null;
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'csrftoken') {
+      csrfToken = value;
+      break;
+    }
+  }
+  return csrfToken;
+}
+
+// دالة قبول الحجز
+function acceptAppointment(bookingId) {
+  console.log('محاولة قبول الحجز رقم:', bookingId);
+  
+  if (confirm('هل أنت متأكد من قبول هذا الحجز؟')) {
+    fetch(`/hospitals/accept_appointment/${bookingId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'حدث خطأ في الخادم');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('استجابة الخادم:', data);
+      showToast(data.message, data.toast_class || 'bg-success');
+      if (data.status === 'success') {
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    })
+    .catch(error => {
+      console.error('حدث خطأ:', error);
+      showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
     });
+  }
+}
+
+// دالة إلغاء الحجز
+function cancelAppointment(bookingId) {
+  console.log('محاولة إلغاء الحجز رقم:', bookingId);
+  
+  if (confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
+    fetch(`/hospitals/cancel_appointment/${bookingId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'حدث خطأ في الخادم');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('استجابة الخادم:', data);
+      showToast(data.message, data.toast_class || 'bg-success');
+      if (data.status === 'success') {
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    })
+    .catch(error => {
+      console.error('حدث خطأ:', error);
+      showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
+    });
+  }
+}
+
+// دالة اكتمال الكشف
+function completeAppointment(bookingId) {
+  console.log('محاولة تأكيد اكتمال الكشف للحجز رقم:', bookingId);
+  
+  if (confirm('هل تريد تأكيد اكتمال الكشف؟')) {
+    fetch(`/hospitals/completed_appointment/${bookingId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'حدث خطأ في الخادم');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('استجابة الخادم:', data);
+      showToast(data.message, data.toast_class || 'bg-success');
+      if (data.status === 'success') {
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+    })
+    .catch(error => {
+      console.error('حدث خطأ:', error);
+      showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
+    });
+  }
+}
+
+// دالة تأكيد الدفع
+function verifyPayment(bookingId) {
+  console.log('محاولة تأكيد الدفع للحجز رقم:', bookingId);
+  
+  if (confirm('هل أنت متأكد من تأكيد استلام الدفع لهذا الحجز؟')) {
+    const paymentNotes = prompt('أدخل ملاحظات الدفع (اختياري):', '');
+    
+    // Show loading state
+    const verifyBtn = document.getElementById('verifyPaymentBtn');
+    const originalText = verifyBtn.innerHTML;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري المعالجة...';
+    verifyBtn.disabled = true;
+    
+    fetch(`/payments/verify-payment/${bookingId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        notes: paymentNotes || ''
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'حدث خطأ في الخادم');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('استجابة الخادم:', data);
+      showToast(data.message, data.toast_class || 'bg-success');
+      
+      if (data.status === 'success') {
+        // Update UI elements
+        const verifyBtn = document.getElementById('verifyPaymentBtn');
+        if (verifyBtn) {
+          verifyBtn.disabled = true;
+          verifyBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> تم التحقق';
+          verifyBtn.classList.remove('btn-success');
+          verifyBtn.classList.add('btn-secondary');
+        }
+        
+        // Update payment status badge
+        const statusBadge = document.querySelector('.payment-status-badge');
+        if (statusBadge) {
+          statusBadge.className = 'badge bg-success';
+          statusBadge.textContent = data.payment_status_display || 'مكتمل';
+        }
+        
+        // Add verification info if not exists
+        if (!document.querySelector('.verification-info')) {
+          const statusDiv = statusBadge?.parentElement;
+          if (statusDiv) {
+            const verificationInfo = document.createElement('div');
+            verificationInfo.className = 'verification-info text-muted small mt-1';
+            verificationInfo.textContent = `تم التحقق في: ${data.verified_at} بواسطة: ${data.verified_by}`;
+            statusDiv.appendChild(verificationInfo);
+          }
+        }
+        
+        // Update booking status if needed
+        const bookingStatusBadge = document.querySelector('.badge.bg-warning, .badge.bg-success, .badge.bg-danger, .badge.bg-info');
+        if (bookingStatusBadge && data.payment_status === 'completed') {
+          bookingStatusBadge.className = 'badge bg-success';
+          bookingStatusBadge.textContent = 'مؤكد';
+        }
+      } else {
+        // Reset button if failed
+        if (verifyBtn) {
+          verifyBtn.innerHTML = originalText;
+          verifyBtn.disabled = false;
+        }
+      }
+    })
+    .catch(error => {
+      console.error('حدث خطأ:', error);
+      showToast(error.message || 'حدث خطأ أثناء معالجة الطلب', 'bg-danger');
+      // Reset button on error
+      if (verifyBtn) {
+        verifyBtn.innerHTML = originalText;
+        verifyBtn.disabled = false;
+      }
+    });
+  }
+}
+// دالة طباعة تفاصيل الحجز
+function printAppointment(bookingId) {
+  console.log('طباعة تفاصيل الحجز رقم:', bookingId);
+  window.print();
+}
+
+// تهيئة أدوات التلميح (Tooltips) عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function(tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
   });
   
-
-
-  
+  // تسجيل تحميل الصفحة لأغراض التصحيح
+  console.log('تم تحميل صفحة تفاصيل الحجز بنجاح');
+});
 </script>
-<script>
-    // دالة مساعدة للحصول على CSRF Token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    </script>
 {% endblock extra_js %}

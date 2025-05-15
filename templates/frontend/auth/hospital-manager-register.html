@@ -13,7 +13,7 @@
                 <div class="account-content">
                     <div class="row align-items-center justify-content-center">
                          <div class="col-md-7 col-lg-6 login-left">
-                            <img src="{% static 'img/login-banner.png' %}" class="img-fluid" alt="تسجيل مستشفى">    
+                            <img src="{% static 'img/login-banner.png' %}" class="img-fluid" alt="تسجيل مستشفى">
                         </div>
                         <div class="col-md-12 col-lg-6 login-right">
                             <div class="login-header">
@@ -41,11 +41,11 @@
                                             </tr>
                                             <tr>
                                                 <th><label for="hospital_name">اسم المستشفى</label></th>
-                                                <td><input type="text" name="hospital_name" id="hospital_name" class="form-control" required></td>
+                                                <td><input type="text" name="hospital_name" id="hospital_name" class="form-control" value="{{ form_data.hospital_name }}" required></td>
                                             </tr>
                                              <tr>
                                                 <th><label for="hospital_location">عنوان المستشفى</label></th>
-                                                <td><input type="text" name="hospital_location" id="hospital_location" class="form-control" required></td>
+                                                <td><input type="text" name="hospital_location" id="hospital_location" class="form-control" value="{{ form_data.hospital_location }}" required></td>
                                             </tr>
 
                                             <tr>
@@ -54,18 +54,18 @@
                                                     <input type="file" name="logo" id="logo" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
                                                 </td>
                                             </tr>
-                                            
+
                                             <!-- Manager Information -->
                                             <tr>
                                                 <th colspan="2" class="text-center bg-light mt-4"><h4>معلومات مدير المستشفى</h4></th>
                                             </tr>
                                             <tr>
                                                 <th><label for="manager_full_name">الاسم الكامل للمدير</label></th>
-                                                <td><input type="text" name="manager_full_name" id="manager_full_name" class="form-control" required></td>
+                                                <td><input type="text" name="manager_full_name" id="manager_full_name" class="form-control" value="{{ form_data.manager_full_name }}" required></td>
                                             </tr>
                                             <tr>
                                                 <th><label for="manager_email">البريد الإلكتروني</label></th>
-                                                <td><input type="email" name="manager_email" id="manager_email" class="form-control" required></td>
+                                                <td><input type="email" name="manager_email" id="manager_email" class="form-control" value="{{ form_data.manager_email }}" required></td>
                                             </tr>
                                             <tr>
                                                 <th><label for="password">كلمة المرور</label></th>
@@ -77,7 +77,7 @@
                                             </tr>
                                             <tr>
                                                 <th><label for="manager_phone">رقم الجوال</label></th>
-                                                <td><input type="text" name="manager_phone" id="manager_phone" class="form-control" required></td>
+                                                <td><input type="text" name="manager_phone" id="manager_phone" class="form-control" value="{{ form_data.manager_phone }}" required></td>
                                             </tr>
 
                                             <!-- Required Documents -->
@@ -102,7 +102,7 @@
                                             <!-- Additional Notes -->
                                              <tr>
                                                <th><label for="notes">ملاحظات إضافية</label></th>
-                                               <td><textarea name="notes" id="notes" class="form-control" rows="3" placeholder="أي معلومات إضافية ترغب في إضافتها"></textarea></td>
+                                               <td><textarea name="notes" id="notes" class="form-control" rows="3" placeholder="أي معلومات إضافية ترغب في إضافتها">{{ form_data.notes }}</textarea></td>
                                              </tr>
 
                                             <!-- Terms and Conditions -->
@@ -126,7 +126,7 @@
                                             <tr>
                                               <td colspan="2" class="text-center mt-3">
                                                   <p class="text-muted">
-                                                      لديك حساب بالفعل؟ 
+                                                      لديك حساب بالفعل؟
                                                       <a href="{% url 'users:login' %}">تسجيل الدخول</a>
                                                   </p>
                                               </td>
@@ -169,7 +169,7 @@
     }
     .table th label {
         font-weight: bold;
-        margin-bottom: 0; 
+        margin-bottom: 0;
     }
      .alert {
         margin-bottom: 20px;

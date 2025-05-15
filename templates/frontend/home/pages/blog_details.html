@@ -21,7 +21,7 @@
 <!-- Page Content -->
 <div class="content">
     <div class="container">
-    
+
         <div class="row">
             <div class="col-lg-8 col-md-12">
                 <div class="blog-view">
@@ -40,6 +40,7 @@
                                     </li>
                                     <li><i class="far fa-calendar"></i>{{ post.created_at|date:"F j, Y" }}</li>
                                     <li><i class="far fa-comments"></i>{{post.comments.count}} Comments</li>
+                                    <li><i class="far fa-eye"></i>{{post.views_count}} Views</li>
                                     <li><i class="fa fa-tags"></i>{{ post.categories }}</li>
                                 </ul>
                             </div>
@@ -47,10 +48,10 @@
                         <div class="blog-content">
                         <p>
                             {{ post.content }}
-                        </p>    
+                        </p>
                         </div>
                     </div>
-                    
+
                     <div class="card blog-share clearfix">
                         <div class="card-header">
                             <h4 class="card-title">Share the post</h4>
@@ -102,17 +103,17 @@
                                         </span>
                                         <p>{{comment.content}}</p>
                                         <p class="blog-date">{{ post.created_at|date:"F j, Y" }}</p>
-                                        
+
                                     </div>
                                 </div>
-                               
+
                             </li>
                             {% endfor %}
                         </ul>
                     </div>
                     {% endif %}
                     </div>
-                    
+
                     <div class="card new-comment clearfix">
                         <div class="card-header">
                             <h4 class="card-title">Leave Comment</h4>
@@ -130,10 +131,10 @@
                             </form>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
-        
+
             <!-- Blog Sidebar -->
             <div class="col-lg-4 col-md-12 sidebar-right theiaStickySidebar">
 
@@ -173,8 +174,8 @@
                                 </div>
                             </li>
                             {% endfor %}
-                            
-                          
+
+
                         </ul>
                     </div>
                 </div>
@@ -183,7 +184,7 @@
 
                <!-- Categories -->
                {% if categories %}
-                   
+
                <div class="card category-widget">
                    <div class="card-header">
                        <h4 class="card-title">Blog Categories</h4>
@@ -198,7 +199,7 @@
                                {% endwith %}
                            </span></a></li>
                            {% endfor %}
-                          
+
                        </ul>
                    </div>
                </div>
@@ -216,19 +217,19 @@
                            {% for tag in tags %}
                            <li><a href="{{ tag.get_absolute_url }}" class="tag">{{tag}}</a></li>
                            {% endfor %}
-                           
+
                        </ul>
                    </div>
                </div>
                <!-- /Tags -->
                {% endif %}
-                
+
             </div>
             <!-- /Blog Sidebar -->
-            
+
     </div>
     </div>
 
-</div>		
+</div>
 <!-- /Page Content -->
 {% endblock %}

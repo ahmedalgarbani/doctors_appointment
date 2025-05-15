@@ -5,19 +5,20 @@
         <div class="row">
             <div class="col-md-12 aos" data-aos="fade-up">
                 <div class="section-header-one text-center">
-                    <h2 class="section-title">Latest Articles</h2>
+                    <h2 class="section-title">احدث المقالات </h2>
                 </div>
             </div>
         </div>
         <div class="row">
             {% for post in posts.all|slice:":4" %}
+            {% if post.slug %}
             <div class="col-lg-6 col-md-6 d-flex aos" data-aos="fade-up">
                 <div class="articles-grid w-100">
                     <div class="articles-info">
                         <div class="articles-left">
                             <a href="{{ post.get_absolute_url }}">
                                 <div class="articles-img">
-                                    <img src="{{ post.image.url }}" class="img-fluid" alt="John Doe">
+                                    <img src="{{ post.image.url }}" class="img-fluid" alt="{{ post.title }}">
                                 </div>
                             </a>
                         </div>
@@ -25,10 +26,16 @@
                             <div class="articles-content">
                                 <ul class="articles-list nav">
                                     <li>
-                                        <i class="feather-user"></i> ahmed
+                                        <i class="feather-user"></i> {{ post.author.name|default:"Author" }}
                                     </li>
                                     <li>
                                         <i class="feather-calendar"></i>{{ post.created_at|date:"F j, Y" }}
+                                    </li>
+                                    <li>
+                                        <i class="feather-eye"></i> {{ post.views_count }}
+                                    </li>
+                                    <li>
+                                        <i class="feather-message-square"></i> {{ post.comments.count }}
                                     </li>
                                 </ul>
                                 <h4>
@@ -41,6 +48,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>

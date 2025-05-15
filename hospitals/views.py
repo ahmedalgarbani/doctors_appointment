@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.db import models
+from django.db import transaction, IntegrityError, models
 from blog.forms import PostForm
 from blog.models import Post, Tag,Category
 from patients.models import Patients
@@ -38,6 +38,7 @@ from doctors.models import (
     DoctorShifts,
     Specialty,
 )
+from advertisements.models import Advertisement
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
@@ -112,7 +113,8 @@ def index(request):
     )
     phoneNumber = PhoneNumber.objects.filter(hospital=hospital)
     city = City.objects.filter(status=True)
-    patients = Patients.objects.filter(bookings__hospital_id=user.id).distinct()
+    # Get patients who have made bookings at this hospital
+    patients = Patients.objects.filter(bookings__hospital=hospital).distinct()
 
 
     # Get current date and first day of month
@@ -126,13 +128,23 @@ def index(request):
     total_specialties = specialties.count()
     specialties_count_percentage = min((total_specialties / 10) * 100, 100)  # Assuming 10 is the target
 
+    # Get total revenue (all completed payments)
+    total_revenue = Payment.objects.filter(
+        booking__hospital=hospital,
+        payment_status=1  # 1 = مكتمل (completed), 2 = فشل (failed)
+    ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    print(f"\n\nDEBUG - Total Revenue: {total_revenue}\n\n")
+    
     # Get monthly revenue
     monthly_revenue = Payment.objects.filter(
         booking__hospital=hospital,
         payment_date__year=today.year,
         payment_date__month=today.month,
-        payment_status=2
+        payment_status=1  # 1 = مكتمل (completed), 2 = فشل (failed)
     ).aggregate(total=Sum('payment_totalamount'))['total'] or 0
+    
+    print(f"\n\nDEBUG - Monthly Revenue: {monthly_revenue}\n\n")
 
     # Calculate revenue percentage (compared to target)
     monthly_target = 50000  # مثال للهدف الشهري
@@ -273,13 +285,67 @@ def index(request):
     # حساب عدد الإشعارات غير المقروءة
     unread_notifications_count = notifications.filter(status='0').count()
 
+    # Get hospital location from HospitalUpdateRequest
+    hospital_location = None
+    try:
+        update_request = HospitalUpdateRequest.objects.filter(hospital=hospital, status='approved').first()
+        if update_request and update_request.location:
+            hospital_location = update_request.location
+            print(f"Found hospital location: {hospital_location}")
+    except Exception as e:
+        print(f"Error getting hospital location: {str(e)}")
+
+    # Importar el modelo Advertisement si aún no está importado
+    try:
+        from advertisements.models import Advertisement
+        # Obtener anuncios para este hospital
+        advertisements = Advertisement.objects.filter(hospital=hospital)
+    except ImportError:
+        # Si el modelo no está disponible, usar una lista vacía
+        advertisements = []
+    except Exception as e:
+        # Si hay otro error, registrarlo y usar una lista vacía
+        print(f"Error al cargar anuncios: {str(e)}")
+        advertisements = []
+
+    # التحقق مما إذا كان الطلب يطلب بيانات الحجوزات بتنسيق JSON
+    if request.GET.get('format') == 'json' and request.GET.get('section') == 'appointments':
+        # تحضير بيانات الحجوزات للاستجابة JSON
+        bookings_data = []
+        for booking in bookings:
+            booking_data = {
+                'id': booking.id,
+                'patient_name': booking.patient.user.get_full_name() if booking.patient and booking.patient.user else 'غير معروف',
+                'patient_phone': booking.patient.user.mobile_number if booking.patient and booking.patient.user else '',
+                'patient_image': booking.patient.user.profile_picture.url if booking.patient and booking.patient.user and booking.patient.user.profile_picture else None,
+                'doctor_name': booking.doctor.full_name if booking.doctor else 'غير معروف',
+                'doctor_specialty': booking.doctor.specialty.name if booking.doctor and booking.doctor.specialty else '',
+                'doctor_image': booking.doctor.photo.url if booking.doctor and booking.doctor.photo else None,
+                'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else '',
+                'booking_time': booking.booking_time.strftime('%H:%M') if booking.booking_time else '',
+                'amount': booking.amount,
+                'status': booking.status,
+                'payment_status': 'مدفوع' if booking.payment_status == 'paid' else 'غير مدفوع',
+            }
+            bookings_data.append(booking_data)
+        
+        # إرجاع استجابة JSON
+        return JsonResponse({
+            'bookings': bookings_data,
+            'total_bookings': bookings.count(),
+            'confirmed_bookings': bookings.filter(status='confirmed').count(),
+            'pending_bookings': bookings.filter(status='pending').count(),
+            'completed_bookings': bookings.filter(status='completed').count(),
+        })
+    
     context = {
         "payment_options": PaymentOption.objects.filter(is_active=True),
         "payment_methods": payment_method,
         'hospital': hospital,
         'users': User.objects.all(),
         'bookings': bookings,
-        'city':city,
+        'city': city,
+        'cities': City.objects.filter(status=True),  # Add all active cities for dropdown
         'doctors': doctors,
         'patients':patients,
         'speciality':Specialty.objects.filter(status=True),
@@ -289,7 +355,8 @@ def index(request):
         'payment_statuses': Payment.PaymentStatus_choices,
         'specialties': specialties,
         'specialties_count_percentage': specialties_count_percentage,
-        'total_revenue': monthly_revenue,
+        'total_revenue': total_revenue,
+        'monthly_revenue': monthly_revenue,
         'revenue_percentage': revenue_percentage,
         'total_appointments': total_appointments,
         'appointments_percentage': appointments_percentage,
@@ -312,6 +379,7 @@ def index(request):
         'hospital_notifications_sended':hospital_notifications_sended,
         'unread_notifications_count': unread_notifications_count,
         'staff_obj': staff_obj,  # إضافة معلومات الموظف إلى السياق
+        'advertisements': advertisements,  # Añadir anuncios al contexto
     }
 
 
@@ -323,8 +391,9 @@ def index(request):
 
 def blog_list(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
+    hospital = get_object_or_404(Hospital, user=user)
+    # Use prefetch_related to efficiently load comments and their users
+    posts = Post.objects.filter(author=hospital).prefetch_related('comments__user')
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -334,12 +403,35 @@ def blog_list(request):
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
 
+
+@login_required(login_url='/user/login')
+def blog_list_json(request):
+    user = request.user
+    hospital = get_object_or_404(Hospital, user=user)
+    posts = Post.objects.filter(author=hospital, status=True)
+
+    blogs_data = []
+    for post in posts:
+        blog_data = {
+            'id': post.id,
+            'title': post.title,
+            'content_preview': post.content[:100] + '...' if len(post.content) > 100 else post.content,
+            'image_url': post.image.url if post.image else '',
+            'author_name': hospital.name,
+            'created_at': post.created_at.strftime('%Y-%m-%d'),
+            'status': post.status
+        }
+        blogs_data.append(blog_data)
+
+    return JsonResponse({'status': 'success', 'blogs': blogs_data})
+
 @login_required(login_url='/user/login')
 
 def blog_pending_list(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
+    hospital = get_object_or_404(Hospital, user=user)
+    # Use prefetch_related to efficiently load comments and their users
+    posts = Post.objects.filter(author=hospital).prefetch_related('comments__user')
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -355,7 +447,7 @@ def blog_pending_list(request):
 
 def add_blog(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -383,7 +475,7 @@ def add_blog(request):
 
 def edit_blog(request, blog_id):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
     blog = get_object_or_404(Post, id=blog_id, author=hospital)
 
     if request.method == 'POST':
@@ -407,6 +499,25 @@ def edit_blog(request, blog_id):
         'blog': blog,
     }
     return render(request, 'frontend/dashboard/hospitals/sections/hospitals-edit-blog.html', context)
+
+
+@login_required(login_url='/user/login')
+def blog_detail(request, blog_id):
+    user = request.user
+    hospital = get_object_or_404(Hospital, user=user)
+    blog = get_object_or_404(Post, id=blog_id, author=hospital)
+
+    # استخدام prefetch_related لتحميل التعليقات ومستخدميها بكفاءة
+    blog = Post.objects.prefetch_related('comments__user').get(id=blog_id, author=hospital)
+
+    # ترتيب التعليقات من الأحدث إلى الأقدم
+    comments = blog.comments.all().order_by('-created_at')
+
+    context = {
+        'blog': blog,
+        'comments': comments,
+    }
+    return render(request, 'frontend/dashboard/hospitals/sections/hospitals-blog-detail.html', context)
 
 
 
@@ -442,35 +553,7 @@ def delete_notification(notification_id, user):
 
 
 
-@login_required(login_url='/user/login')
 
-def blog_list(request):
-    user = request.user
-    hospital = get_object_or_404(Hospital, user_id=user)
-    posts = Post.objects.filter(author=hospital)
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'allBlogs': page_obj,
-    }
-    return render(request, 'frontend/dashboard/hospitals/sections/hospital_blogs.html', context)
-
-@login_required(login_url='/user/login')
-
-def blog_pending_list(request):
-    user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
-    posts = Post.objects.filter(author=hospital)
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'allBlogs': page_obj,
-    }
-    return render(request, 'frontend/dashboard/hospitals/sections/hospital_pending_blog.html', context)
 
 
 
@@ -478,7 +561,7 @@ def blog_pending_list(request):
 
 def add_blog(request):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -506,7 +589,7 @@ def add_blog(request):
 
 def edit_blog(request, blog_id):
     user = request.user
-    hospital = get_object_or_404(Hospital, hospital_manager=user)
+    hospital = get_object_or_404(Hospital, user=user)
     blog = get_object_or_404(Post, id=blog_id, author=hospital)
 
     if request.method == 'POST':
@@ -534,9 +617,44 @@ def edit_blog(request, blog_id):
 
 
 
-def hospital_detail(request, pk):
-    hospital = get_object_or_404(Hospital, pk=pk)
-    return render(request, 'hospital_detail.html', {'hospital': hospital})
+    """عرض تفاصيل المستشفى للزوار"""
+    try:
+        hospital = get_object_or_404(Hospital, slug=slug)
+
+        # طباعة معلومات تصحيح
+        print(f"Found hospital: {hospital.name}, Status: {hospital.status}")
+
+        # الحصول على الأطباء المرتبطين بالمستشفى
+        doctors = Doctor.objects.filter(hospitals=hospital, status=True).select_related('specialty')
+        print(f"Found {doctors.count()} doctors")
+
+        # الحصول على التخصصات المتاحة في المستشفى
+        specialties = Specialty.objects.filter(doctor__hospitals=hospital).distinct()
+        print(f"Found {specialties.count()} specialties")
+
+        # إحصائيات المستشفى
+        stats = {
+            'doctors_count': doctors.count(),
+            'specialties_count': specialties.count(),
+        }
+
+        context = {
+            'hospital': hospital,
+            'doctors': doctors,
+            'specialties': specialties,
+            'stats': stats,
+        }
+
+        # طباعة معلومات تصحيح
+        print(f"Rendering template: frontend/home/pages/hospital_detail.html")
+        print(f"Context: {context}")
+
+        # تجربة استخدام قالب بديل
+        return render(request, 'frontend/home/pages/hospital_detail.html', context)
+    except Exception as e:
+        print(f"Error in hospital_detail: {str(e)}")
+        # إعادة توجيه المستخدم إلى الصفحة الرئيسية في حالة حدوث خطأ
+        return redirect('home:home')
 
 def hospital_create(request):
     if request.method == 'POST':
@@ -568,6 +686,10 @@ def hospital_delete(request, pk):
 
 def hospital_request_success(request):
     """صفحة نجاح تقديم الطلب"""
+    # طباعة رسالة تأكيد للتحقق من وصول الطلب إلى هذه الوظيفة
+    print("\n\n*** تم الوصول إلى صفحة نجاح تقديم الطلب ***\n\n")
+    print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
+    print(f"\n\n*** المستخدم مسجل الدخول: {request.user.is_authenticated} ***\n\n")
     return render(request, 'frontend/auth/hospital-request-success.html')
 
 def hospital_request_status(request, request_id):
@@ -583,7 +705,7 @@ def hospital_request_status(request, request_id):
 @login_required(login_url='/user/login')
 
 def filter_doctors(request):
-    hospital = get_object_or_404(Hospital, hospital_manager=request.user)
+    hospital = get_object_or_404(Hospital, user=request.user)
 
     # Get all doctors for this hospital
     doctors = Doctor.objects.filter(hospitals=hospital)
@@ -707,9 +829,24 @@ def add_doctor(request):
     return redirect('hospitals:index')
 
 
+@login_required(login_url='/user/login')
 def add_payment_method(request):
+    # Get the hospital associated with the logged-in user
+    try:
+        if request.user.user_type == 'hospital_manager':
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif request.user.user_type == 'hospital_staff':
+            from hospital_staff.models import HospitalStaff
+            staff_obj = get_object_or_404(HospitalStaff, user=request.user)
+            hospital = staff_obj.hospital
+        else:
+            messages.error(request, "ليس لديك صلاحية للقيام بهذه العملية")
+            return redirect('hospitals:index')
+    except Exception as e:
+        messages.error(request, f"حدث خطأ أثناء تحديد المستشفى: {str(e)}")
+        return redirect('hospitals:index')
+    
     if request.method == "POST":
-        hospital_id = 1
         payment_option_id = request.POST.get("payment_option")
         account_name = request.POST.get("account_name")
         account_number = request.POST.get("account_number")
@@ -717,24 +854,62 @@ def add_payment_method(request):
         description = request.POST.get("description")
         is_active = request.POST.get("is_active") == "1"
 
-        if not all([hospital_id, payment_option_id, account_name, account_number, iban, description]):
-            return HttpResponseBadRequest("Missing required fields")
+        if not all([payment_option_id, account_name, account_number, iban, description]):
+            messages.error(request, "يرجى ملء جميع الحقول المطلوبة")
+            return redirect('hospitals:index')
 
         try:
-            hospital = Hospital.objects.get(id=hospital_id)
             payment_option = PaymentOption.objects.get(id=payment_option_id)
-        except (Hospital.DoesNotExist, PaymentOption.DoesNotExist):
-            return HttpResponseBadRequest("Invalid hospital or payment option ID")
-
-        HospitalPaymentMethod.objects.create(
-            hospital=hospital,
-            payment_option=payment_option,
-            account_name=account_name,
-            account_number=account_number,
-            iban=iban,
-            description=description,
-            is_active=is_active,
-        )
+            
+            # Check if this payment option already exists for this hospital
+            existing_payment = HospitalPaymentMethod.objects.filter(
+                hospital=hospital,
+                payment_option=payment_option
+            ).first()
+            
+            if existing_payment:
+                # Update the existing payment method instead of creating a new one
+                existing_payment.account_name = account_name
+                existing_payment.account_number = account_number
+                existing_payment.iban = iban
+                existing_payment.description = description
+                existing_payment.is_active = is_active
+                try:
+                    existing_payment.save()
+                    messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+                except IntegrityError:
+                    # Check which field caused the error
+                    if HospitalPaymentMethod.objects.filter(account_number=account_number).exists():
+                        messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+                    elif HospitalPaymentMethod.objects.filter(iban=iban).exists():
+                        messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+                    else:
+                        messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
+            else:
+                # Create a new payment method
+                try:
+                    HospitalPaymentMethod.objects.create(
+                        hospital=hospital,
+                        payment_option=payment_option,
+                        account_name=account_name,
+                        account_number=account_number,
+                        iban=iban,
+                        description=description,
+                        is_active=is_active,
+                    )
+                    messages.success(request, "تمت إضافة طريقة الدفع بنجاح")
+                except IntegrityError:
+                    # Check which field caused the error
+                    if HospitalPaymentMethod.objects.filter(account_number=account_number).exists():
+                        messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+                    elif HospitalPaymentMethod.objects.filter(iban=iban).exists():
+                        messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+                    else:
+                        messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
+        except PaymentOption.DoesNotExist:
+            messages.error(request, "خيار الدفع غير موجود")
+        except Exception as e:
+            messages.error(request, f"حدث خطأ أثناء إضافة طريقة الدفع: {str(e)}")
 
         return redirect("hospitals:index")
 
@@ -756,19 +931,44 @@ def update_payment_method(request):
         is_active = request.POST.get("is_active") == "1"
 
         if not all([method_id, account_name, account_number, iban, description]):
-            return HttpResponseBadRequest("Missing required fields")
+            messages.error(request, "يرجى ملء جميع الحقول المطلوبة")
+            return redirect("hospitals:index")
 
         try:
             payment_method = HospitalPaymentMethod.objects.get(id=method_id)
         except HospitalPaymentMethod.DoesNotExist:
-            return HttpResponseBadRequest("Payment method not found")
+            messages.error(request, "طريقة الدفع غير موجودة")
+            return redirect("hospitals:index")
+
+        # Check if the account number or IBAN is changing
+        account_number_changed = payment_method.account_number != account_number
+        iban_changed = payment_method.iban != iban
+
+        # If either is changing, check for duplicates
+        if account_number_changed and HospitalPaymentMethod.objects.filter(account_number=account_number).exclude(id=method_id).exists():
+            messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+            return redirect("hospitals:index")
+        
+        if iban_changed and HospitalPaymentMethod.objects.filter(iban=iban).exclude(id=method_id).exists():
+            messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+            return redirect("hospitals:index")
 
         payment_method.account_name = account_name
         payment_method.account_number = account_number
         payment_method.iban = iban
         payment_method.description = description
         payment_method.is_active = is_active
-        payment_method.save()
+        
+        try:
+            payment_method.save()
+            messages.success(request, "تم تحديث طريقة الدفع بنجاح")
+        except IntegrityError:
+            if account_number_changed:
+                messages.error(request, "رقم الحساب مستخدم بالفعل. يرجى استخدام رقم حساب آخر.")
+            elif iban_changed:
+                messages.error(request, "رقم الآيبان مستخدم بالفعل. يرجى استخدام رقم آيبان آخر.")
+            else:
+                messages.error(request, "حدث خطأ أثناء حفظ البيانات. يرجى التحقق من صحة البيانات المدخلة.")
 
         return redirect("hospitals:index")
 
@@ -837,7 +1037,6 @@ def accept_appointment(request, booking_id):
 
     try:
         booking = get_object_or_404(Booking, id=booking_id)
-        payment = get_object_or_404(Payment, booking=booking)
 
         if booking.hospital != request.user.hospital:
             return JsonResponse({
@@ -853,9 +1052,6 @@ def accept_appointment(request, booking_id):
             doctor_shifts.save()
 
         booking.status = 'confirmed'
-        booking.payment_verified = True
-        booking.payment_verified_at = timezone.now()
-        booking.payment_verified_by = request.user
         booking.save()
 
         BookingStatusHistory.objects.create(
@@ -865,9 +1061,6 @@ def accept_appointment(request, booking_id):
             notes='تم قبول الحجز من قبل المستشفى'
         )
 
-        payment.payment_status = 2
-        payment.save()
-
         return JsonResponse({
             'status': 'success',
             'message': 'تم قبول الحجز بنجاح',
@@ -875,7 +1068,7 @@ def accept_appointment(request, booking_id):
             'booking_status': 'confirmed'
         })
 
-    except (Booking.DoesNotExist, Payment.DoesNotExist):
+    except Booking.DoesNotExist:
         return JsonResponse({
             'status': 'error',
             'message': 'الحجز غير موجود',
@@ -890,7 +1083,7 @@ def accept_appointment(request, booking_id):
 
 
 def completed_appointment(request, booking_id):
-    """تأكيد اكتمال الحجز بعد الكشف"""
+    """تأكيد اكتمال الحجز بعد الكشف مع التحقق من حالة الدفع"""
     if not hasattr(request.user, 'hospital'):
         return JsonResponse({
             'status': 'error',
@@ -907,7 +1100,23 @@ def completed_appointment(request, booking_id):
                 'message': 'ليس لديك صلاحية للقيام بهذا الإجراء'
             }, status=403)
 
-         # تحديث حالة الحجز إلى مكتمل
+        # التحقق من أن الحجز مؤكد
+        if booking.status != 'confirmed':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لا يمكن تأكيد اكتمال حجز غير مؤكد'
+            }, status=400)
+
+        # التحقق من حالة الدفع
+        payment = Payment.objects.filter(booking=booking).first()
+        if not payment or payment.payment_status != 1:  # 1 = مكتمل
+            return JsonResponse({
+                'status': 'payment_required',
+                'message': 'لم يتم استكمال عملية الدفع بعد يرجى الانتقال الى تفاصيل الحجز لاكمال الدفع',
+                'redirect_url': f'/bookings/appointment-details/{booking.id}/'
+            }, status=400)
+
+        # تحديث حالة الحجز إلى مكتمل
         booking.status = 'completed'
         booking.save()
 
@@ -916,6 +1125,7 @@ def completed_appointment(request, booking_id):
         if doctor_shifts:
             doctor_shifts.booked_slots -= 1
             doctor_shifts.save()
+
         # إنشاء سجل جديد لحالة الحجز
         BookingStatusHistory.objects.create(
             booking=booking,
@@ -923,6 +1133,26 @@ def completed_appointment(request, booking_id):
             created_by=request.user,
             notes='تم تأكيد اكتمال الكشف'
         )
+
+        # إرسال إشعار للمريض
+        # patient_user = booking.patient.user
+        # doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
+        
+        # message = (
+        #     f"✅ *تم تأكيد اكتمال الكشف*\n\n"
+        #     f"عزيزي المريض،\n"
+        #     f"تم تأكيد اكتمال الكشف مع الدكتور *{doctor_name}*.\n"
+        #     f"📅 التاريخ: {booking.booking_date}\n"
+        #     f"🕒 الوقت: {booking.appointment_time.start_time.strftime('%H:%M')}\n\n"
+        #     f"نشكرك لثقتك بنا، ونتمنى لك دوام الصحة والعافية."
+        # )
+
+        # Notifications.objects.create(
+        #     sender=request.user,
+        #     user=patient_user,
+        #     message=message,
+        #     notification_type='7'
+        # )
 
         return JsonResponse({
             'status': 'success',
@@ -1047,8 +1277,6 @@ def booking_history(request, booking_id):
         }, status=500)
 
 
-
-
 def delete_booking(request, booking_id):
     """حذف الحجز"""
     if not request.user.is_authenticated:
@@ -1094,7 +1322,6 @@ def delete_booking(request, booking_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
-
 
 
 @login_required(login_url='/user/login')
@@ -1400,12 +1627,35 @@ def schedule_timings(request):
                             'status': 'error',
                             'message': 'وقت البداية يجب أن يكون قبل وقت النهاية'
                         })
-                except ValueError as e:
-                    print(f"Time format error: {str(e)}")
+                except ValueError:
                     return JsonResponse({
                         'status': 'error',
                         'message': 'صيغة الوقت غير صحيحة'
                     })
+
+                # التحقق من عدم وجود تعارض في مواعيد الطبيب بين المستشفيات المختلفة
+                # البحث عن جميع مواعيد الطبيب في نفس اليوم في جميع المستشفيات الأخرى
+                conflicting_schedules = DoctorSchedules.objects.filter(
+                    doctor=doctor,
+                    day=day
+                ).exclude(hospital=hospital)
+
+                # التحقق من كل جدول للتأكد من عدم وجود تداخل في الأوقات
+                for schedule in conflicting_schedules:
+                    conflicting_shifts = DoctorShifts.objects.filter(
+                        doctor_schedule=schedule,
+                        start_time__lt=end_time_obj,
+                        end_time__gt=start_time_obj
+                    )
+
+                    if conflicting_shifts.exists():
+                        conflicting_shift = conflicting_shifts.first()
+                        hospital_name = conflicting_shift.hospital.name
+                        shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'يوجد تعارض في المواعيد: الطبيب لديه موعد في مستشفى {hospital_name} في نفس اليوم من الساعة {shift_time}'
+                        })
 
                 # Get or create the schedule for this doctor and day
                 schedule, created = DoctorSchedules.objects.get_or_create(
@@ -1452,10 +1702,6 @@ def schedule_timings(request):
                 return JsonResponse({
                     'status': 'error',
                     'message': 'حدث خطأ أثناء إضافة الموعد'
-                })
-                return JsonResponse({
-                    'status': 'error',
-                    'message': str(e)
                 })
 
         # GET request - تم التعديل هنا
@@ -1516,10 +1762,7 @@ def schedule_timings(request):
                     'message': 'الطبيب غير موجود'
                 })
 
-            return JsonResponse({
-                'status': 'success',
-                'doctor_schedules': schedules_data
-            })
+            # هذا الكود غير مطلوب لأنه تم بالفعل إرجاع الاستجابة في الأعلى
 
         context = {
             'doctors': doctors,
@@ -1585,8 +1828,200 @@ def delete_shift(request, shift_id):
     }, status=405)
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from doctors.models import Doctor
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import Hospital
 
+def all_hospitals(request):
+    search_query = request.GET.get('search', '')
+    rating_filter = request.GET.get('rating', '')
+    hospitals = Hospital.objects.filter(status=True)
 
+    if search_query:
+        # البحث في اسم المستشفى أو المدينة أو التخصص
+        from django.db.models import Q
+        hospitals = hospitals.filter(
+            Q(name__icontains=search_query) |  # البحث في اسم المستشفى
+            Q(city__name__icontains=search_query) |  # البحث في اسم المدينة
+            Q(doctors__specialty__name__icontains=search_query)  # البحث في التخصصات
+        ).distinct()
+    
+    # حساب متوسط تقييم المستشفى من جدول التقييمات
+    from reviews.models import Review
+    from django.db.models import Avg, Count, F, FloatField
+    
+    hospitals = hospitals.annotate(
+        doctors_count=models.Count('doctors', distinct=True),
+        specialties_count=models.Count('doctors__specialty', distinct=True),
+        avg_rating=models.Avg(
+            models.Case(
+                models.When(reviews__doctor__isnull=True, then=models.F('reviews__rating')),
+                default=None,
+                output_field=models.FloatField()
+            )
+        )
+    )
+    
+    # فلترة حسب التقييم إذا تم تحديده
+    if rating_filter and rating_filter.isdigit():
+        rating_value = int(rating_filter)
+        if 1 <= rating_value <= 5:
+            # فلترة المستشفيات التي لها تقييم أكبر من أو يساوي القيمة المحددة
+            hospitals = hospitals.filter(avg_rating__gte=rating_value)
+
+    # Pagination
+    paginator = Paginator(hospitals, 6)  # Show 6 hospitals per page
+    page = request.GET.get('page')
+
+    try:
+        hospitals = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        hospitals = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results.
+        hospitals = paginator.page(paginator.num_pages)
+
+    return render(request, 'frontend/hospitals/all_hospitals.html', {
+        'hospitals': hospitals,
+        'title': 'المستشفيات',
+        'search_query': search_query
+    })
+
+def hospital_details(request, hospital_id):
+    hospital = get_object_or_404(Hospital, id=hospital_id)
+
+    # Get only active doctors with their ratings
+    doctors = hospital.doctors.filter(status=True).select_related('specialty').all()
+
+    # Ensure all doctors have slugs
+    from django.utils.text import slugify
+    updated_doctors = []
+    for doctor in doctors:
+        # Print debug info
+        print(f"Processing doctor: {doctor.full_name}, Current slug: {doctor.slug}")
+
+        # Always generate a new slug if it's empty or invalid
+        if not doctor.slug or not doctor.slug.strip():
+            base_slug = slugify(doctor.full_name)
+            if not base_slug:  # If name doesn't generate valid slug
+                base_slug = f'doctor-{doctor.id}'
+
+            # Handle slug duplication
+            unique_slug = base_slug
+            counter = 1
+            while Doctor.objects.filter(slug=unique_slug).exclude(pk=doctor.pk).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            # Update the doctor's slug
+            doctor.slug = unique_slug
+            doctor.save(update_fields=['slug'])
+            print(f"Updated slug for {doctor.full_name} to: {doctor.slug}")
+
+        updated_doctors.append(doctor)
+
+    # Get hospital-specific advertisements that are active
+    today = timezone.now().date()
+    ads = Advertisement.objects.filter(
+        hospital=hospital,
+        status='active',
+        start_date__lte=today
+    ).filter(
+        models.Q(end_date__gte=today) | models.Q(end_date=None)
+    ).order_by('-created_at')
+
+    # Now get the active doctors again with annotations
+    doctors = hospital.doctors.filter(status=True).select_related('specialty').annotate(
+        rating=models.Avg('reviews__rating'),
+        reviews_count=models.Count('reviews')
+    ).all()
+    
+    # Get pricing information for each doctor in this hospital
+    pricing_map = {}
+    doctor_pricing = DoctorPricing.objects.filter(hospital=hospital).select_related('doctor')
+    for pricing in doctor_pricing:
+        pricing_map[pricing.doctor_id] = pricing.amount
+    
+    # Add pricing to doctor objects
+    for doctor in doctors:
+        doctor.price = pricing_map.get(doctor.id)
+
+    # Get unique specialties count
+    specialties_count = doctors.values('specialty').distinct().count()
+
+    # جلب تقييمات المستشفى بشكل منفصل عن تقييمات الأطباء
+    from reviews.models import Review
+    from django.db.models import Avg, Count
+    
+    # جلب تقييمات المستشفى فقط (وليس تقييمات الأطباء)
+    hospital_reviews = Review.objects.filter(
+        hospital=hospital,
+        doctor__isnull=True,  # تأكد من أن التقييم للمستشفى وليس لطبيب
+        status=True  # تقييمات نشطة فقط
+    ).select_related('user').order_by('-created_at')
+    
+    # حساب متوسط تقييم المستشفى
+    hospital_rating = hospital_reviews.aggregate(
+        avg_rating=Avg('rating'),
+        reviews_count=Count('id')
+    )
+    
+    # إضافة معلومات التقييم للمستشفى
+    hospital.avg_rating = hospital_rating['avg_rating'] or 0
+    hospital.reviews_count = hospital_rating['reviews_count'] or 0
+    
+    # تحقق مما إذا كان المستخدم الحالي قد قام بتقييم المستشفى من قبل
+    user_review = None
+    can_review = False
+    
+    if request.user.is_authenticated:
+        try:
+            # التحقق مما إذا كان المستخدم مريضًا
+            from patients.models import Patients
+            patient = Patients.objects.filter(user=request.user).first()
+            
+            if patient:
+                # التحقق مما إذا كان المريض قد قام بتقييم المستشفى من قبل
+                user_review = Review.objects.filter(
+                    hospital=hospital,
+                    doctor__isnull=True,
+                    user=patient
+                ).first()
+                
+                # التحقق مما إذا كان المريض قد قام بحجز في هذا المستشفى من قبل
+                has_booking = Booking.objects.filter(
+                    patient=patient,
+                    hospital=hospital
+                ).exists()
+                
+                # يمكن للمريض تقييم المستشفى إذا كان لديه حجز سابق ولم يقم بالتقييم من قبل
+                can_review = has_booking and not user_review
+        except Exception as e:
+            print(f"Error checking user review status: {str(e)}")
+
+    # Final verification
+    for doctor in doctors:
+        print(f"Final verification - Doctor: {doctor.full_name}, Slug: {doctor.slug}")
+        if not doctor.slug:
+            print(f"WARNING: Doctor {doctor.full_name} still has no slug!")
+
+    context = {
+        'hospital': hospital,
+        'doctors': doctors,
+        'doctors_count': doctors.count(),
+        'specialties_count': specialties_count,
+        'advertisements': ads,
+        'title': hospital.name,
+        'hospital_reviews': hospital_reviews,
+        'user_review': user_review,
+        'can_review': can_review
+    }
+
+    return render(request, 'frontend/hospitals/hospital_details.html', context)
 
 @login_required(login_url='/user/login')
 def invoice_view(request, payment_id):
@@ -1704,38 +2139,205 @@ def invoice_detail(request, invoice_id):
 @login_required
 def update_hospital_profile(request):
     """معالجة طلب تعديل بيانات ملف المستشفى الشخصي"""
+    print("\n\n*** update_hospital_profile view called ***\n\n")
+    print(f"Request method: {request.method}")
+    print(f"User type: {request.user.user_type}")
+
     if request.method == 'POST':
+        print(f"POST data: {request.POST}")
+        print(f"FILES data: {request.FILES}")
+
         try:
-            hospital = get_object_or_404(Hospital, hospital_manager=request.user)
-            print(request.POST)
-            # Collect the updated data from the form
-            name = request.POST.get('hospital_name')
-            location = request.POST.get('hospital_location')
-            description = request.POST.get('description')
-            about = request.POST.get('about')
-            photo = request.FILES.get('photo')
+            # Get the hospital based on user type
+            hospital = None
+            if request.user.user_type == 'hospital_manager':
+                hospital = Hospital.objects.get(user=request.user)
+                print(f"Found hospital for manager: {hospital.name} (ID: {hospital.id})")
+            elif request.user.user_type == 'hospital_staff':
+                # Import here to avoid circular imports
+                from hospital_staff.models import HospitalStaff
+                staff = HospitalStaff.objects.get(user=request.user)
+                hospital = staff.hospital
+                print(f"Found hospital for staff: {hospital.name} (ID: {hospital.id})")
 
-            # Create the update request object
-            update_request = HospitalUpdateRequest(
-                hospital=hospital,
-                name=name if name != hospital.name else None,
-                location=location if location != hospital.location else None,
-                description=description if description != hospital.description else None,
-                about=about if about != hospital.about else None,
-                photo=photo if photo else None,
-                created_by=request.user
-            )
-            update_request.save()
+            # Update user's information (mobile number, username, email, profile picture, city, state)
+            mobile_number = request.POST.get('mobile_number')
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            user_city = request.POST.get('user_city')
+            user_state = request.POST.get('user_state')
+            profile_picture = request.FILES.get('profile_picture')
 
-            messages.success(request, 'تم إرسال طلب تعديل البيانات بنجاح. سيتم مراجعته من قبل المسؤول.')
-            return redirect('hospitals:index')
+            user_updated = False
 
+            # Check if username is being changed and is not already taken
+            if username and username != request.user.username:
+                if CustomUser.objects.filter(username=username).exclude(id=request.user.id).exists():
+                    messages.error(request, 'اسم المستخدم مستخدم بالفعل. يرجى اختيار اسم مستخدم آخر.')
+                    return redirect('/hospitals/?section=doctor_profile_settings')
+                request.user.username = username
+                user_updated = True
+                print(f"Updated username to: {username}")
 
+            # Check if email is being changed and is not already taken
+            if email and email != request.user.email:
+                if CustomUser.objects.filter(email=email).exclude(id=request.user.id).exists():
+                    messages.error(request, 'البريد الإلكتروني مستخدم بالفعل. يرجى اختيار بريد إلكتروني آخر.')
+                    return redirect('/hospitals/?section=doctor_profile_settings')
+                request.user.email = email
+                user_updated = True
+                print(f"Updated email to: {email}")
+
+            if mobile_number:
+                request.user.mobile_number = mobile_number
+                user_updated = True
+                print(f"Updated user mobile number to: {mobile_number}")
+
+            # Update user city and state
+            if user_city is not None:
+                request.user.city = user_city
+                user_updated = True
+                print(f"Updated user city to: {user_city}")
+
+            if user_state is not None:
+                request.user.state = user_state
+                user_updated = True
+                print(f"Updated user state to: {user_state}")
+
+            if profile_picture:
+                request.user.profile_picture = profile_picture
+                user_updated = True
+                print(f"Updated user profile picture")
+
+            if user_updated:
+                request.user.save()
+                print(f"User information saved successfully")
+
+            # Only hospital managers can update hospital information
+            if request.user.user_type == 'hospital_manager' and hospital:
+                # Update hospital name
+                name = request.POST.get('name')
+                if name:
+                    hospital.name = name
+                    print(f"Updated hospital name to: {name}")
+                
+                # Update hospital subtitle
+                sub_title = request.POST.get('sub_title')
+                if sub_title:
+                    hospital.sub_title = sub_title
+                    print(f"Updated hospital subtitle to: {sub_title}")
+
+                # Update hospital description
+                description = request.POST.get('description')
+                if description:
+                    hospital.description = description
+                    print(f"Updated hospital description")
+
+                # Update hospital about section
+                about = request.POST.get('about')
+                if about:
+                    hospital.about = about
+                    print(f"Updated hospital about section")
+
+                # Handle logo upload
+                if 'logo' in request.FILES and request.FILES['logo']:
+                    hospital.logo = request.FILES['logo']
+                    print(f"Updated hospital logo")
+
+                # Save the hospital object
+                hospital.save()
+                print(f"Hospital saved successfully")
+
+                # Handle city selection
+                city_id = request.POST.get('city_id')
+                if city_id and city_id.isdigit():
+                    try:
+                        city = City.objects.get(id=city_id)
+                        hospital.city = city
+                        hospital.save()  # Save the hospital after updating the city
+                        print(f"Updated hospital city to: {city.name}")
+                    except City.DoesNotExist:
+                        print(f"City with ID {city_id} not found")
+                    except Exception as city_error:
+                        print(f"Error updating city: {str(city_error)}")
+
+                # Handle phone number updates
+                try:
+                    # Update existing phone numbers
+                    for key, value in request.POST.items():
+                        # Check for phone number updates
+                        if key.startswith('phone_number_'):
+                            phone_id = key.replace('phone_number_', '')
+                            phone_type_key = f'phone_type_{phone_id}'
+                            phone_type = request.POST.get(phone_type_key)
+
+                            if phone_id.isdigit():
+                                try:
+                                    phone = PhoneNumber.objects.get(id=phone_id, hospital=hospital)
+                                    phone.number = value
+                                    if phone_type:
+                                        phone.phone_type = phone_type
+                                    phone.save()
+                                    print(f"Updated phone number {phone_id} to {value} ({phone_type})")
+                                except PhoneNumber.DoesNotExist:
+                                    print(f"Phone number with ID {phone_id} not found")
+
+                    # Handle phone number deletions
+                    for key, value in request.POST.items():
+                        if key.startswith('delete_phone_'):
+                            phone_id = key.replace('delete_phone_', '')
+                            if phone_id.isdigit():
+                                try:
+                                    phone = PhoneNumber.objects.get(id=phone_id, hospital=hospital)
+                                    phone.delete()
+                                    print(f"Deleted phone number {phone_id}")
+                                except PhoneNumber.DoesNotExist:
+                                    print(f"Phone number with ID {phone_id} not found for deletion")
+
+                    # Add new phone numbers
+                    for key, value in request.POST.items():
+                        if key.startswith('new_phone_number_'):
+                            counter = key.replace('new_phone_number_', '')
+                            phone_type_key = f'new_phone_type_{counter}'
+                            phone_type = request.POST.get(phone_type_key, 'mobile')
+
+                            if value.strip():  # Only add if the number is not empty
+                                PhoneNumber.objects.create(
+                                    hospital=hospital,
+                                    number=value,
+                                    phone_type=phone_type,
+                                    created_by=request.user
+                                )
+                                print(f"Added new phone number: {value} ({phone_type})")
+                except Exception as phone_error:
+                    print(f"Error handling phone numbers: {str(phone_error)}")
+                    import traceback
+                    traceback.print_exc()
+
+            # Get the return section from the form data
+            return_section = request.POST.get('return_section', 'doctor_profile_settings')
+            
+            if request.user.user_type == 'hospital_manager':
+                messages.success(request, 'تم تحديث بيانات المستشفى بنجاح.')
+            else:
+                messages.success(request, 'تم تحديث بياناتك الشخصية بنجاح.')
+
+            print(f"Redirecting to section: {return_section}")
+            return redirect(f'/hospitals/?section={return_section}')
+
+        except Hospital.DoesNotExist:
+            print("Hospital not found for current user")
+            messages.error(request, 'لم يتم العثور على المستشفى المرتبط بالمستخدم الحالي.')
         except Exception as e:
-            messages.error(request, f'حدث خطأ أثناء معالجة طلب التعديل: {e}.')
-            return redirect('hospitals:index')
+            print(f"Error updating profile: {str(e)}")
+            print(f"Exception type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f'حدث خطأ أثناء تحديث البيانات: {e}.')
+    else:
+        print("Not a POST request")
 
-    return redirect('hospitals:index')
+    return redirect('/hospitals/?section=doctor_profile_settings')
 
 @login_required(login_url='/user/login')
 def get_doctor(request, doctor_id):
@@ -1790,8 +2392,12 @@ def get_doctor(request, doctor_id):
         }, status=500)
 
 @login_required(login_url='/user/login')
-@csrf_exempt
+@csrf_exempt  # Note: We're keeping csrf_exempt for now but will handle CSRF manually
 def update_doctor(request, doctor_id):
+    print("="*50)
+    print(f"Update doctor request method: {request.method}")
+    print(f"CSRF Token in request: {request.META.get('HTTP_X_CSRFTOKEN', 'Not found')}")
+
     if request.method != 'POST':
         return HttpResponseBadRequest('Invalid request method')
 
@@ -1799,115 +2405,244 @@ def update_doctor(request, doctor_id):
         print("="*50)
         print(f"Updating doctor {doctor_id}")
         print(f"POST data: {request.POST}")
+        print(f"FILES data: {request.FILES}")
+        print(f"User type: {request.user.user_type}")
 
-        # Get hospital and doctor
-        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            print("Hospital not found for user")
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
+
+        # Get doctor
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+        print(f"Found doctor: {doctor.full_name}")
 
-        # Update doctor information
-        doctor.full_name = request.POST.get('full_name')
-        doctor.specialty_id = request.POST.get('specialty')
-        doctor.email = request.POST.get('email')
-        doctor.phone_number = request.POST.get('phone_number')
-        doctor.gender = request.POST.get('gender')
-        doctor.experience_years = request.POST.get('experience_years')
-        doctor.status = request.POST.get('status') == '1'
-        doctor.about = request.POST.get('about', '')
+        try:
+            # Update doctor information
+            doctor.full_name = request.POST.get('full_name')
+            print(f"Updated full_name: {doctor.full_name}")
 
-        # Handle photo upload
-        if 'photo' in request.FILES:
-            doctor.photo = request.FILES['photo']
+            specialty_id = request.POST.get('specialty')
+            if specialty_id:
+                doctor.specialty_id = specialty_id
+                print(f"Updated specialty_id: {doctor.specialty_id}")
 
-        doctor.save()
+            doctor.email = request.POST.get('email')
+            print(f"Updated email: {doctor.email}")
 
-        # Update doctor price
-        price = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
-        new_price = request.POST.get('pricing-0-amount')
+            doctor.phone_number = request.POST.get('phone_number')
+            print(f"Updated phone_number: {doctor.phone_number}")
 
-        if new_price:
-            if price:
-                # Create price history record
-                DoctorPricingHistory.objects.create(
-                    doctor=doctor,
-                    hospital=hospital,
-                    amount=new_price,
-                    previous_amount=price.amount,
-                    created_by=request.user
-                )
-                # Update current price
-                price.amount = new_price
-                price.save()
-            else:
-                # Create new price record
-                DoctorPricing.objects.create(
-                    doctor=doctor,
-                    hospital=hospital,
-                    amount=new_price
-                )
+            doctor.gender = request.POST.get('gender')
+            print(f"Updated gender: {doctor.gender}")
 
-        return JsonResponse({
-            'status': 'success',
-            'message': 'تم تحديث بيانات الطبيب بنجاح'
-        })
+            experience_years = request.POST.get('experience_years')
+            if experience_years:
+                doctor.experience_years = experience_years
+                print(f"Updated experience_years: {doctor.experience_years}")
+
+            doctor.status = request.POST.get('status') == '1'
+            print(f"Updated status: {doctor.status}")
+
+            doctor.about = request.POST.get('about', '')
+            print(f"Updated about: {doctor.about}")
+
+            # Handle photo upload
+            if 'photo' in request.FILES:
+                doctor.photo = request.FILES['photo']
+                print(f"Updated photo: {doctor.photo}")
+
+            doctor.save()
+            print("Doctor saved successfully")
+
+            # Update doctor price
+            price = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).first()
+            new_price = request.POST.get('pricing-0-amount')
+            print(f"New price: {new_price}")
+
+            if new_price:
+                if price:
+                    print(f"Updating existing price from {price.amount} to {new_price}")
+                    # Create price history record
+                    DoctorPricingHistory.objects.create(
+                        doctor=doctor,
+                        hospital=hospital,
+                        amount=new_price,
+                        previous_amount=price.amount,
+                        created_by=request.user
+                    )
+                    # Update current price
+                    price.amount = new_price
+                    price.save()
+                    print("Price updated successfully")
+                else:
+                    print(f"Creating new price: {new_price}")
+                    # Create new price record
+                    DoctorPricing.objects.create(
+                        doctor=doctor,
+                        hospital=hospital,
+                        amount=new_price
+                    )
+                    print("New price created successfully")
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم تحديث بيانات الطبيب بنجاح'
+            })
+        except Exception as inner_e:
+            import traceback
+            print(f"Inner error updating doctor: {str(inner_e)}")
+            traceback.print_exc()
+            return JsonResponse({
+                'status': 'error',
+                'error': f'حدث خطأ أثناء تحديث بيانات الطبيب: {str(inner_e)}'
+            }, status=500)
 
     except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
             'status': 'error',
-            'error': 'لم يتم العثور على المستشفى'
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
         }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
         print(f"Error updating doctor: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
 
 @login_required(login_url='/user/login')
 def delete_doctor(request, doctor_id):
+    print("="*50)
+    print(f"Delete doctor request method: {request.method}")
+    print(f"Delete doctor URL path: {request.path}")
+    print(f"CSRF Token in request: {request.META.get('HTTP_X_CSRFTOKEN', 'Not found')}")
+
     if request.method != 'POST':
+        print(f"Invalid request method: {request.method}")
         return HttpResponseBadRequest('Invalid request method')
 
     try:
-        # Get hospital and doctor
-        hospital = get_object_or_404(Hospital, user=request.user)
-        doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+        print("="*50)
+        print(f"Deleting doctor {doctor_id}")
+        print(f"User type: {request.user.user_type}")
 
-        # Remove the doctor from this hospital
-        doctor.hospitals.remove(hospital)
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+            print(f"Found hospital for manager: {hospital.name}")
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+            print(f"Found hospital for staff: {hospital.name}")
+        else:
+            print(f"User is neither hospital manager nor staff: {request.user.user_type}")
 
-        # Delete the doctor's pricing for this hospital
-        DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).delete()
+        if not hospital:
+            print("Hospital not found for user")
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
 
-        # If the doctor is not associated with any other hospitals, delete the doctor
-        if doctor.hospitals.count() == 0:
-            doctor.delete()
+        try:
+            # Get doctor
+            doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
+            print(f"Found doctor: {doctor.full_name}")
 
+            # Remove the doctor from this hospital
+            doctor.hospitals.remove(hospital)
+            print(f"Removed doctor from hospital: {hospital.name}")
+
+            # Delete the doctor's pricing for this hospital
+            pricing_count = DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).count()
+            DoctorPricing.objects.filter(doctor=doctor, hospital=hospital).delete()
+            print(f"Deleted {pricing_count} pricing records")
+
+            # If the doctor is not associated with any other hospitals, delete the doctor
+            hospitals_count = doctor.hospitals.count()
+            print(f"Doctor is associated with {hospitals_count} hospitals")
+            if hospitals_count == 0:
+                doctor.delete()
+                print(f"Deleted doctor completely as no more hospital associations")
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم حذف الطبيب بنجاح'
+            })
+        except Exception as inner_e:
+            import traceback
+            print(f"Inner error deleting doctor: {str(inner_e)}")
+            traceback.print_exc()
+            return JsonResponse({
+                'status': 'error',
+                'error': f'حدث خطأ أثناء حذف الطبيب: {str(inner_e)}'
+            }, status=500)
+
+    except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
-            'status': 'success',
-            'message': 'تم حذف الطبيب بنجاح'
-        })
-
+            'status': 'error',
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+        }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
         print(f"Error deleting doctor: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
 
 @login_required(login_url='/user/login')
 def get_doctor_history(request, doctor_id):
     try:
-        hospital = get_object_or_404(Hospital, user=request.user)  # تعديل هنا
+        print("="*50)
+        print(f"Getting history for doctor {doctor_id}")
+        print(f"User type: {request.user.user_type}")
+
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            return JsonResponse({
+                'status': 'error',
+                'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
+            }, status=403)
+
         doctor = get_object_or_404(Doctor, id=doctor_id, hospitals=hospital)
 
         # جلب سجل أسعار الطبيب
@@ -1940,20 +2675,93 @@ def get_doctor_history(request, doctor_id):
         })
 
     except Hospital.DoesNotExist:
+        print("Hospital not found for user")
         return JsonResponse({
             'status': 'error',
-            'error': 'لم يتم العثور على المستشفى'
+            'error': 'لم يتم العثور على المستشفى المرتبط بالمستخدم'
         }, status=404)
     except Doctor.DoesNotExist:
+        print("Doctor not found")
         return JsonResponse({
             'status': 'error',
             'error': 'لم يتم العثور على الطبيب'
         }, status=404)
     except Exception as e:
+        import traceback
+        print(f"Error getting doctor history: {str(e)}")
+        traceback.print_exc()
         return JsonResponse({
             'status': 'error',
-            'error': str(e)
+            'error': f'حدث خطأ غير متوقع: {str(e)}'
         }, status=500)
+
+@login_required(login_url='/user/login')
+def search_doctors(request):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        search_query = request.GET.get('query', '')
+        current_hospital = get_object_or_404(Hospital, user=request.user)
+
+        # البحث عن الأطباء باستخدام الاسم أو التخصص
+        doctors = Doctor.objects.filter(
+            Q(full_name__icontains=search_query) |
+            Q(specialty__name__icontains=search_query)
+        ).exclude(hospitals=current_hospital).distinct()
+
+        doctors_data = []
+        for doctor in doctors:
+            current_hospitals = doctor.hospitals.all()
+            doctors_data.append({
+                'id': doctor.id,
+                'full_name': doctor.full_name,
+                'specialty': doctor.specialty.name if doctor.specialty else '',
+                'current_hospitals': [h.name for h in current_hospitals],
+                'photo_url': doctor.photo.url if doctor.photo else None
+            })
+
+        return JsonResponse({'doctors': doctors_data})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required(login_url='/user/login')
+def add_existing_doctor(request):
+    if request.method == 'POST':
+        doctor_id = request.POST.get('doctor_id')
+        amount = request.POST.get('amount')
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+            hospital = get_object_or_404(Hospital, user=request.user)
+
+            # إضافة الطبيب إلى المستشفى
+            doctor.hospitals.add(hospital)
+
+            # إنشاء تسعيرة للطبيب في المستشفى
+            DoctorPricing.objects.create(
+                doctor=doctor,
+                hospital=hospital,
+                amount=amount
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم إضافة الطبيب بنجاح'
+            })
+
+        except Doctor.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'لم يتم العثور على الطبيب'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'طريقة الطلب غير صحيحة'
+    }, status=400)
 
 @login_required(login_url='/user/login')
 def add_doctor_form(request):
@@ -1970,7 +2778,21 @@ def add_doctor_form(request):
 def doctor_details(request, doctor_id):
     try:
         print(f"Accessing doctor details for ID: {doctor_id}")  # Debug print
-        hospital = get_object_or_404(Hospital, user=request.user)
+        print(f"User type: {request.user.user_type}")
+
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            # If user is a hospital manager
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif hasattr(request.user, 'hospital_staff'):
+            # If user is a hospital staff member
+            hospital = request.user.hospital_staff.hospital
+
+        if not hospital:
+            messages.error(request, 'لم يتم العثور على المستشفى المرتبط بالمستخدم')
+            return redirect('hospitals:index')
+
         doctor = get_object_or_404(Doctor.objects.select_related('specialty'), id=doctor_id, hospitals=hospital)
 
         # Get current price
@@ -1995,5 +2817,41 @@ def doctor_details(request, doctor_id):
         print(f"Error in doctor_details view: {str(e)}")  # Debug print
         messages.error(request, str(e))
         return redirect('hospitals:index')
-    
-    
+
+@login_required(login_url='/user/login')
+def hospital_patients(request):
+    """
+    عرض المرضى الذين قاموا بالحجز في المستشفى
+    """
+    try:
+        # Get hospital based on user type
+        hospital = None
+        if request.user.user_type == 'hospital_manager':
+            hospital = get_object_or_404(Hospital, user=request.user)
+        elif request.user.user_type == 'hospital_staff':
+            from hospital_staff.models import HospitalStaff
+            staff = get_object_or_404(HospitalStaff, user=request.user)
+            hospital = staff.hospital
+        else:
+            messages.error(request, "ليس لديك صلاحية الوصول إلى هذه الصفحة.")
+            return redirect('users:logout')
+            
+        # Get patients who have made bookings at this hospital with their details
+        patients = Patients.objects.filter(bookings__hospital=hospital).distinct().select_related('user')
+        
+        # Get booking counts for each patient
+        for patient in patients:
+            patient.booking_count = Booking.objects.filter(patient=patient, hospital=hospital).count()
+            patient.last_booking = Booking.objects.filter(patient=patient, hospital=hospital).order_by('-created_at').first()
+        
+        context = {
+            'patients': patients,
+            'section': 'my_patient'
+        }
+        
+        return render(request, 'frontend/dashboard/hospitals/sections/my-patients.html', context)
+        
+    except Exception as e:
+        print(f"Error in hospital_patients view: {str(e)}")  # Debug print
+        messages.error(request, f"حدث خطأ: {str(e)}")
+        return redirect('hospitals:index')

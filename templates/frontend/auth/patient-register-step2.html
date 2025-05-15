@@ -17,10 +17,24 @@
                         </ul>
                     </div>
 
+                    {% if messages %}
+                    <div class="alert-container mt-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <form id="personal_details" method="post" action="{% url 'users:register_step2' %}">
                         {% csrf_token %}
 
-                        <h4 class="mt-3">اختار الجنس</h4>
+                        <h4 class="mt-3">المعلومات الطبية الأساسية</h4>
+                        <p class="text-muted mb-3">هذه هي الخطوة الأخيرة لإنشاء حسابك. يرجى إدخال معلوماتك الطبية الأساسية.</p>
+
+                        <h5>اختار الجنس</h5>
                         <div class="select-gender-col">
                             <div class="row">
                                 <div class="col-6 pe-2">
@@ -50,33 +64,7 @@
                                 <label class="mb-2">تاريخ الميلاد</label>
                                 <input type="date" class="form-control" name="birth_date" id="birth_date" value="{{ request.session.step2_data.birth_date }}">
                             </div>
-                            <!-- الوزن والطول -->
-                            <div class="mb-3">
-                                <label class="mb-2">وزنك</label>
-                                <input type="text" class="form-control" name="weight" id="weight" value="{{ request.session.step2_data.weight }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="mb-2">طولك</label>
-                                <input type="text" class="form-control" name="height" id="height" value="{{ request.session.step2_data.height }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="mb-2">عمرك</label>
-                                <input type="text" name="age" class="form-control" id="age" value="{{ request.session.step2_data.age }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="mb-2">فصيلة الدم</label>
-                                <select class="form-select form-control" id="blood_group" name="blood_group">
-                                    <option value="">Select your blood group</option>
-                                    <option value="A-" {% if request.session.step2_data.blood_group == 'A-' %}selected{% endif %}>A-</option>
-                                    <option value="A+" {% if request.session.step2_data.blood_group == 'A+' %}selected{% endif %}>A+</option>
-                                    <option value="B-" {% if request.session.step2_data.blood_group == 'B-' %}selected{% endif %}>B-</option>
-                                    <option value="B+" {% if request.session.step2_data.blood_group == 'B+' %}selected{% endif %}>B+</option>
-                                    <option value="AB-" {% if request.session.step2_data.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
-                                    <option value="AB+" {% if request.session.step2_data.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
-                                    <option value="O-" {% if request.session.step2_data.blood_group == 'O-' %}selected{% endif %}>O-</option>
-                                    <option value="O+" {% if request.session.step2_data.blood_group == 'O+' %}selected{% endif %}>O+</option>
-                                </select>
-                            </div>
+
 
                             <!-- الملاحظات -->
                             <div class="mb-3">

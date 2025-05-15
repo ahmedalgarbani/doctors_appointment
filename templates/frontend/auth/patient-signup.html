@@ -20,6 +20,12 @@
                                     <a href="">Are you a Doctor?</a>
                                 </h3>
                             </div>
+                            
+                            {% if request.session.hospital_user_message %}
+                            <div class="alert alert-warning" role="alert">
+                                {{ request.session.hospital_user_message }}
+                            </div>
+                            {% endif %}
 
                             <!-- Register Form -->
                             <form method="post" action="{% url 'users:patient_signup' %}">

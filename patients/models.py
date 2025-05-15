@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from hospitals.models import BaseModel
 from django.conf import settings
@@ -18,21 +19,6 @@ class Patients(BaseModel):
         choices=[('Male', _('ذكر')), ('Female', _('أنثى'))],
         verbose_name=_("الجنس"),
     )
-    weight = models.FloatField(null=True, blank=True, verbose_name=_("الوزن (كجم)"))
-    height = models.FloatField(null=True, blank=True, verbose_name=_("الطول (سم)"))
-    age = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("العمر"))
-    blood_group = models.CharField(
-        max_length=5,
-        choices=[
-            ('A+', 'A+'), ('A-', 'A-'),
-            ('B+', 'B+'), ('B-', 'B-'),
-            ('AB+', 'AB+'), ('AB-', 'AB-'),
-            ('O+', 'O+'), ('O-', 'O-'),
-        ],
-        null=True,
-        blank=True,
-        verbose_name=_("فصيلة الدم"),
-    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("ملاحظات"))
 
     def __str__(self):
@@ -41,6 +27,15 @@ class Patients(BaseModel):
     class Meta:
         verbose_name = _("المرضى")
         verbose_name_plural = _("المرضى")
+
+    def calculate_age(self):
+        today = date.today()
+        return today.year - self.birth_date.year - (
+            (today.month, today.day) < (self.birth_date.month, self.birth_date.day)
+        )
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class Favourites(BaseModel):

@@ -11,9 +11,9 @@ app_name = 'home'
 urlpatterns = [
     # الصفحة الرئيسية
     path('', views.index, name='home'),
-    
+
     path('faq', views.faq_page, name='faq'),
-    
+
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
     path('privacy-policy',views.privacy_policy,name='privacy_policy'),
     path('terms-condition',views.terms_condition,name='terms_condition'),
@@ -23,6 +23,7 @@ urlpatterns = [
     path('booking/<int:doctor_id>/', views.booking_view, name='booking'),
     path('get-time-slots/<int:schedule_id>/<int:doctor_id>/', views.get_time_slots, name='get_time_slots'),
     path('payment/<int:doctor_id>/', payment_process, name='payment'),
+
 ]
 
 if settings.DEBUG:

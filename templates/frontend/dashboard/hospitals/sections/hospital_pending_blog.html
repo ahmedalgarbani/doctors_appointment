@@ -9,11 +9,11 @@
                 <div class="col-md-7 col-lg-8 col-xl-9 ">
                     <div class="col-md-4 mb-3">
                         <a href="{% url 'hospitals:index' %}"  class="btn btn-primary btn-block">
-                            <i class="fas fa-md"></i> الرجوع  
+                            <i class="fas fa-md"></i> الرجوع
                         </a>
                     </div>
                     <div class="doc-review review-listing">
-                
+
                         <div class="row mb-5">
                             <div class="col">
                                 <ul class="nav nav-tabs nav-tabs-solid">
@@ -29,54 +29,65 @@
                                 <a class="btn btn-primary btn-sm"  href="{% url 'hospitals:add_blog' %}"><i class="fas fa-plus me-1"></i> Add Blog</a>
                             </div>
                         </div>
-                    
-                      
+
+
                         <!-- Blog -->
                         <div class="row blog-grid-row">
                             {% if allBlogs %}
                             {% for blog in allBlogs %}
                             {% if blog.status == False %}
                             <div class="col-md-6 col-xl-4 col-sm-12">
-                                        
+
                                 <!-- Blog Post -->
                                 <div class="blog grid-blog">
                                     <div class="blog-image">
-                                        <a href="blog-details.html"><img class="img-fluid" src="{{blog.image.url}}" alt="Post Image"></a>
+                                        <a href="{% url 'hospitals:blog_detail' blog.id %}"><img class="img-fluid" src="{{blog.image.url}}" alt="Post Image"></a>
                                     </div>
                                     <div class="blog-content">
                                         <ul class="entry-meta meta-item">
                                             <li>
-                            
                                                 <div class="post-author">
-                                                    <a href="doctor-profile.html">
+                                                    <a href="javascript:;">
                                                         {% if blog.author.details.photo %}
                                                         <img src="{{blog.author.details.photo.url}}" alt="{{blog.author.name}}">
                                                         {% endif %}
-                                                        
-                                                        <span>{{blog.author.name}}</span></a>
+                                                        <span>{{blog.author.name}}</span>
+                                                    </a>
                                                 </div>
                                             </li>
                                             <li><i class="far fa-clock"></i> {{blog.created_at}}</li>
+                                            <li><i class="far fa-comments"></i> {{ blog.comments.count }} تعليقات</li>
+                                            <li><i class="far fa-eye"></i> {{ blog.views_count }} مشاهدة</li>
                                         </ul>
-                                        <h3 class="blog-title"><a href="blog-details.html">{{blog.title}}</a></h3>
-                                        <p class="mb-0">{{blog.content}}</p>
+                                        <h3 class="blog-title">
+                                            <a href="{% url 'hospitals:blog_detail' blog.id %}">{{blog.title}}</a>
+                                        </h3>
+                                        <p class="mb-0">{{blog.content|truncatechars:100}}</p>
+
+                                        {% if blog.comments.count > 0 %}
+                                        <div class="mt-3">
+                                            <a href="{% url 'hospitals:blog_detail' blog.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="far fa-comments me-1"></i> عرض {{ blog.comments.count }} تعليقات
+                                            </a>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="row pt-3">
-                                        <div class="col"><a href="edit-blog.html" class="text-success"><i class="far fa-edit"></i> Edit</a></div>
-                                                                                                    
+                                        <div class="col"><a href="{% url 'hospitals:edit_blog' blog.id %}" class="text-success"><i class="far fa-edit"></i> Edit</a></div>
+
                                     </div>
                                 </div>
                                 <!-- /Blog Post -->
-                                
+
                             </div>
                             {% endif %}
-                            
+
                             {% endfor %}
                             {% endif %}
-                                        
-                                    
+
+
                                     </div>
-                                
+
                         <!-- Blog Pagination -->
                         <div class="row">
                             <div class="col-md-12">
@@ -105,10 +116,10 @@
                         </div>
                         <!-- /Blog Pagination -->
                         <!-- /Blog -->
-                
+
                     </div>
                 </div>
-                
+
             </div>
         </div>
     </div>

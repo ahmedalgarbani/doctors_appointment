@@ -21,16 +21,7 @@
                 <div class="booking-header">
                     <h4 class="booking-title">طرق الدفع المتاحة</h4>
                 </div>
-                <div class="payment-type-selector mb-4">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="payment_type" id="payment_type_transfer" value="transfer" checked>
-                        <label class="form-check-label" for="payment_type_transfer">حوالة</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="payment_type" id="payment_type_account" value="account">
-                        <label class="form-check-label" for="payment_type_account">حساب</label>
-                    </div>
-                </div>
+                <!-- Payment type selector removed as requested -->
                 <form id="payment-form" action="{% url 'payments:process' doctor.id %}" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="day" value="{{ selected_schedule.id }}">
@@ -63,19 +54,10 @@
                             {% endfor %}
                         </div>
                         <div class="form-group mb-4">
-                            <div id="transfer_input" class="payment-input">
-                                <label for="transfer_number" class="form-label">رقم الحوالة</label>
-                                <input type="text" id="transfer_number" name="transfer_number" class="form-control" required pattern="[0-9]{5,}" title="يجب أن يكون رقم الحوالة 5 أرقام على الأقل" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                                <div class="invalid-feedback">
-                                    يرجى إدخال رقم الحوالة
-                                </div>
-                            </div>
-                            <div id="account_input" class="payment-input" style="display: none;">
-                                <label for="account_image" class="form-label">صورة سند الحساب</label>
-                                <input type="file" id="account_image" name="account_image" class="form-control" accept="image/*">
-                                <div class="invalid-feedback">
-                                    يرجى إرفاق صورة الحساب
-                                </div>
+                            <label for="payment_receipt" class="form-label">صورة سند الدفع</label>
+                            <input type="file" id="payment_receipt" name="payment_receipt" class="form-control" accept="image/*" required>
+                            <div class="invalid-feedback">
+                                يرجى إرفاق صورة سند الدفع
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">تأكيد الحجز</button>
@@ -106,7 +88,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="booking-summary mt-4">
                             <h5>تفاصيل الحجز:</h5>
                             <div class="booking-summary-details">
@@ -115,7 +97,7 @@
                                 <p><strong>الوقت:</strong> {{ selected_shift.start_time|time:"H:i" }}</p>
                                 <p><strong>نوع الحجز:</strong> {% if is_online %}استشارة عن بعد{% else %}زيارة في العيادة{% endif %}</p>
                             </div>
-                            
+
                             <div class="price-details mt-3">
                                 <h5>تفاصيل السعر:</h5>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -135,45 +117,24 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    // عند تغيير نوع الدفع
-    $('input[name="payment_type"]').change(function() {
-        const selectedType = $(this).val();
-        
-        // إخفاء جميع حقول الإدخال
-        $('.payment-input').hide();
-        
-        // إظهار حقل الإدخال المحدد
-        if (selectedType === 'transfer') {
-            $('#transfer_input').show();
-            $('#account_image').prop('required', false);
-            $('#transfer_number').prop('required', true);
-        } else {
-            $('#account_input').show();
-            $('#account_image').prop('required', true);
-            $('#transfer_number').prop('required', false);
-        }
-    });
-
     // عند تغيير طريقة الدفع
     $('input[name="payment_method"]').change(function() {
         // إخفاء جميع التفاصيل
         $('.payment-details').hide();
         // إزالة الفئة النشطة من جميع العناصر
         $('.payment-method-item label').removeClass('active');
-        
+
         // إظهار تفاصيل طريقة الدفع المحددة
         $(this).closest('label').addClass('active')
             .find('.payment-details').show();
     });
-
-    // تأكد من إظهار القسم الصحيح عند تحميل الصفحة
-    $('input[name="payment_type"]:checked').trigger('change');
 });
 </script>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Payment styles */
     .payment-type-selector {
         border-bottom: 1px solid #dee2e6;
         padding-bottom: 1rem;
@@ -199,27 +160,27 @@ $(document).ready(function() {
         padding: 20px;
         border-radius: 8px;
     }
-    
+
     .booking-summary h5 {
         color: #272b41;
         margin-bottom: 15px;
         font-weight: 600;
     }
-    
+
     .booking-summary-details p {
         margin-bottom: 8px;
         color: #757575;
     }
-    
+
     .booking-summary-details strong {
         color: #272b41;
     }
-    
+
     .price-details {
         border-top: 1px solid #dee2e6;
         padding-top: 15px;
     }
-    
+
     .price {
         color: #20c0f3;
         font-size: 20px;
