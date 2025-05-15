@@ -21,7 +21,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ["id", "user_name","profile_picture" ,"rating", "review", "created_at"]
+        fields = ["id", "user_name","doctor","profile_picture" ,"rating", "review", "created_at"]
 
     def get_user_name(self, obj):
         return f"{obj.user.user.first_name} {obj.user.user.last_name}"
@@ -33,6 +33,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.user.user.profile_picture.url)
             return obj.user.user.profile_picture.url
         return None 
+    def validate(self, data):
+        if not data.get('doctor'):
+            raise serializers.ValidationError("يجب تحديد الدكتور.")
+        return data
 
 
 class SpecialtiesSerializer(serializers.ModelSerializer):
@@ -96,13 +100,14 @@ class DoctorSerializer(serializers.ModelSerializer):
     pricing = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    specialty_name = serializers.SerializerMethodField()
 
 
     class Meta:
         model = Doctor
         fields = [
             "id", "created_at", "updated_at", "deleted_at",
-            "full_name", "birthday", "photo",
+            "full_name", "birthday", "photo","specialty","specialty_name",
             "gender",  "experience_years", "sub_title",
             "about",  "show_at_home",
             "hospitals", "schedules", "pricing",
@@ -116,6 +121,9 @@ class DoctorSerializer(serializers.ModelSerializer):
     def get_pricing(self, obj):
         pricing = DoctorPricing.objects.filter(doctor=obj)
         return DoctorPricingSerializer(pricing, many=True).data
+    def get_specialty_name(self, obj):
+        specility = Specialty.objects.get(id=obj.specialty.id)
+        return specility.name
     def get_reviews(self, obj):
         reviews = Review.objects.filter(doctor=obj, status=True)  
         return ReviewSerializer(reviews, many=True).data
@@ -251,14 +259,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            'id', 'user', 'booking', 'payment_method', 'transfer_image',
+            'id', 'booking', 'payment_method',
             'payment_status', 'payment_date', 'payment_subtotal',
             'payment_discount', 'payment_totalamount', 'payment_currency',
             'payment_type', 'payment_note'
         ]
+
         extra_kwargs = {
             'transfer_image': {'required': False, 'allow_null': True},
-            'user': {'read_only': True},
             'payment_date': {'read_only': True},
             'payment_status': {'read_only': True}
         }
@@ -329,3 +337,84 @@ class PaymentSerializer(serializers.ModelSerializer):
 }
 
 """
+
+
+from rest_framework import serializers
+from doctors.models import Doctor, DoctorSchedules, DoctorShifts, DoctorPricing
+from hospitals.models import Hospital
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoctorShifts
+        fields = ['start_time', 'end_time', 'available_slots', 'booked_slots', 'is_available']
+
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    day_display = serializers.CharField(source='get_day_display', read_only=True)
+    shifts = ShiftSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = DoctorSchedules
+        fields = ['day', 'day_display', 'shifts']
+
+
+class HospitalDetailSerializer(serializers.ModelSerializer):
+    schedules = serializers.SerializerMethodField()
+    pricing = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Hospital
+        fields = ['id', 'name', 'slug', 'schedules', 'pricing','logo_url']
+
+    def get_schedules(self, hospital):
+        doctor = self.context.get('doctor')
+        schedules = hospital.doctor_schedules.filter(doctor=doctor)
+        return ScheduleSerializer(schedules, many=True).data
+
+    def get_pricing(self, hospital):
+        doctor = self.context.get('doctor')
+        pricing = doctor.pricing.filter(hospital=hospital).first()
+        if pricing:
+            return {
+                "amount": pricing.amount,
+                "transaction_number": pricing.transaction_number
+            }
+        
+    def get_logo_url(self, hospital):
+        if hospital.logo:
+            return hospital.logo.url
+        
+        return None
+
+
+
+
+
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        return value
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        new_password = self.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+
