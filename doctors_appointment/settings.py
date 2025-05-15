@@ -20,6 +20,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["0.0.0.0","127.0.0.1", "localhost", "10.0.2.2", "192.168.1.151","192.168.8.167","192.168.8.177","192.168.8.178"]
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -179,7 +180,7 @@ DATABASES = {
         'USER': os.environ.get('DB_USER', 'root'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '54321'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'",
             'charset': 'utf8mb4',
@@ -262,7 +263,7 @@ NAV_MENU_TOP = [
         "url": "/hospitals/all/",
     },
     {
-        "name": "الدكاترة",
+        "name": "الأطباء",
         "url": "/search/",
     },
      {
@@ -274,7 +275,7 @@ NAV_MENU_TOP = [
         "url": "/faq",
     },
     {
-        "name": "عن الموقع",
+        "name": "من نحن",
         "url": "/about",
     },
     
@@ -283,10 +284,10 @@ NAV_MENU_TOP = [
         "url": "/",
 
         "submenu": [
-            {
-            "name": "من نحن",
-            "url": "/about/",
-        },
+        #     {
+        #     "name": "من نحن",
+        #     "url": "/about/",
+        # },
             # {
             #     "name": "اتصل بنا",
             #     "url": "/",
