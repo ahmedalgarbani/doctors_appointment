@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import BookingViewSet, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, MarkAllNotificationsReadView, MarkNotificationReadView, NotificationListView, PaymentViewSet, RegisterView,LogoutView, ReviewViewSet, SpecialtiesViewSet, UserProfileView
+from .views import BookingViewSet, ChangePasswordView, DoctorsViewSet, FavouritesViewSet, HospitalPaymentMethodViewSet, HospitalsViewSet, LoginView, MarkAllNotificationsReadView, MarkNotificationReadView, NotificationListView, PaymentViewSet, RegisterView,LogoutView, ReviewViewSet, SpecialtiesViewSet, UserProfileView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -24,6 +24,7 @@ urlpatterns = [
     
     path('', include(router.urls)),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
 
 
     # notifications
