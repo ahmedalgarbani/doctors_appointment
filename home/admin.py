@@ -246,7 +246,30 @@ class SocialMediaLinkAdmin(admin.ModelAdmin):
             'fields': ('name', 'link', 'icon', 'status') 
         }),
     )
+from django.contrib import admin
+from .models import AboutUsPage
 
+class AboutUsPageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subtitle', 'phone_number', 'image1_preview')
+    search_fields = ('title', 'subtitle')
+    ordering = ('title',)
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'subtitle', 'content', 'phone_number', 'image1')
+        }),
+    )
+
+    def image1_preview(self, obj):
+        if obj.image1:
+            return f'<img src="{obj.image1.url}" style="width: 50px; height: auto;" />'
+        return '-'
+    image1_preview.allow_tags = True
+    image1_preview.short_description = 'Image 1 Preview'
+
+ 
+
+# Registering the model and admin class
+admin.site.register(AboutUsPage, AboutUsPageAdmin)
 admin.site.register(PartnersSection, PartnersSectionAdmin)
 admin.site.register(AppSection, AppSectionAdmin)
 admin.site.register(WorkSection, WorkSectionAdmin)

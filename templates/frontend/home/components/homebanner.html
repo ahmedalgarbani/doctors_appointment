@@ -1,77 +1,245 @@
 {% load static %}
-<!-- users:index Banner -->
+
+<style>
+    /* التنسيقات العامة */
+    .search-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    
+    .professional-search-form {
+        width: 100%;
+    }
+    
+    .search-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    /* مجموعة حقول الإدخال */
+    .search-input-group {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 0 15px;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .search-input-group:hover {
+        border-color: #bdbdbd;
+    }
+    
+    .search-input-group:focus-within {
+        background: #fff;
+        border-color: #1976d2;
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+    
+    /* الأيقونات */
+    .search-icon {
+        color: #757575;
+        margin-left: 10px;
+        font-size: 18px;
+    }
+    
+    /* حقول الإدخال */
+    .search-input, .search-select {
+        flex: 1;
+        height: 100%;
+        border: none;
+        background: transparent;
+        font-size: 15px;
+        color: #333;
+        padding-right: 10px;
+        outline: none;
+    }
+    
+    .search-select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    
+    /* زر الموقع الحالي */
+    .current-location-btn {
+        color: #757575;
+        font-size: 16px;
+        margin-right: 5px;
+        transition: all 0.3s;
+    }
+    
+    .current-location-btn:hover {
+        color: #1976d2;
+    }
+    
+    /* زر البحث */
+    .search-btn-group {
+        flex-shrink: 0;
+    }
+    
+    .search-btn {
+        height: 56px;
+        padding: 0 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+        background: linear-gradient(135deg, #1976d2, #2196f3);
+        border: none;
+        color: white;
+    }
+    
+    .search-btn:hover {
+        background: linear-gradient(135deg, #1565c0, #1976d2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    }
+    
+    .search-btn:active {
+        transform: translateY(0);
+    }
+    
+    /* التأثيرات للتركيز */
+    .input-focus-border {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #1976d2;
+        transform: scaleX(0);
+        transition: transform 0.3s;
+    }
+    
+    .search-input:focus ~ .input-focus-border,
+    .search-select:focus ~ .input-focus-border {
+        transform: scaleX(1);
+    }
+    
+    /* التجاوب مع الشاشات الصغيرة */
+    @media (max-width: 768px) {
+        .search-row {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .search-input-group, .search-btn {
+            width: 100%;
+            height: 50px;
+        }
+    }
+</style>
+<!-- قسم البانر -->
 <section class="banner-section" id="bannerSection">
     <div class="container">
         <div class="row align-items-center">
+        
+            <!-- محتوى البانر -->
             <div class="col-lg-6">
                 <div class="banner-content aos" data-aos="fade-up">
-                    {% comment %} <h1>Consult <span>Best Doctors</span> Your Nearby Location.</h1> {% endcomment %}
                     <h1>{{ homeBanner.title }}</h1>
-                    <img src="{% static 'img/icons/header-icon.svg' %}" class="header-icon" alt="header-icon">
+                    <img src="{% static 'img/icons/header-icon.svg' %}" class="header-icon" alt="أيقونة رأس الصفحة">
                     <p>{{ homeBanner.subtitle }}</p>
-                    {% comment %} <a href="" class="btn">Start a Consult</a> {% endcomment %}
                     <div class="banner-arrow-img">
-                        <img src="{% static 'img/down-arrow-img.png' %}" class="img-fluid" alt="down-arrow">
+                        <img src="{% static 'img/down-arrow-img.png' %}" class="img-fluid" alt="سهم للأسفل">
                     </div>
                 </div>
-                <div class="search-box-one aos" data-aos="fade-up">
-                    <form action="{% url 'home:search_view' %}" method="GET">
-                          <div class="search-input search-line" style="margin-left: 15px;">
-                            <i class="feather-search bficon" style="margin-left: 10px;"></i>
-                            <div class="mb-0">
-                                <input type="text" name="doctor_name" class="form-control" style="padding-right: 15px; height: 50px; border-radius: 8px;" placeholder="ابحث عن طبيب">
+
+                <!-- صندوق البحث -->
+                <div class="search-container aos" data-aos="fade-up">
+                    <form action="{% url 'home:search_view' %}" method="GET" class="professional-search-form">
+                        <!-- صف العناصر -->
+                        <div class="search-row">
+                            <!-- البحث باسم الطبيب -->
+                            <div class="search-input-group doctor-search">
+                                <span class="search-icon">
+                                    <i class="feather-search"></i>
+                                </span>
+                                <input type="text" name="doctor_name" class="form-control search-input" 
+                                    placeholder="ابحث عن طبيب أو تخصص" value="{{ selected_filters.doctor_name }}">
+                                <div class="input-focus-border"></div>
                             </div>
-                        </div>
-                        <div class="search-input search-map-line" style="margin-left: 15px;">
-                            <i class="feather-map-pin" style="margin-left: 10px;"></i>
-                            <div class="mb-0">
-                                <select class="form-control" name="city" style="padding-right: 15px; height: 50px; border-radius: 8px;">
+                
+                            <!-- البحث بالمدينة -->
+                            <div class="search-input-group city-search">
+                                <span class="search-icon">
+                                    <i class="feather-map-pin"></i>
+                                </span>
+                                <select class="form-control search-select" name="city">
                                     <option value="" disabled selected>اختر المدينة</option>
                                     {% if cities %}
                                         {% for city in cities %}
-                                            <option value="{{ city.slug }}">{{ city.name }}</option>
+                                            <option value="{{ city.slug }}" 
+                                                {% if city.slug == selected_filters.city %}selected{% endif %}>
+                                                {{ city.name }}
+                                            </option>
                                         {% endfor %}
                                     {% else %}
                                         <option value="" disabled>لا توجد مدن متاحة</option>
                                     {% endif %}
                                 </select>
-                                <a class="current-loc-icon current_location" href="javascript:void(0);" style="margin-right: 10px;">
+                                <a class="current-location-btn" href="javascript:void(0);" title="الموقع الحالي">
                                     <i class="feather-crosshair"></i>
                                 </a>
+                                <div class="input-focus-border"></div>
+                            </div>
+                
+                            <!-- زر البحث -->
+                            <div class="search-btn-group">
+                                <button class="btn btn-primary search-btn" type="submit">
+                                    <span>بحث</span>
+                                    <i class="feather-arrow-left"></i>
+                                </button>
                             </div>
                         </div>
-
-                        <div class="form-search-btn">
-                            <button class="btn" type="submit">Search</button>
-                        </div>
                     </form>
-                    
                 </div>
+                
             </div>
+
+            <!-- صورة البانر -->
             <div class="col-lg-6">
-              {% if homeBanner.main_image  %}
+                {% if homeBanner.main_image %}
                 <div class="banner-img aos" data-aos="fade-up">
-                    <img src="{{ homeBanner.main_image.url }}" class="img-fluid" alt="patient-image">
-                    {% if homeBanner.sub_image1  %}
+                    <img src="{{ homeBanner.main_image.url }}" class="img-fluid" alt="صورة المريض">
+                    
+                    {% if homeBanner.sub_image1 %}
                     <div class="banner-img1">
-                        <img src="{{ homeBanner.sub_image1.url }}" class="img-fluid" alt="checkup-image">
+                        <img src="{{ homeBanner.sub_image1.url }}" class="img-fluid" alt="صورة الفحص">
                     </div>
                     {% endif %}
-                    {% if homeBanner.main_image2 %}
+
+                    {% if homeBanner.sub_image2 %}
                     <div class="banner-img2">
-                        <img src="{{ homeBanner.sub_image2.url }}" class="img-fluid" alt="doctor-slide">
+                        <img src="{{ homeBanner.sub_image2.url }}" class="img-fluid" alt="صورة الطبيب">
                     </div>
                     {% endif %}
+
                     {% if homeBanner.sub_image3 %}
                     <div class="banner-img3">
-                        <img src="{{ homeBanner.sub_image3.url }}" class="img-fluid" alt="doctors-list">
+                        <img src="{{ homeBanner.sub_image3.url }}" class="img-fluid" alt="قائمة الأطباء">
                     </div>
                     {% endif %}
                 </div>
                 {% endif %}
-
             </div>
+
         </div>
     </div>
 </section>
-<!-- /users:index Banner -->
+<!-- /قسم البانر -->

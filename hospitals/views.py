@@ -187,6 +187,22 @@ def index(request):
             doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
         else:
             doctor.average_rating = 0
+                # احصل على جدول الطبيب لليوم الحالي
+        today_weekday = today.weekday()  # 0 = الاثنين, 6 = الأحد
+
+        schedules = DoctorSchedules.objects.filter(
+            doctor=doctor,
+            day=today_weekday
+        ).prefetch_related('shifts')
+
+        total_available_slots = 0
+        for schedule in schedules:
+            for shift in schedule.shifts.all():
+                total_available_slots += shift.available_slots
+
+        doctor.available_slots = total_available_slots
+        doctor.booked_slots = doctor.today_appointments_count
+
 
     # Get latest payments
     latest_payments = Payment.objects.filter(
@@ -268,7 +284,11 @@ def index(request):
             total=Sum('payment_totalamount'))['total'] or 0,
     }
 
-    bookings = Booking.objects.filter(hospital=hospital)
+    bookings = Booking.objects.filter(hospital=hospital).prefetch_related('payments')
+
+    for booking in bookings:
+        booking.invoice = booking.payments.first() if booking.payments.exists() else None
+
 
     # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
     if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
@@ -1046,14 +1066,10 @@ def accept_appointment(request, booking_id):
             }, status=403)
 
         # تحديث البيانات
-        doctor_shifts = booking.appointment_time
-        if doctor_shifts:
-            doctor_shifts.booked_slots += 1
-            doctor_shifts.save()
-
         booking.status = 'confirmed'
         booking.save()
 
+        # إنشاء سجل جديد لحالة الحجز
         BookingStatusHistory.objects.create(
             booking=booking,
             status='confirmed',
@@ -1063,9 +1079,7 @@ def accept_appointment(request, booking_id):
 
         return JsonResponse({
             'status': 'success',
-            'message': 'تم قبول الحجز بنجاح',
-            'toast_class': 'bg-success',
-            'booking_status': 'confirmed'
+            'booking_status': 'confirmed'  
         })
 
     except Booking.DoesNotExist:
@@ -1080,6 +1094,7 @@ def accept_appointment(request, booking_id):
             'message': f'حدث خطأ: {str(e)}',
             'toast_class': 'bg-danger'
         }, status=500)
+
 
 
 def completed_appointment(request, booking_id):

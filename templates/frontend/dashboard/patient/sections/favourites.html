@@ -5,12 +5,11 @@
                 <div class="profile-widget">
                     <div class="doc-img">
                         <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">
-							<img class="img-fluid" alt="User Image" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
+							<img class="img-fluid" alt="صورة الطبيب" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
                         </a>
                         <a href="javascript:void(0)" class="fav-btn" data-doctor-id="{{ doctor.id }}">
                             <i class="far fa-bookmark"></i>
                         </a>
-
                     </div>
                     <div class="pro-content">
                         <h3 class="title">
@@ -62,7 +61,7 @@
     </div>
 </div>
 
-<!-- JavaScript section -->
+<!-- قسم الجافا سكربت -->
 <script>
 	document.querySelectorAll('.fav-btn').forEach(function(button) {
 		button.addEventListener('click', function() {
@@ -98,7 +97,7 @@
 				}
 			})
 			.catch(error => {
-				console.error('Error:', error);
+				console.error('خطأ:', error);
 			});
 		});
 	});

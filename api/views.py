@@ -510,3 +510,33 @@ class PaymentViewSet(viewsets.ModelViewSet):
 # }
 
 
+# blog/api/views.py
+from rest_framework import viewsets, generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from blog.models import Post
+from .serializers import (
+    PostSerializer, 
+    PostListSerializer,
+
+)
+
+
+
+
+class PostViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Post.objects.filter(status=True).select_related(
+        'author', 'categories'
+    ).prefetch_related('tags')
+    lookup_field = 'slug'
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PostListSerializer
+        return PostSerializer
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.views_count += 1
+        instance.save()
+        return super().retrieve(request, *args, **kwargs)
+

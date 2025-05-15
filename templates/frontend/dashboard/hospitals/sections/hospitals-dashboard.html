@@ -171,7 +171,7 @@
                                             <th>التاريخ</th>
                                             <th>الوقت</th>
                                             <th>الحالة</th>
-                                            <th>الإجراءات</th>
+                                            <!-- <th>الإجراءات</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -255,7 +255,7 @@
                                             <th>المواعيد اليوم</th>
                                             <th>التقييم</th>
                                             <th>الحالة</th>
-                                            <th>الإجراءات</th>
+                                            <!-- <th>الإجراءات</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -282,6 +282,7 @@
                                                     محجوزة: {{ doctor.booked_slots|default:"0" }}
                                                 </span>
                                             </td>
+                                            
                                             <td>
                                                 {% for i in "12345" %}
                                                     {% if i|add:0 <= doctor.average_rating|default:0|floatformat:0|add:0 %}

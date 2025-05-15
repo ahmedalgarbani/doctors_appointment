@@ -18,31 +18,30 @@
                       <ul class="nav nav-tabs nav-tabs-solid">
                         <ul class="nav nav-tabs nav-tabs-solid">
                           <li class="nav-item">
-                              <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">Active Blog</a>
+                              <a class="nav-link active" href="{% url 'hospitals:blog_list' %}" data-method="doctor_active_blog" data-section="doctor_active_blog">المدونات النشطة</a>
                           </li>
                           <li class="nav-item">
-                              <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">Pending Blog</a>
+                              <a class="nav-link" href="{% url 'hospitals:blog_pending_list' %}" data-method="doctor_pending_blog" data-section="doctor_pending_blog">المدونات المعلقة</a>
                           </li>
                       </ul>
                       </ul>
                     </div>
                     <div class="col-auto">
-                      <a class="btn btn-primary btn-sm" href="{% url 'hospitals:add_blog' %}" ><i class="fas fa-plus me-1"></i> Add Blog</a>
-
+                      <a class="btn btn-primary btn-sm" href="{% url 'hospitals:add_blog' %}" ><i class="fas fa-plus me-1"></i> إضافة مدونة</a>
                     </div>
                   </div>
               
-                  <!-- Add Blog -->
+                  <!-- إضافة مدونة -->
                   <div class="card">
                     <div class="card-body">
-                      <h3 class="pb-3">Add Blog</h3>
+                      <h3 class="pb-3">إضافة مدونة</h3>
               
                       <form
                         method="post"
                         enctype="multipart/form-data"
                       >
-                  {% csrf_token %}
-                  {{ form.as_p }}
+                        {% csrf_token %}
+                        {{ form.as_p }}
                         <div class="submit-section">
                           <button
                             class="btn btn-primary submit-btn"
@@ -50,20 +49,19 @@
                             name="form_submit"
                             value="submit"
                           >
-                    {% if editing_blog %}Update Blog{% else %}Add Blog{% endif %}
+                            {% if editing_blog %}تحديث المدونة{% else %}إضافة المدونة{% endif %}
                           </button>
                         </div>
                       </form>
                     </div>
                   </div>
-                  <!-- /Add Blog -->
+                  <!-- /إضافة مدونة -->
                 </div>
               </div>
               
-                
             </div>
         </div>
     </div>
-
 </div>
+
 {% endblock content %}

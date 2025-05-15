@@ -1,32 +1,31 @@
 {% extends "frontend/layouts/master.html" %}
 
 {% block content %}
-	<!-- Breadcrumb -->
+	<!-- شريط التنقل -->
     <div class="breadcrumb-bar-two">
         <div class="container">
             <div class="row align-items-center inner-banner">
                 <div class="col-md-12 col-12 text-center">
-                    <h2 class="breadcrumb-title">Pricing</h2>
+                    <h2 class="breadcrumb-title">الأسعار</h2>
                     <nav aria-label="breadcrumb" class="page-breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Pricing</li>
+                            <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">الأسعار</li>
                         </ol>
                     </nav>
                 </div>
             </div>
         </div>
     </div>
-    <!-- /Breadcrumb -->
+    <!-- /شريط التنقل -->
 
-
-    <!-- Pricing -->
+    <!-- قسم الأسعار -->
     <section class="pricing-section">
         <div class="container">
             <div class="row">
                 <div class="col-md-12 text-center aos" data-aos="fade-up">
                     <div class="section-header-one">
-                        <h2 class="section-title">Pricing Plan</h2>
+                        <h2 class="section-title">خطط الأسعار</h2>
                     </div>
                 </div>
             </div>
@@ -38,39 +37,40 @@
                                 <div class="pricing-header-info">
                                     <div class="pricing-icon">
                                         <span>
-                                            <img src="{% static 'img/icons/price-icon1.svg' %}" alt="icon">
+                                            <img src="{% static 'img/icons/price-icon1.svg' %}" alt="أيقونة">
                                         </span>
                                     </div>
                                     <div class="pricing-title">
-                                        <p>For individuals</p>
-                                        <h4>Basic</h4>
+                                        <p>للأفراد</p>
+                                        <h4>الخطة الأساسية</h4>
                                     </div>
                                 </div>
                                 <div class="pricing-header-text">
-                                    <p>Lorem ipsum dolor consectetur adipiscing elit,sed do eiusmod tempor</p>
+                                    <p>لوريم إيبسوم هو نص شكلي يستخدم في مجالات التصميم والطباعة.</p>
                                 </div>
                             </div>
                             <div class="pricing-info">
                                 <div class="pricing-amount">
-                                    <h2>$99 <span>/monthly</span></h2>
-                                    <h6>What’s included</h6>
+                                    <h2>$99 <span>/شهريًا</span></h2>
+                                    <h6>ماذا تتضمن الخطة</h6>
                                 </div>
                                 <div class="pricing-list">
                                     <ul>
-                                        <li>Lorem ipsum dolor amet, consectetur</li>
-                                        <li>Lorem ipsum amet, consectetur</li>
-                                        <li>Lorem ipsum dolor amet, consectetur</li>
-                                        <li>Lorem ipsum amet, consectetur</li>
+                                        <li>دعم فني على مدار الساعة</li>
+                                        <li>إمكانية الوصول إلى جميع الأقسام</li>
+                                        <li>تحليلات وتقارير شهرية</li>
+                                        <li>إعداد حساب أساسي</li>
                                     </ul>
                                 </div>
                                 <div class="pricing-btn">
-                                    <a href="" class="btn">Choose Plan</a>
+                                    <a href="#" class="btn">اختر الخطة</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     </section>
-    <!-- /Pricing -->
+    <!-- /قسم الأسعار -->
 {% endblock %}
