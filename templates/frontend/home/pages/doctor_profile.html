@@ -3,30 +3,245 @@
 
 {% block extra_css %}
 <style>
-    .hospital-link {
-        color: #20c0f3;
-        text-decoration: none;
-        transition: color 0.3s ease;
+    /* أنماط عامة */
+    .doctor-profile-page {
+        font-family: 'Tajawal', sans-serif;
     }
+
+    /* بطاقة الطبيب */
+    .doctor-img {
+        border: 3px solid #fff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+        border-radius: 10px;
+        width: 180px;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .doctor-img:hover {
+        transform: scale(1.05);
+    }
+
+    .hospital-link {
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+
     .hospital-link:hover {
-        color: #0056b3;
-        text-decoration: underline;
+        background-color: #f0f7ff !important;
+        transform: translateY(-2px);
+    }
+
+    /* تبويبات الصفحة */
+    .user-tabs .nav-link {
+        color: #6c757d;
+        transition: all 0.3s;
+    }
+
+    .user-tabs .nav-link.active {
+        color: #20c0f3;
+        background-color: transparent;
+        border-bottom: 3px solid #20c0f3;
+    }
+
+    .user-tabs .nav-link i {
+        transition: all 0.3s;
+    }
+
+    .user-tabs .nav-link.active i {
+        color: #20c0f3;
+        transform: scale(1.2);
+    }
+
+    /* مؤشر التوفر */
+    .pulse-dot {
+        width: 12px;
+        height: 12px;
+        background-color: #28a745;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+
+    /* تقييمات النجوم */
+    .star-rating-input {
+        direction: ltr;
+        unicode-bidi: bidi-override;
+    }
+
+    .star-rating-input input[type="radio"] {
+        display: none;
+    }
+
+    .star-rating-input label {
+        color: #ddd;
+        font-size: 1.8rem;
+        padding: 0 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .star-rating-input label:hover,
+    .star-rating-input label:hover ~ label,
+    .star-rating-input input[type="radio"]:checked ~ label {
+        color: #ffc107;
+    }
+
+    /* بطاقات المستشفيات */
+    .hospital-card {
+        transition: all 0.3s;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .hospital-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .hospital-card .hospital-img {
+        height: 120px;
+        object-fit: cover;
+    }
+
+    /* تقييمات المرضى */
+    .review-card {
+        border-left: 3px solid #20c0f3;
+        transition: all 0.3s;
+    }
+
+    .review-card:hover {
+        box-shadow: 0 5px 15px rgba(32, 192, 243, 0.1);
+    }
+
+    .review-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* زر الحجز */
+    .apt-btn {
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .apt-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(32, 192, 243, 0.4);
+    }
+
+    .apt-btn:after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+    }
+
+    .apt-btn:focus:after {
+        animation: ripple 1s ease-out;
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(0, 0);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(20, 20);
+            opacity: 0;
+        }
+    }
+
+    /* تصميم البريد كرامب */
+    .breadcrumb-bar-two {
+        background: linear-gradient(135deg, #20c0f3 0%, #1a7bb9 100%);
+        padding: 40px 0;
+        color: white;
+    }
+
+    .breadcrumb {
+        justify-content: center;
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: white;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* بطاقة الساعات */
+    .business-hours-card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .listing-day {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: all 0.3s;
+    }
+
+    .listing-day:hover {
+        background-color: #f9f9f9;
+    }
+
+    .listing-day.current {
+        background-color: #f0f7ff;
+    }
+
+    .open-status .badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-
 			<!-- Breadcrumb -->
 			<div class="breadcrumb-bar-two">
 				<div class="container">
 					<div class="row align-items-center inner-banner">
 						<div class="col-md-12 col-12 text-center">
-							<h2 class="breadcrumb-title">Doctor Profile</h2>
+							<h2 class="breadcrumb-title">تفاصيل الطبيب<h2>
 							<nav aria-label="breadcrumb" class="page-breadcrumb">
 								<ol class="breadcrumb">
-									<li class="breadcrumb-item"><a href="index.html">Home</a></li>
-									<li class="breadcrumb-item" aria-current="page">Doctor Profile</li>
+									<li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+									<li class="breadcrumb-item" aria-current="page"> تفاصيل الطبيب</li>
 								</ol>
 							</nav>
 						</div>
@@ -34,545 +249,909 @@
 				</div>
 			</div>
 			<!-- /Breadcrumb -->
-			
-			<!-- Page Content -->
-			<div class="content">
-				<div class="container">
 
-				<!-- Doctor Widget -->
-				<div class="card">
-					<div class="card-body">
-						<div class="doctor-widget">
-							<div class="doc-info-left">
-								<div class="doctor-img">
-									{% if doctor.photo %}
-										<img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
-									{% else %}
-										<img src="{% static 'img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="{{ doctor.full_name }}">
-									{% endif %}
-								</div>
-								<div class="doc-info-cont">
-									<!-- اسم الدكتور -->
-									<h4 class="doc-name">{{ doctor.full_name }}</h4>
-									<h5 class="doc-name">المستشفيات المتواجد فيها</h5>
+<!-- Page Content -->
+<div class="content">
+    <div class="container">
 
-									<!-- أسماء المستشفيات المرتبطة -->
-									<p class="doc-speciality">
-										{% for hospital in doctor_prices %}
-											<a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital.hospital.id }}" class="hospital-link">
-												{{ hospital.hospital.name }}
-											</a>{% if not forloop.last %}, {% endif %}
-										{% endfor %}
-									</p>
+    <!-- Doctor Widget -->
+<!-- Doctor Profile Card - Modern Design -->
+<div class="doctor-profile-card">
+	<div class="profile-container">
+	  <!-- Doctor Image Section -->
+	  <div class="doctor-image-section">
+		<div class="avatar-container">
+		  {% if doctor.photo %}
+			<img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}" class="doctor-avatar">
+		  {% else %}
+			<img src="{% static 'img/doctors/default-doctor.jpg' %}" alt="{{ doctor.full_name }}" class="doctor-avatar">
+		  {% endif %}
+		  <div class="availability-badge">
+			<span class="dot"></span>
+			<span>متاح الآن</span>
+		  </div>
+		</div>
+		
+		<div class="action-buttons">
+		  <button class="favorite-btn {% if isFavorite.exists %}active{% endif %}" data-doctor-id="{{ doctor.id }}">
+			<i class="far fa-bookmark"></i>
+			{% if isFavorite.exists %}مفضلة{% else %}حفظ{% endif %}
+		  </button>
+		  <a href="{% url 'home:booking' doctor.id %}" class="appointment-btn">
+			<i class="far fa-calendar-check"></i> حجز موعد
+		  </a>
+		</div>
+	  </div>
+	  
+	  <!-- Doctor Info Section -->
+	  <div class="doctor-info-section">
+		<div class="header-section">
+		  <h1 class="doctor-name">{{ doctor.full_name }}</h1>
+		  <div class="specialty-badge">
+			{% if doctor.specialty.image %}
+			  <img src="{{ doctor.specialty.image.url }}" alt="{{ doctor.specialty.name }}" class="specialty-icon">
+			{% endif %}
+			<span>{{ doctor.specialty.name }}</span>
+		  </div>
+		</div>
+		
+		<div class="rating-section">
+		  <div class="stars">
+			{% for i in "12345" %}
+			  <i class="fas fa-star {% if average_rating >= forloop.counter %}active{% endif %}"></i>
+			{% endfor %}
+		  </div>
+		  <span class="review-count">({{ reviews.count }} تقييم)</span>
+		</div>
+		
+		<div class="location-section">
+		  <i class="fas fa-map-marker-alt"></i>
+		  <span>{{ doctor.sub_title }}</span>
+		</div>
+		
+		<div class="bio-section">
+		  <h3>نبذة عن الطبيب</h3>
+		  <p>{{ doctor.sub_title }}</p>
+		</div>
+	  </div>
+	  
+	  <!-- Hospitals & Pricing Section -->
+	  <div class="hospitals-section">
+        <h3 class="section-title">المستشفيات المتواجد فيها</h3>
+        
+        <div class="hospitals-list">
+          {% for hospital_data in doctor_hospitals %}
+          <div class="hospital-item">
+            <div class="hospital-info">
+              <i class="fas fa-hospital"></i>
+              <div>
+                <h4>{{ hospital_data.hospital.name }}</h4>
+                <div class="price">سعر الكشف: <span>{{ hospital_data.price }} ر.ي</span></div>
+              </div>
+            </div>
+            <a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital_data.hospital.id }}" class="book-btn">
+              حجز <i class="fas fa-arrow-left"></i>
+            </a>
+          </div>
+          {% endfor %}
+		</div>
+	  </div>
+	</div>
+  </div>
+        
+    <!-- Doctor Details Tab -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-body p-0">
+            <!-- Tab Menu -->
+            <nav class="user-tabs bg-light">
+                <ul class="nav nav-tabs nav-tabs-bottom nav-justified border-0">
+                    <li class="nav-item">
+                        <a class="nav-link active d-flex flex-column align-items-center py-3 border-0" 
+                           href="#doc_overview" data-bs-toggle="tab">
+                            <i class="fas fa-info-circle fs-4 mb-1"></i>
+                            <span>لمحة عامة</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex flex-column align-items-center py-3 border-0" 
+                           href="#doc_locations" data-bs-toggle="tab">
+                            <i class="fas fa-hospital fs-4 mb-1"></i>
+                            <span>المستشفيات والمواعيد</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex flex-column align-items-center py-3 border-0" 
+                           href="#doc_reviews" data-bs-toggle="tab">
+                            <i class="fas fa-star fs-4 mb-1"></i>
+                            <span>التقييمات</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex flex-column align-items-center py-3 border-0" 
+                           href="#doc_business_hours" data-bs-toggle="tab">
+                            <i class="fas fa-clock fs-4 mb-1"></i>
+                            <span>أوقات العمل</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Tab Content -->
+            <div class="tab-content p-4 p-lg-5">
+                <!-- Overview Content -->
+                <div role="tabpanel" id="doc_overview" class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-9">
+                            <div class="widget about-widget mb-5">
+                                <h4 class="widget-title mb-4 text-primary">نبذة عن الطبيب</h4>
+                                <p class="lead">{{ doctor.sub_title }}</p>
+                                <div class="mt-4">
+                                    {{ doctor.about|safe }}
+                                </div>
+                            </div>
+            
+                            <div class="service-list">
+                                <h4 class="mb-4 text-primary">المستشفيات التي يعمل بها</h4>
+                                <div class="row">
+                                    {% for hospital in doctor.hospitals.all %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                            {% if hospital.logo %}
+                                            <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" width="50" class="me-3 rounded-circle">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-hospital text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ hospital.name }}</h6>
+                                                <small class="text-muted">{{ hospital.city.name }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Overview Content -->
+                
+                <!-- Locations Content -->
+                <div role="tabpanel" id="doc_locations" class="tab-pane fade">
+                    <div class="container py-4">
+                        <div class="row g-4">
+                            {% for hospital in doctor.hospitals.all %}
+                            <div class="col-md-4">
+                                <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100 hospital-card">
+                                    <div class="bg-light p-3 d-flex align-items-center">
+                                        {% if hospital.logo %}
+                                        <img src="{{ hospital.logo.url }}" alt="شعار المستشفى" class="rounded-circle me-3" style="width: 70px; height: 70px; object-fit: cover;">
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1 text-primary fw-bold">{{ hospital.name }}</h5>
+                                            <p class="mb-0 text-muted small">
+                                                <i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ hospital.city.name }} - {{ hospital.location }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted mb-2">{{ doctor.specialty.name }}</p>
+                                        <h6 class="fw-bold mb-2">
+                                            <i class="fas fa-calendar-alt me-2 text-success"></i>المواعيد المتاحة:
+                                        </h6>
+                                        {% for schedule in doctor.schedules.all %}
+                                            {% if schedule.hospital.id == hospital.id %}
+                                            <div class="mb-2">
+                                                <strong>{{ schedule.get_day_display }}:</strong><br>
+                                                <ul class="list-unstyled ms-3 small text-muted">
+                                                    {% for shift in schedule.shifts.all %}
+                                                    <li>من {{ shift.start_time|time:"h:i A" }} الى {{ shift.end_time|time:"h:i A" }}</li>
+                                                    <strong>المواعيد المتاحة:</strong> {{ shift.available_slots }} 
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <div class="mt-3">
+                                            <h6 class="fw-bold text-primary">
+                                                <i class="fas fa-money-bill-wave me-1 text-success"></i>السعر:
+                                            </h6>
+                                            {% with found=False %}
+                                            {% for price in doctor_prices %}
+                                                {% if price.hospital.id == hospital.id %}
+                                                    <p class="text-success fw-bold fs-5">{{ price.amount }} ر.ي</p>
+                                                    {% with found=True %}{% endwith %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not found %}
+                                            {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        
+                                        <div class="mt-4">
+                                            <a href="{% url 'home:booking' doctor.id %}?hospital_id={{ hospital.id }}" class="btn btn-primary w-100">
+                                                <i class="far fa-calendar-alt me-2"></i>حجز موعد
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- /Locations Content -->
+                
+                <!-- Reviews Content -->
+                <div role="tabpanel" id="doc_reviews" class="tab-pane fade">
+                    <div class="doctor-reviews-container">
+                        <!-- Reviews Listing Section -->
+                        <div class="reviews-header mb-5">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="mb-0 text-primary">تقييمات المرضى</h3>
+                                <div class="d-flex align-items-center">
+                                    <div class="average-rating-badge bg-primary text-white rounded-pill px-3 py-2 me-3">
+                                        <span class="rating-number fs-4">{{ doctor.average_rating|floatformat:1 }}</span>
+                                        <i class="fas fa-star ms-1"></i>
+                                    </div>
+                                    <span class="text-muted">بناءً على {{ reviews.count }} تقييم</span>
+                                </div>
+                            </div>
+                            <hr class="mt-3">
+                        </div>
+                
+                        <div class="reviews-listing">
+                            {% if reviews.count > 0 %}
+                            <div class="row">
+                                {% for review in reviews %}
+                                <div class="col-md-12 mb-4">
+                                    <div class="review-card card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            {% if review.user %}
+                                            <div class="d-flex">
+                                                <!-- User Avatar -->
+                                                <div class="flex-shrink-0 me-3">
+                                                    {% if review.patient.user.profile_picture %}
+                                                        <img class="avatar rounded-circle" width="60" height="60" 
+                                                             alt="صورة المستخدم" 
+                                                             src="{{ review.patient.user.profile_picture.url }}">
+                                                    {% else %}
+                                                        <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px;">
+                                                            <i class="fas fa-user text-muted"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <!-- Review Content -->
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h5 class="mb-0">
+                                                            {% if review.patient.user.get_full_name %}
+                                                                {{ review.patient.user.get_full_name }}
+                                                            {% else %}
+                                                                {{ review.patient.user.email|truncatechars:20 }}
+                                                            {% endif %}
+                                                        </h5>
+                                                        <small class="text-muted review-date">
+                                                            {{ review.created_at|date:"d M Y" }}
+                                                        </small>
+                                                    </div>
+                                                    
+                                                    <div class="star-rating mb-2">
+                                                        {% for i in "12345" %}
+                                                            <i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                    
+                                                    <p class="review-text mb-0">{{ review.review }}</p>
+                                                </div>
+                                            </div>
+                                            {% else %}
+                                            <div class="anonymous-review">
+                                                <div class="d-flex">
+                                                    <div class="flex-shrink-0 me-3">
+                                                        <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                                             style="width: 60px; height: 60px;">
+                                                            <i class="fas fa-user-secret text-muted"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <h5 class="mb-0">مستخدم مجهول</h5>
+                                                            <small class="text-muted review-date">
+                                                                {% if review.created_at %}
+                                                                    {{ review.created_at|date:"d M Y" }}
+                                                                {% endif %}
+                                                            </small>
+                                                        </div>
+                                                        <div class="star-rating mb-2">
+                                                            {% for i in "12345" %}
+                                                                <i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
+                                                            {% endfor %}
+                                                        </div>
+                                                        <p class="review-text mb-0">{{ review.review }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="empty-reviews text-center py-5 bg-light rounded-3">
+                                <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">لا توجد تقييمات حتى الآن</h5>
+                                <p class="text-muted">كن أول من يقيم د. {{ doctor.full_name }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                
+                        <!-- Add Review Section -->
+                        <div class="add-review-section mt-5 pt-5 border-top">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <h4 class="mb-4 text-primary">أضف تقييمك</h4>
+                                    <p class="text-muted mb-4">شارك تجربتك مع د. {{ doctor.full_name }}</p>
+                                    
+                                    <form method="post" action="{% url 'home:doctor_profile' doctor.id %}">
+                                        {% csrf_token %}
+                                        
+                                        <!-- Rating Input -->
+                                        <div class="mb-4">
+                                            <label class="form-label mb-2 fw-bold">تقييمك</label>
+                                            <div class="star-rating-input">
+                                                {% for i in "54321" %}
+                                                <input id="star-{{ i }}" type="radio" name="rating" value="{{ i }}" required>
+                                                <label for="star-{{ i }}" title="{{ i }} نجوم">
+                                                    <i class="far fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                </label>
+                                                {% endfor %}
+                                                <div class="clearfix"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Review Text -->
+                                        <div class="mb-4">
+                                            <label for="review_desc" class="form-label fw-bold">التعليق</label>
+                                            <textarea id="review_desc" name="review" class="form-control" rows="4" 
+                                                      maxlength="300" placeholder="اكتب تجربتك مع الطبيب (حد أقصى 300 حرف)" required></textarea>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">سيتم نشر تعليقك بعد المراجعة</small>
+                                                <small class="text-muted"><span id="chars">300</span> حرف متبقي</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Submit Button -->
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                                <i class="fas fa-paper-plane me-2"></i>إرسال التقييم
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Reviews Content -->
+                
+                <!-- Business Hours Content -->
+                <div role="tabpanel" id="doc_business_hours" class="tab-pane fade">
+                    <div class="row">
+                        <div class="col-md-8 offset-md-2">
+                            <div class="widget business-widget">
+                                <div class="widget-content">
+                                    <div class="listing-hours">
+                                        {% for schedule in doctor.schedules.all %}
+                                            {% if day_name == schedule.get_day_display %}
+                                            <div class="listing-day current p-3 rounded-3 mb-3 bg-primary text-white">
+                                                <div class="day fw-bold">اليوم <span>{{ day_date }}</span></div>
+                                                <div class="time-items mt-2">
+                                                    <span class="open-status"><span class="badge bg-white text-success">مفتوح الآن</span></span>
+                                                    {% for shift in schedule.shifts.all %}
+                                                    <span class="time d-block mt-2">{{ shift.start_time }} - {{ shift.end_time }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+            
+                                        {% for schedule in doctor.schedules.all %}
+                                            {% if day_name != schedule.get_day_display %}
+                                            <div class="listing-day p-3 rounded-3 mb-3 border">
+                                                <div class="day fw-bold">{{ schedule.get_day_display }}</div>
+                                                <div class="time-items mt-2">
+                                                    {% for shift in schedule.shifts.all %}
+                                                    <span class="time d-block">{{ shift.start_time }} - {{ shift.end_time }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Business Hours Content -->
+            </div>
+        </div>
+    </div>
+    <!-- /Doctor Details Tab -->
+    </div>
+</div>		
+<!-- /Page Content -->
 
-									<!-- قسم الطبيب -->
-									<p class="doc-department">
-										{% if doctor.specialty.image %}
-											<img src="{{ doctor.specialty.image.url }}" class="img-fluid" alt="Speciality">
-										{% endif %}
-										{{ doctor.specialty.name }}
-									</p>
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="favToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary text-white">
+            <strong class="me-auto">إشعار</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            تمت العملية بنجاح
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-									 <!-- التقييمات -->
-									<div class="rating">
-										<i class="fas fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if average_rating >= 4 %}filled{% endif %}"></i>
-										<i class="fas fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
-										<span class="d-inline-block average-rating">({{ reviews.count }})</span>
-									</div>
-									 
-									<div class="clinic-details">
+{% block extra_js %}
+<script>
+    // تأثيرات الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        // عداد أحرف التعليق
+        const reviewText = document.getElementById('review_desc');
+        if (reviewText) {
+            reviewText.addEventListener('input', function() {
+                const remaining = 300 - this.value.length;
+                document.getElementById('chars').textContent = remaining;
+                
+                // تغيير اللون عند الاقتراب من النهاية
+                const charCounter = document.getElementById('chars');
+                if (remaining < 20) {
+                    charCounter.classList.add('text-danger');
+                    charCounter.classList.remove('text-muted');
+                } else {
+                    charCounter.classList.remove('text-danger');
+                    charCounter.classList.add('text-muted');
+                }
+            });
+        }
+        
+        // إضافة إلى المفضلة
+        document.querySelectorAll('.fav-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const doctorId = this.dataset.doctorId;
+                
+                fetch("{% url 'home:add_to_favorites' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({doctor_id: doctorId}),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // تأثير التغيير
+                        if (this.classList.contains('btn-danger')) {
+                            this.classList.remove('btn-danger');
+                            this.classList.add('btn-outline-secondary');
+                            this.innerHTML = '<i class="far fa-bookmark me-1"></i> حفظ';
+                        } else {
+                            this.classList.remove('btn-outline-secondary');
+                            this.classList.add('btn-danger');
+                            this.innerHTML = '<i class="far fa-bookmark me-1"></i> مفضلة';
+                        }
+                        
+                        // إشعار صغير
+                        const toast = new bootstrap.Toast(document.getElementById('favToast'));
+                        document.getElementById('toastMessage').textContent = data.message;
+                        toast.show();
+                    }
+                });
+            });
+        });
 
+        // تنشيط تبويبات الصفحة
+        const tabLinks = document.querySelectorAll('.user-tabs .nav-link');
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                tabLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    });
+</script>
 
-										<ul class="clinic-gallery">
-											<li>
-												<a href="{% static 'img/features/feature-01.jpg' %}" data-fancybox="gallery">
-													<img src="{% static 'img/features/feature-01.jpg' %}" alt="Feature">
-												</a>
-											</li>
-										</ul>
-									</div>
-								</div>
-							</div>
-							<div class="doc-info-right">
-								<div class="clini-infos">
-									<ul>
-										<li><i class="far fa-comment"></i> {{ reviews.count }} تعليق</li>
-										<li><i class="fas fa-map-marker-alt"></i>العنوان: {{ doctor.sub_title }}  </li>
-										<li><i class="far fa-money-bill-alt"></i> {% for price in doctor_prices %}{{ price.hospital.name }}: {{ price.amount }} ر.ي {% if not forloop.last %} | {% endif %}{% endfor %}</li>
-									</ul>
-								</div>
-								<div class="doctor-action">
-									<a href="javascript:void(0)" class="btn {% if isFavorite.exists %} btn-red {% else %} btn-white {% endif %} fav-btn" data-doctor-id="{{ doctor.id }}">
-										<i class="far fa-bookmark"></i>
-									</a>
-								</div>
-								<div class="clinic-booking">
-									<a class="apt-btn" href="{% url 'home:booking' doctor.id %}">Book Appointment</a>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- /Doctor Widget 
-					
-					<!-- Doctor Details Tab -->
-					<div class="card">
-						<div class="card-body pt-0">
-							<!-- Tab Menu -->
-							<nav class="user-tabs mb-4">
-								<ul class="nav nav-tabs nav-tabs-bottom nav-justified">
-									<li class="nav-item">
-										<a class="nav-link active" href="#doc_overview" data-bs-toggle="tab">لمحه</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link" href="#doc_locations" data-bs-toggle="tab">الموقع</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link" href="#doc_reviews" data-bs-toggle="tab">التقييمات</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link" href="#doc_business_hours" data-bs-toggle="tab">ساعات العمل</a>
-									</li>
-								</ul>
-							</nav>
-							<!-- /Tab Menu -->
-					
-							<!-- Tab Content -->
-							<div class="tab-content pt-0">
-					
-								<!-- Overview Content -->
-								<div role="tabpanel" id="doc_overview" class="tab-pane fade show active">
-									<div class="row">
-										<div class="col-md-12 col-lg-9">
-											<div class="widget about-widget">
-												<h4 class="widget-title">نبذة عن الطبيب</h4>
-												<p>{{ doctor.sub_title }}</p>
-												<br>
-												<p>{{ doctor.about|safe }}</p>
-											</div>
-					
-											<div class="service-list">
-												<h4>المستشفيات التي يعمل بها</h4>
-												<ul class="clearfix">
-													{% for hospital in doctor.hospitals.all %}
-														<li>{{ hospital.name }}</li>
-													{% endfor %}
-												</ul>
-											</div>
-										</div>
-									</div>
-								</div>
-								<!-- /Overview Content -->
-					
-								<!-- Locations Content -->
-								<div role="tabpanel" id="doc_locations" class="tab-pane fade">
-									<div class="container py-4">
-										<div class="row g-4">
-											{% for hospital in doctor.hospitals.all %}
-											<div class="col-md-4">
-												<div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
-													<div class="bg-light p-3 d-flex align-items-center">
-														{% if hospital.logo %}
-														<img src="{{ hospital.logo.url }}" alt="شعار المستشفى" class="rounded-circle me-3" style="width: 70px; height: 70px; object-fit: cover;">
-														{% endif %}
-														<div>
-															<h5 class="mb-1 text-primary fw-bold">{{ hospital.name }}</h5>
-															<p class="mb-0 text-muted small">
-																<i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ hospital.city.name }} - {{ hospital.location }}
-															</p>
-														</div>
-													</div>
-													<div class="card-body">
-														<p class="text-muted mb-2">{{ doctor.specialty.name }}</p>
-														<h6 class="fw-bold mb-2">
-															<i class="fas fa-calendar-alt me-2 text-success"></i>المواعيد المتاحة:
-														</h6>
-														{% for schedule in doctor.schedules.all %}
-															{% if schedule.hospital.id == hospital.id %}
-															<div class="mb-2">
-																<strong>{{ schedule.get_day_display }}:</strong><br>
-																<ul class="list-unstyled ms-3 small text-muted">
-																	{% for shift in schedule.shifts.all %}
-																	<li>من {{ shift.start_time|time:"h:i A" }} الى {{ shift.end_time|time:"h:i A" }}</li>
-																	<strong>المواعيد المتاحة:</strong> {{ shift.available_slots }} 
-																	{% endfor %}
-																</ul>
-															</div>
-															{% endif %}
-														{% endfor %}
-														<div class="mt-3">
-															<h6 class="fw-bold text-primary">
-																<i class="fas fa-money-bill-wave me-1 text-success"></i>السعر:
-															</h6>
-															{% with found=False %}
-															{% for price in doctor_prices %}
-																{% if price.hospital.id == hospital.id %}
-																	<p class="text-success fw-bold fs-5">{{ price.amount }} ر.ي</p>
-																	{% with found=True %}{% endwith %}
-																{% endif %}
-															{% endfor %}
-															{% if not found %}
-															{% endif %}
-															{% endwith %}
-														</div>
-														
-													</div>
-												</div>
-											</div>
-											{% endfor %}
-										</div>
-									</div>
-								</div>
-								
-								<!-- /Locations Content -->
-					
-								<!-- Reviews Content -->
-								<div role="tabpanel" id="doc_reviews" class="tab-pane fade active show">
-									<div class="doctor-reviews-container">
-										<!-- Reviews Listing Section -->
-										<div class="reviews-header mb-4">
-											<h3 class="mb-3">تقييمات المرضى</h3>
-											<div class="d-flex align-items-center">
-												<div class="average-rating-badge bg-primary text-white rounded-pill px-3 py-1 me-3">
-													<span class="rating-number">{{ doctor.average_rating|floatformat:1 }}</span>
-													<i class="fas fa-star ms-1"></i>
-												</div>
-												<span class="text-muted">بناءً على {{ reviews.count }} تقييم</span>
-											</div>
-										</div>
-								
-										<div class="reviews-listing">
-											{% if reviews.count > 0 %}
-											<div class="row">
-												{% for review in reviews %}
-												<div class="col-md-12 mb-4">
-													<div class="review-card card border-0 shadow-sm">
-														<div class="card-body">
-															{% if review.user %}
-															<div class="d-flex">
-																<!-- User Avatar -->
-																<div class="flex-shrink-0 me-3">
-																	{% if review.patient.user.profile_picture %}
-																		<img class="avatar rounded-circle" width="60" height="60" 
-																			 alt="صورة المستخدم" 
-																			 src="{{ review.patient.user.profile_picture.url }}">
-																	{% else %}
-																		<div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
-																			 style="width: 60px; height: 60px;">
-																			<i class="fas fa-user text-muted"></i>
-																		</div>
-																	{% endif %}
-																</div>
-																
-																<!-- Review Content -->
-																<div class="flex-grow-1">
-																	<div class="d-flex justify-content-between align-items-start mb-2">
-																			{% if review.patient.user.get_full_name %}
-																				{{ review.patient.user.get_full_name }}
-																			{% else %}
-																				{{ review.patient.user.email|truncatechars:20 }}
-																			{% endif %}
-																		</h5>
-																		<small class="text-muted">
-																			{{ review.created_at|date:"d M Y" }}
-																		</small>
-																	</div>
-																	
-																	<div class="star-rating mb-2">
-																		{% for i in "12345" %}
-																			<i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
-																		{% endfor %}
-																	</div>
-																	
-																	<p class="review-text mb-0">{{ review.review }}</p>
-																</div>
-															</div>
-															{% else %}
-															<div class="anonymous-review">
-																<div class="d-flex">
-																	<div class="flex-shrink-0 me-3">
-																		<div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" 
-																			 style="width: 60px; height: 60px;">
-																			<i class="fas fa-user-secret text-muted"></i>
-																		</div>
-																	</div>
-																	<div class="flex-grow-1">
-																		<div class="d-flex justify-content-between align-items-start mb-2">
-																			<h5 class="mb-0">مستخدم مجهول</h5>
-																			<small class="text-muted">
-																				{% if review.created_at %}
-																					{{ review.created_at|date:"d M Y" }}
-																				{% endif %}
-																			</small>
-																		</div>
-																		<div class="star-rating mb-2">
-																			{% for i in "12345" %}
-																				<i class="fas fa-star {% if review.rating >= forloop.counter %}text-warning{% else %}text-muted{% endif %}"></i>
-																			{% endfor %}
-																		</div>
-																		<p class="review-text mb-0">{{ review.review }}</p>
-																	</div>
-																</div>
-															</div>
-															{% endif %}
-														</div>
-													</div>
-												</div>
-												{% endfor %}
-											</div>
-											{% else %}
-											<div class="empty-reviews text-center py-5 bg-light rounded">
-												<i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-												<h5 class="text-muted">لا توجد تقييمات حتى الآن</h5>
-												<p class="text-muted">كن أول من يقيم د. {{ doctor.full_name }}</p>
-											</div>
-											{% endif %}
-										</div>
-								
-										<!-- Add Review Section -->
-										<div class="add-review-section mt-5 pt-4 border-top">
-											<div class="card border-0 shadow-sm">
-												<div class="card-body p-4">
-													<h4 class="mb-4">أضف تقييمك</h4>
-													<p class="text-muted mb-4">شارك تجربتك مع د. {{ doctor.full_name }}</p>
-													
-													<form method="post" action="{% url 'home:doctor_profile' doctor.id %}">
-														{% csrf_token %}
-														
-														<!-- Rating Input -->
-														<div class="mb-4">
-															<label class="form-label mb-2">تقييمك</label>
-															<div class="star-rating-input">
-																{% for i in "54321" %}
-																<input id="star-{{ i }}" type="radio" name="rating" value="{{ i }}" required>
-																<label for="star-{{ i }}" title="{{ i }} نجوم">
-																	<i class="far fa-star"></i>
-																	<i class="fas fa-star"></i>
-																</label>
-																{% endfor %}
-																<div class="clearfix"></div>
-															</div>
-														</div>
-														
-														<!-- Review Text -->
-														<div class="mb-4">
-															<label for="review_desc" class="form-label">التعليق</label>
-															<textarea id="review_desc" name="review" class="form-control" rows="4" 
-																	  maxlength="300" placeholder="اكتب تجربتك مع الطبيب (حد أقصى 300 حرف)" required></textarea>
-															<div class="d-flex justify-content-between mt-2">
-																<small class="text-muted">سيتم نشر تعليقك بعد المراجعة</small>
-																<small class="text-muted"><span id="chars">300</span> حرف متبقي</small>
-															</div>
-														</div>
-														
-														<!-- Submit Button -->
-														<div class="text-end">
-															<button type="submit" class="btn btn-primary px-4 py-2">
-																<i class="fas fa-paper-plane me-2"></i>إرسال التقييم
-															</button>
-														</div>
-													</form>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-								<!-- /Reviews Content -->
-					
-								<!-- Business Hours Content -->
-								<div role="tabpanel" id="doc_business_hours" class="tab-pane fade">
-									<div class="row">
-										<div class="col-md-6 offset-md-3">
-											<div class="widget business-widget">
-												<div class="widget-content">
-													<div class="listing-hours">
-														{% for schedule in doctor.schedules.all %}
-															{% if day_name == schedule.get_day_display %}
-															<div class="listing-day current">
-																<div class="day">اليوم <span>{{ day_date }}</span></div>
-																<div class="time-items">
-																	<span class="open-status"><span class="badge bg-success-light">مفتوح الآن</span></span>
-																	{% for shift in schedule.shifts.all %}
-																	<span class="time">{{ shift.start_time }} - {{ shift.end_time }}</span>
-																	{% endfor %}
-																</div>
-															</div>
-															{% endif %}
-														{% endfor %}
-					
-														{% for schedule in doctor.schedules.all %}
-															{% if day_name != schedule.get_day_display %}
-															<div class="listing-day">
-																<div class="day">{{ schedule.get_day_display }}</div>
-																<div class="time-items">
-																	{% for shift in schedule.shifts.all %}
-																	<span class="time">{{ shift.start_time }} - {{ shift.end_time }}</span>
-																	{% endfor %}
-																</div>
-															</div>
-															{% endif %}
-														{% endfor %}
-													</div>
-												</div>
-											</div>
-											<!-- /Business Hours Widget -->
-										</div>
-									</div>
-								</div>
-								<!-- /Business Hours Content -->
-					
-							</div>
-							<!-- /Tab Content -->
-						</div>
-					</div>
-					
-					<!-- /Doctor Details Tab -->
-					
-				</div>
-			</div>		
-			<!-- /Page Content -->
-   
-			
-						
-			<script>
-				document.querySelectorAll('.fav-btn').forEach(function(button) {
-					button.addEventListener('click', function() {
-						var doctorId = this.getAttribute('data-doctor-id');
-						
-						fetch("{% url 'home:add_to_favorites' %}", {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',  
-								'X-CSRFToken': '{{ csrf_token }}', 
-							},
-							body: JSON.stringify({
-								'doctor_id': doctorId,
-							}),
-						})
-						.then(response => response.json())  
-						.then(data => {
-							if (data.status === 'success') {
-								var icon = button.querySelector('i');
-								
-								if (!button.classList.contains('btn-red')) {
-									button.classList.add('btn-red');
-								} else {
-									button.classList.remove('btn-red');
-								}
-								/*
-								alert(data.message);
-								*/
-							} else {
-								/*
-								alert(data.message);
-								*/
-							}
-						})
-						.catch(error => {
-							console.error('Error:', error);
-						});
-					});
-				});
-			</script>
-			<style>
-				.doctor-reviews-container {
-					font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-				}
-				
-				.reviews-header h3 {
-					font-weight: 600;
-					color: #2c3e50;
-				}
-				
-				.average-rating-badge {
-					font-size: 1.2rem;
-					font-weight: bold;
-				}
-				
-				.review-card {
-					transition: transform 0.2s;
-					border-radius: 10px;
-				}
-				
-				.review-card:hover {
-					transform: translateY(-3px);
-					box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-				}
-				
-				.review-text {
-					color: #555;
-					line-height: 1.6;
-				}
-				
-				.star-rating {
-					color: #ffc107;
-					font-size: 0.9rem;
-				}
-				
-				.star-rating-input {
-					direction: rtl;
-					unicode-bidi: bidi-override;
-					display: inline-block;
-				}
-				
-				.star-rating-input input {
-					display: none;
-				}
-				
-				.star-rating-input label {
-					color: #ddd;
-					font-size: 1.5rem;
-					padding: 0 3px;
-					cursor: pointer;
-					transition: color 0.2s;
-				}
-				
-				.star-rating-input label:hover,
-				.star-rating-input label:hover ~ label,
-				.star-rating-input input:checked ~ label {
-					color: #ffc107;
-				}
-				
-				.star-rating-input label .far,
-				.star-rating-input label .fas {
-					display: inline-block;
-				}
-				
-				.star-rating-input label .fas {
-					display: none;
-				}
-				
-				.star-rating-input input:checked ~ label .fas {
-					display: inline-block;
-				}
-				
-				.star-rating-input input:checked ~ label .far {
-					display: none;
-				}
-				
-				.avatar-placeholder {
-					font-size: 1.5rem;
-				}
-				
-				.anonymous-review .avatar-placeholder {
-					font-size: 1.2rem;
-				}
-			</style>
-			
-			<script>
-				document.addEventListener('DOMContentLoaded', function() {
-					// Character counter for review textarea
-					const reviewTextarea = document.getElementById('review_desc');
-					if (reviewTextarea) {
-						reviewTextarea.addEventListener('input', function() {
-							const remaining = 300 - this.value.length;
-							document.getElementById('chars').textContent = remaining;
-						});
-					}
-				});
-			</script>
-									 
-            {% endblock %}
+<style>
+	/* Doctor Profile Card Styles */
+	.doctor-profile-card {
+	  background: #fff;
+	  border-radius: 16px;
+	  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+	  overflow: hidden;
+	  margin-bottom: 40px;
+	}
+	
+	.profile-container {
+	  display: grid;
+	  grid-template-columns: 280px 1fr;
+	  gap: 30px;
+	  padding: 30px;
+	}
+	
+	/* Doctor Image Section */
+	.doctor-image-section {
+	  display: flex;
+	  flex-direction: column;
+	  gap: 20px;
+	}
+	
+	.avatar-container {
+	  position: relative;
+	  border-radius: 12px;
+	  overflow: hidden;
+	  height: 280px;
+	}
+	
+	.doctor-avatar {
+	  width: 100%;
+	  height: 100%;
+	  object-fit: cover;
+	  transition: transform 0.3s ease;
+	}
+	
+	.avatar-container:hover .doctor-avatar {
+	  transform: scale(1.03);
+	}
+	
+	.availability-badge {
+	  position: absolute;
+	  top: 15px;
+	  left: 15px;
+	  background: rgba(255, 255, 255, 0.9);
+	  padding: 6px 12px;
+	  border-radius: 20px;
+	  display: flex;
+	  align-items: center;
+	  gap: 6px;
+	  font-size: 14px;
+	  font-weight: 500;
+	}
+	
+	.availability-badge .dot {
+	  width: 10px;
+	  height: 10px;
+	  background: #28a745;
+	  border-radius: 50%;
+	  animation: pulse 1.5s infinite;
+	}
+	
+	.action-buttons {
+	  display: flex;
+	  gap: 12px;
+	}
+	
+	.favorite-btn, .appointment-btn {
+	  flex: 1;
+	  padding: 12px;
+	  border-radius: 10px;
+	  font-weight: 600;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  gap: 8px;
+	  transition: all 0.3s ease;
+	}
+	
+	.favorite-btn {
+	  background: #f8f9fa;
+	  color: #6c757d;
+	  border: 1px solid #e9ecef;
+	}
+	
+	.favorite-btn.active {
+	  background: #fff0f0;
+	  color: #dc3545;
+	  border-color: #ffd6d6;
+	}
+	
+	.favorite-btn:hover {
+	  background: #e9ecef;
+	}
+	
+	.favorite-btn.active:hover {
+	  background: #ffe0e0;
+	}
+	
+	.appointment-btn {
+	  background: #20c0f3;
+	  color: white;
+	  border: none;
+	}
+	
+	.appointment-btn:hover {
+	  background: #1a9bcb;
+	  transform: translateY(-2px);
+	  box-shadow: 0 4px 12px rgba(32, 192, 243, 0.3);
+	}
+	
+	/* Doctor Info Section */
+	.doctor-info-section {
+	  display: flex;
+	  flex-direction: column;
+	  gap: 20px;
+	}
+	
+	.header-section {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: flex-start;
+	  gap: 15px;
+	}
+	
+	.doctor-name {
+	  font-size: 28px;
+	  font-weight: 700;
+	  color: #2c3e50;
+	  margin: 0;
+	}
+	
+	.specialty-badge {
+	  background: #f0f7ff;
+	  padding: 8px 12px;
+	  border-radius: 8px;
+	  display: flex;
+	  align-items: center;
+	  gap: 8px;
+	  font-size: 14px;
+	  color: #20c0f3;
+	}
+	
+	.specialty-icon {
+	  width: 20px;
+	  height: 20px;
+	}
+	
+	.rating-section {
+	  display: flex;
+	  align-items: center;
+	  gap: 8px;
+	}
+	
+	.stars {
+	  display: flex;
+	  gap: 3px;
+	}
+	
+	.stars i {
+	  color: #e9ecef;
+	  font-size: 18px;
+	}
+	
+	.stars i.active {
+	  color: #ffc107;
+	}
+	
+	.review-count {
+	  color: #6c757d;
+	  font-size: 14px;
+	}
+	
+	.location-section {
+	  display: flex;
+	  align-items: center;
+	  gap: 8px;
+	  color: #6c757d;
+	}
+	
+	.location-section i {
+	  color: #20c0f3;
+	}
+	
+	.bio-section h3 {
+	  font-size: 18px;
+	  color: #2c3e50;
+	  margin-bottom: 10px;
+	}
+	
+	.bio-section p {
+	  color: #6c757d;
+	  line-height: 1.6;
+	  margin: 0;
+	}
+	
+	/* Hospitals Section */
+	.hospitals-section {
+	  grid-column: 1 / -1;
+	}
+	
+	.section-title {
+	  font-size: 20px;
+	  color: #2c3e50;
+	  margin-bottom: 20px;
+	  padding-bottom: 10px;
+	  border-bottom: 1px solid #f1f3f5;
+	}
+	
+	.hospitals-list {
+	  display: grid;
+	  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	  gap: 15px;
+	}
+	
+	.hospital-item {
+	  background: #f8f9fa;
+	  border-radius: 10px;
+	  padding: 15px;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  transition: all 0.3s ease;
+	}
+	
+	.hospital-item:hover {
+	  background: #f1f3f5;
+	  transform: translateY(-3px);
+	}
+	
+	.hospital-info {
+	  display: flex;
+	  align-items: center;
+	  gap: 12px;
+	}
+	
+	.hospital-info i {
+	  font-size: 24px;
+	  color: #20c0f3;
+	}
+	
+	.hospital-info h4 {
+	  font-size: 16px;
+	  margin: 0 0 5px;
+	  color: #2c3e50;
+	}
+	
+	.price {
+	  font-size: 14px;
+	  color: #6c757d;
+	}
+	
+	.price span {
+	  color: #28a745;
+	  font-weight: 600;
+	}
+	
+	.book-btn {
+	  background: #fff;
+	  color: #20c0f3;
+	  border: 1px solid #20c0f3;
+	  padding: 8px 15px;
+	  border-radius: 8px;
+	  font-size: 14px;
+	  font-weight: 500;
+	  display: flex;
+	  align-items: center;
+	  gap: 5px;
+	  transition: all 0.3s ease;
+	}
+	
+	.book-btn:hover {
+	  background: #20c0f3;
+	  color: white;
+	  transform: translateX(-5px);
+	}
+	
+	@keyframes pulse {
+	  0% { transform: scale(0.95); opacity: 1; }
+	  70% { transform: scale(1.1); opacity: 0.8; }
+	  100% { transform: scale(0.95); opacity: 1; }
+	}
+	
+	/* Responsive Design */
+	@media (max-width: 992px) {
+	  .profile-container {
+		grid-template-columns: 1fr;
+	  }
+	  
+	  .doctor-image-section {
+		flex-direction: row;
+		align-items: flex-end;
+	  }
+	  
+	  .avatar-container {
+		width: 200px;
+		height: 200px;
+	  }
+	  
+	  .action-buttons {
+		flex: 1;
+	  }
+	}
+	
+	@media (max-width: 768px) {
+	  .profile-container {
+		padding: 20px;
+	  }
+	  
+	  .doctor-image-section {
+		flex-direction: column;
+	  }
+	  
+	  .avatar-container {
+		width: 100%;
+		height: 250px;
+	  }
+	  
+	  .header-section {
+		flex-direction: column;
+	  }
+	}
+  </style>
+  
+  <script>
+	document.addEventListener('DOMContentLoaded', function() {
+	  // Favorite Button Functionality
+	  document.querySelectorAll('.favorite-btn').forEach(button => {
+		button.addEventListener('click', function() {
+		  const doctorId = this.dataset.doctorId;
+		  
+		  fetch("{% url 'home:add_to_favorites' %}", {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json',
+			  'X-CSRFToken': '{{ csrf_token }}',
+			},
+			body: JSON.stringify({doctor_id: doctorId}),
+		  })
+		  .then(response => response.json())
+		  .then(data => {
+			if (data.status === 'success') {
+			  this.classList.toggle('active');
+			  const icon = this.querySelector('i');
+			  const text = this.querySelector('span');
+			  
+			  if (this.classList.contains('active')) {
+				this.innerHTML = '<i class="far fa-bookmark"></i> مفضلة';
+			  } else {
+				this.innerHTML = '<i class="far fa-bookmark"></i> حفظ';
+			  }
+			  
+			  // Show notification
+			  showToast(data.message);
+			}
+		  });
+		});
+	  });
+	  
+	  // Function to show toast notification
+	  function showToast(message) {
+		const toast = document.createElement('div');
+		toast.className = 'toast-notification';
+		toast.textContent = message;
+		document.body.appendChild(toast);
+		
+		setTimeout(() => {
+		  toast.classList.add('show');
+		}, 100);
+		
+		setTimeout(() => {
+		  toast.classList.remove('show');
+		  setTimeout(() => {
+			document.body.removeChild(toast);
+		  }, 300);
+		}, 3000);
+	  }
+	});
+  </script>
+  
+{% endblock %}

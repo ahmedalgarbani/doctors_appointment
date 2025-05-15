@@ -96,52 +96,13 @@
                         <div class="mb-3">
                             <label class="mb-2">الجنس</label>
                             <select class="form-select form-control" name="gender">
-                                <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>Male</option>
-                                <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>ذكر</option>
+                                <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>انثى</option>
                             </select>
                         </div>
                     </div>
                     
-                    <!-- الوزن -->
-                    <div class="col-12 col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">الوزن</label>
-                            <input type="text" class="form-control" name="weight" value="{{ patient.weight }}">
-                        </div>
-                    </div>
 
-                    <!-- الطول -->
-                    <div class="col-12 col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">الطول</label>
-                            <input type="text" class="form-control" name="height" value="{{ patient.height }}">
-                        </div>
-                    </div>
-
-                    <!-- العمر -->
-                    <div class="col-12 col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">العمر</label>
-                            <input type="text" class="form-control" name="age" value="{{ patient.age }}">
-                        </div>
-                    </div>
-
-                    <!-- فصيلة الدم -->
-                    <div class="col-12 col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">فصيلة الدم</label>
-                            <select class="form-select form-control" name="blood_group">
-                                <option value="A-" {% if patient.blood_group == 'A-' %}selected{% endif %}>A-</option>
-                                <option value="A+" {% if patient.blood_group == 'A+' %}selected{% endif %}>A+</option>
-                                <option value="B-" {% if patient.blood_group == 'B-' %}selected{% endif %}>B-</option>
-                                <option value="B+" {% if patient.blood_group == 'B+' %}selected{% endif %}>B+</option>
-                                <option value="AB-" {% if patient.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
-                                <option value="AB+" {% if patient.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
-                                <option value="O-" {% if patient.blood_group == 'O-' %}selected{% endif %}>O-</option>
-                                <option value="O+" {% if patient.blood_group == 'O+' %}selected{% endif %}>O+</option>
-                            </select>
-                        </div>
-                    </div>
 
                     <!-- ملاحظات -->
                     <div class="col-12 col-md-6">

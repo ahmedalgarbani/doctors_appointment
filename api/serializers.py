@@ -246,14 +246,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(source='send_time', format="%Y-%m-%d %H:%M:%S", read_only=True)
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.SerializerMethodField()
 
     class Meta:
         model = Notifications
         fields = [
-            'message',  'status', 'notification_type'
+            'message', 'status', 'notification_type', 'created_at',
+            'sender_name', 'sender_email'  # ✅ أضف هذه الحقول
         ]
 
+    def get_sender_name(self, obj):
+        return obj.sender.get_full_name() if hasattr(obj.sender, 'get_full_name') else str(obj.sender)
 
+    def get_sender_email(self, obj):
+        return obj.sender.email if hasattr(obj.sender, 'email') else ""
+    
+    
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:

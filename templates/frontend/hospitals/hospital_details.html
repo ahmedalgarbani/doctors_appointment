@@ -1,0 +1,376 @@
+{% extends "frontend/layouts/master.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar-two">
+    <div class="container">
+        <div class="row align-items-center inner-banner">
+            <div class="col-md-12 col-12 text-center">
+                <h2 class="breadcrumb-title">{{ hospital.name }}</h2>
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hospitals:all_hospitals' %}">المستشفيات</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ hospital.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Breadcrumb -->
+
+<!-- Page Content -->
+<div class="content pt-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Hospital Logo -->
+                    <div class="col-md-4 text-center mb-4">
+                        {% if hospital.logo %}
+                        <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                        {% else %}
+                        <img src="{% static 'img/hospital-default.jpg' %}" alt="{{ hospital.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Hospital Information -->
+                    <div class="col-md-8">
+                        <h3 class="mb-3">{{ hospital.name }}</h3>
+                        {% if hospital.sub_title %}
+                        <p class="text-muted">{{ hospital.sub_title }}</p>
+                        {% endif %}
+                        
+                        <!-- Hospital Stats Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-md fa-2x mb-2"></i>
+                                        <h4 class="mb-0">{{ doctors_count }}</h4>
+                                        <p class="mb-0">طبيب</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-stethoscope fa-2x mb-2"></i>
+                                        <h4 class="mb-0">{{ specialties_count }}</h4>
+                                        <p class="mb-0">تخصص</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                                        <h4 class="mb-0">{{ hospital.city.name }}</h4>
+                                        <p class="mb-0">الموقع</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hospital Address -->
+                        {% if hospital.address %}
+                        <div class="info-item mb-3">
+                            <i class="fas fa-location-dot text-primary"></i>
+                            <span class="ms-2">{{ hospital.address }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if hospital.about %}
+                        <div class="mt-4">
+                            <h4 class="mb-3">نبذة عن المستشفى</h4>
+                            <p>{{ hospital.about }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Hospital Advertisements Section -->
+                {% if advertisements %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h4 class="mb-3">
+                            <i class="fas fa-ad text-primary me-2"></i>
+                            إعلانات المستشفى
+                        </h4>
+                        <div class="row">
+                            {% for ad in advertisements %}
+                            <div class="col-12 mb-4">
+                                <div class="card border-primary shadow" style="border-width: 2px; border-radius: 10px; overflow: hidden;">
+                                    <div class="card-header bg-primary text-white py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">{{ ad.title }}</h5>
+                                            <span class="badge bg-light text-primary">إعلان رسمي</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <!-- معرض الصور -->
+                                            <div class="col-md-6 mb-3 mb-md-0">
+                                                {% if ad.image or ad.image2 or ad.image3 or ad.image4 %}
+                                                <div class="ad-images">
+                                                    {% if ad.image %}
+                                                    <div class="mb-3">
+                                                        <img src="{{ ad.image.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; max-height: 250px; object-fit: cover;">
+                                                    </div>
+                                                    {% endif %}
+                                                    
+                                                    <div class="row g-2">
+                                                        {% if ad.image2 %}
+                                                        <div class="col-4">
+                                                            <img src="{{ ad.image2.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if ad.image3 %}
+                                                        <div class="col-4">
+                                                            <img src="{{ ad.image3.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if ad.image4 %}
+                                                        <div class="col-4">
+                                                            <img src="{{ ad.image4.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% else %}
+                                                <div class="text-center p-5 bg-light rounded">
+                                                    <i class="fas fa-image text-muted fa-3x mb-3"></i>
+                                                    <p class="text-muted">لا توجد صور لهذا الإعلان</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- محتوى الإعلان -->
+                                            <div class="col-md-6">
+                                                <div class="ad-content">
+                                                    <p class="card-text">{{ ad.description }}</p>
+                                                    
+                                                    <!-- تواريخ الإعلان -->
+                                                    {% if ad.start_date or ad.end_date %}
+                                                    <div class="ad-dates mt-3">
+                                                        <h6 class="text-primary">مدة الإعلان:</h6>
+                                                        <div class="d-flex flex-wrap">
+                                                            {% if ad.start_date %}
+                                                            <div class="me-3 mb-2">
+                                                                <i class="fas fa-calendar-day me-1 text-primary"></i>
+                                                                <span class="text-muted">تاريخ البدء:</span> {{ ad.start_date|date:"Y/m/d" }}
+                                                            </div>
+                                                            {% endif %}
+                                                            {% if ad.end_date %}
+                                                            <div class="mb-2">
+                                                                <i class="fas fa-calendar-check me-1 text-primary"></i>
+                                                                <span class="text-muted">تاريخ الانتهاء:</span> {{ ad.end_date|date:"Y/m/d" }}
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Doctors Section -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h4 class="mb-4">الأطباء</h4>
+                        {% if doctors %}
+                        <div class="row">
+                            {% for doctor in doctors %}
+                            <div class="col-md-4 col-sm-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if doctor.photo %}
+                                            <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                            {% else %}
+                                            <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" alt="{{ doctor.full_name }}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                            {% endif %}
+                                            <div class="ms-3">
+                                                <h5 class="mb-0">{{ doctor.full_name }}</h5>
+                                                <p class="text-muted mb-0">{{ doctor.specialty.name }}</p>
+                                                {% if doctor.price %}
+                                                <div class="badge bg-success mt-1">سعر الكشف: {{ doctor.price }} ريال</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="rating-info mt-2 mb-3">
+                                            <div class="rating text-warning">
+                                                {% if doctor.rating %}
+                                                    {% for i in "12345"|make_list %}
+                                                        {% if forloop.counter <= doctor.rating|floatformat:0|add:"0" %}
+                                                            <i class="fas fa-star"></i>
+                                                        {% else %}
+                                                            <i class="far fa-star"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <span class="ms-1 text-muted">({{ doctor.reviews_count }} تقييم)</span>
+                                                {% else %}
+                                                    <span class="text-muted">لا يوجد تقييم</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <a href="{% url 'doctors:doctor_detail' doctor.slug %}" class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-user-md me-1"></i> عرض التفاصيل
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">لا يوجد أطباء حالياً</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- قسم تقييمات المستشفى -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-star text-warning me-2"></i>
+                                    تقييمات المستشفى
+                                    <span class="badge bg-primary ms-2">{{ hospital.reviews_count }}</span>
+                                </h4>
+                                <div class="hospital-rating">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rating-stars me-2">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= hospital.avg_rating|floatformat:0|add:"0" %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="rating-value fw-bold">{{ hospital.avg_rating|floatformat:1 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if can_review %}
+                                <!-- نموذج إضافة تقييم جديد -->
+                                <div class="add-review-form mb-4">
+                                    <h5 class="mb-3">أضف تقييمك للمستشفى</h5>
+                                    <form action="{% url 'reviews:add_hospital_review' hospital.id %}" method="post" id="hospital-review-form">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">التقييم</label>
+                                            <div class="rating-select">
+                                                <div class="btn-group" role="group">
+                                                    {% for i in "12345"|make_list %}
+                                                    <input type="radio" class="btn-check" name="rating" id="rating{{ forloop.counter }}" value="{{ forloop.counter }}" {% if forloop.counter == 5 %}checked{% endif %}>
+                                                    <label class="btn btn-outline-warning" for="rating{{ forloop.counter }}">
+                                                        <i class="fas fa-star"></i>
+                                                        {% if forloop.counter == 1 %}
+                                                            سيء
+                                                        {% elif forloop.counter == 2 %}
+                                                            مقبول
+                                                        {% elif forloop.counter == 3 %}
+                                                            جيد
+                                                        {% elif forloop.counter == 4 %}
+                                                            جيد جداً
+                                                        {% elif forloop.counter == 5 %}
+                                                            ممتاز
+                                                        {% endif %}
+                                                    </label>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="review-text" class="form-label">تعليقك</label>
+                                            <textarea class="form-control" id="review-text" name="review" rows="3" placeholder="اكتب تجربتك مع المستشفى" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">إرسال التقييم</button>
+                                    </form>
+                                </div>
+                                {% elif user_review %}
+                                <!-- عرض تقييم المستخدم الحالي -->
+                                <div class="user-review mb-4">
+                                    <div class="alert alert-info">
+                                        <h5 class="mb-2">تقييمك للمستشفى</h5>
+                                        <div class="rating-stars mb-2">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= user_review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <p>{{ user_review.review }}</p>
+                                        <small class="text-muted">تم النشر في {{ user_review.created_at|date:"d/m/Y" }}</small>
+                                    </div>
+                                </div>
+                                {% elif request.user.is_authenticated %}
+                                <!-- رسالة للمستخدمين المسجلين الذين لم يقوموا بحجز بعد -->
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    يمكنك تقييم المستشفى بعد الحجز وزيارة المستشفى.
+                                </div>
+                                {% endif %}
+                                
+                                <!-- قائمة التقييمات -->
+                                <div class="reviews-list">
+                                    <h5 class="mb-3">آراء المرضى</h5>
+                                    {% if hospital_reviews %}
+                                        {% for review in hospital_reviews %}
+                                        <div class="review-item mb-3 p-3 border-bottom">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="reviewer-info">
+                                                    <h6 class="mb-1">{{ review.user.user.first_name }} {{ review.user.user.last_name }}</h6>
+                                                    <div class="rating-stars mb-2">
+                                                        {% for i in "12345"|make_list %}
+                                                            {% if forloop.counter <= review.rating %}
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            {% else %}
+                                                                <i class="far fa-star text-warning"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                <div class="review-date">
+                                                    <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                                                </div>
+                                            </div>
+                                            <p class="review-text mb-0">{{ review.review }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="alert alert-light text-center">
+                                            <i class="fas fa-comment-slash me-2"></i>
+                                            لا توجد تقييمات للمستشفى حتى الآن.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Content -->
+{% endblock %}

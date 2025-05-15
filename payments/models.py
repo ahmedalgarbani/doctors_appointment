@@ -29,8 +29,8 @@ class HospitalPaymentMethod(models.Model):
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='hospital_payment_methods', verbose_name=_("المستشفى"))
     payment_option = models.ForeignKey(PaymentOption, on_delete=models.CASCADE, verbose_name=_("طريقة الدفع"))
     account_name = models.CharField(max_length=100, verbose_name=_("اسم الحساب"))
-    account_number = models.CharField(max_length=50, verbose_name=_("رقم الحساب"))
-    iban = models.CharField(max_length=50, verbose_name=_("رقم الآيبان"))
+    account_number = models.CharField(max_length=50, verbose_name=_("رقم الحساب"), unique=True)
+    iban = models.CharField(max_length=50, verbose_name=_("رقم الآيبان"), unique=True)
     description = models.TextField(verbose_name=_("تعليمات الدفع"))
     is_active = models.BooleanField(default=True, verbose_name=_("نشط"))
     
@@ -40,13 +40,14 @@ class HospitalPaymentMethod(models.Model):
     class Meta:
         verbose_name = _("طريقة دفع المستشفى")
         verbose_name_plural = _("طرق دفع المستشفى")
-        unique_together = ['hospital', 'payment_option']
+        unique_together = [
+            ['hospital', 'payment_option']
+        ]
 
 # ------------Payment-------------
 
 class Payment(models.Model):
     Type_choices = [
-        ('cash', _('نقدي')),
         ('e_pay', _('دفع إلكتروني')),
     ]
 
@@ -121,24 +122,24 @@ class Payment(models.Model):
         """إرجاع النصوص الواضحة لحالة الدفع."""
         return dict(self.PaymentStatus_choices).get(self.payment_status, _("غير معروف"))
 
+    def can_be_verified(self):
+        """تحقق مما إذا كان يمكن تأكيد الدفع"""
+        return self.payment_status in [0, 2, 3]
+
     def __str__(self):
         return f"فاتورة رقم {self.id} - {self.booking.patient.user.get_full_name()} - {self.payment_totalamount} {self.payment_currency}"
 
     def save(self, *args, **kwargs):
-        # احسب المبلغ الكلي قبل الحفظ
         if self.payment_subtotal and self.payment_discount:
             self.payment_totalamount = self.payment_subtotal - self.payment_discount
-
         super().save(*args, **kwargs)
 
-        # إذا تم الدفع بنجاح
         if self.payment_status == 1:
             booking = self.booking
             patient_user = booking.patient.user
             doctor_name = booking.doctor.user.get_full_name() if hasattr(booking.doctor, 'user') else str(booking.doctor)
             method_name = self.payment_method.payment_option.method_name
 
-            # نص الإشعار
             message = _(
                 f"💳 *تم تأكيد الدفع*\n\n"
                 f"عزيزي العميل،\n"
@@ -149,7 +150,6 @@ class Payment(models.Model):
                 f"شكرًا لاستخدامك خدمتنا، ونتطلع لخدمتك!"
             )
 
-            # التأكد من وجود admin_user
             admin_user = getattr(booking.hospital, 'admin_user', None)
             if admin_user:
                 Notifications.objects.create(

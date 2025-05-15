@@ -1,0 +1,232 @@
+<div class="col-md-7 col-lg-8 col-xl-9 section advertisements_list d-none">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">إدارة الإعلانات</h4>
+                </div>
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <form id="search-filter-form" class="row">
+                            <input type="hidden" name="section" value="advertisements_list">
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <input type="text" name="search" id="search-input" class="form-control" placeholder="بحث عن إعلان..." value="{{ search_query }}">
+                                    <button type="button" id="search-btn" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> بحث
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="status" id="status-filter" class="form-select">
+                                    <option value="">جميع الحالات</option>
+                                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشط</option>
+                                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>غير نشط</option>
+                                    <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>مجدول</option>
+                                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>منتهي</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <a href="javascript:;" data-method="advertisement_form" data-section="advertisement_form" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> إضافة إعلان جديد
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- منطقة عرض مؤشر التحميل -->
+                    <div id="loading-indicator" class="text-center py-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري التحميل...</span>
+                        </div>
+                        <p class="mt-2">جاري تحميل النتائج...</p>
+                    </div>
+
+                    <!-- منطقة عرض رسائل الخطأ -->
+                    <div id="error-message" class="alert alert-danger d-none">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="error-text">حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.</span>
+                    </div>
+
+                    {% if advertisements %}
+                    <div class="table-responsive" id="advertisements-table-container">
+                        <table class="table table-hover table-center mb-0" id="advertisements-table">
+                            <thead>
+                                <tr>
+                                    <th>العنوان</th>
+                                    <th>الصورة</th>
+                                    <th>تاريخ البدء</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advertisements-table-body">
+                                {% for ad in advertisements %}
+                                <tr id="ad-row-{{ ad.id }}">
+                                    <td>
+                                        <h2 class="table-avatar">
+                                            {% if ad.id %}
+                                            <a href="{% url 'advertisements:advertisement_detail' ad.id %}">{{ ad.title }}</a>
+                                            {% else %}
+                                            {{ ad.title }}
+                                            {% endif %}
+                                        </h2>
+                                    </td>
+                                    <td>
+                                        {% if ad.image %}
+                                        <img src="{{ ad.image.url }}" class="img-fluid" style="max-width: 80px; max-height: 60px;">
+                                        {% else %}
+                                        <span class="text-muted">لا توجد صورة</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ ad.start_date }}</td>
+                                    <td>{{ ad.end_date|default:"غير محدد" }}</td>
+                                    <td>
+                                        {% if ad.status == 'active' %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% elif ad.status == 'inactive' %}
+                                        <span class="badge bg-secondary">غير نشط</span>
+                                        {% elif ad.status == 'scheduled' %}
+                                        <span class="badge bg-info">مجدول</span>
+                                        {% elif ad.status == 'expired' %}
+                                        <span class="badge bg-danger">منتهي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="table-action">
+                                            {% if ad.id %}
+                                            <a href="{% url 'advertisements:advertisement_detail' ad.id %}" class="btn btn-sm bg-info-light">
+                                                <i class="far fa-eye"></i> عرض
+                                            </a>
+                                            <a href="javascript:;" class="btn btn-sm bg-success-light edit-ad-btn" data-ad-id="{{ ad.id }}">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </a>
+                                            <a href="javascript:;" class="btn btn-sm bg-danger-light delete-ad-btn" data-ad-id="{{ ad.id }}" data-ad-title="{{ ad.title }}">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- صف تأكيد الحذف (مخفي بشكل افتراضي) -->
+                                <tr id="delete-confirm-{{ ad.id }}" class="delete-confirm-row d-none" style="background-color: #fff3f3;">
+                                    <td colspan="6">
+                                        <div class="p-3 text-center">
+                                            <p class="mb-2">هل أنت متأكد من رغبتك في حذف الإعلان "<strong>{{ ad.title }}</strong>"؟</p>
+                                            <div>
+                                                <button type="button" class="btn btn-sm btn-secondary cancel-delete-btn" data-ad-id="{{ ad.id }}">إلغاء</button>
+                                                <button type="button" class="btn btn-sm btn-danger confirm-delete-btn" data-ad-id="{{ ad.id }}">تأكيد الحذف</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if advertisements.has_other_pages %}
+                    <div class="row mt-4" id="pagination-container">
+                        <div class="col-md-12">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center" id="pagination-list">
+                                    {% if advertisements.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?section=advertisements_list&page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?section=advertisements_list&page={{ advertisements.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+
+                                    {% for i in advertisements.paginator.page_range %}
+                                    <li class="page-item {% if advertisements.number == i %}active{% endif %}">
+                                        <a class="page-link" href="?section=advertisements_list&page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ i }}</a>
+                                    </li>
+                                    {% endfor %}
+
+                                    {% if advertisements.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?section=advertisements_list&page={{ advertisements.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?section=advertisements_list&page={{ advertisements.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div id="no-results-message" class="alert alert-info text-center">
+                        لا توجد إعلانات متاحة. <a href="javascript:;" data-method="advertisement_form" data-section="advertisement_form" class="alert-link">إضافة إعلان جديد</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- رسالة عدم وجود نتائج للبحث (مخفية بشكل افتراضي) -->
+                    <div id="no-search-results" class="alert alert-warning text-center d-none">
+                        لم يتم العثور على نتائج مطابقة لمعايير البحث. <a href="javascript:;" id="reset-search" class="alert-link">إعادة ضبط البحث</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج تعديل الإعلان (مخفي بشكل افتراضي) -->
+    <div class="card mt-4 d-none" id="edit-advertisement-form-container">
+        <div class="card-header">
+            <h4 class="card-title">تعديل الإعلان</h4>
+            <button type="button" class="btn-close float-end" id="close-edit-form"></button>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="edit-advertisement-form">
+                <div id="edit-form-content">
+                    <!-- سيتم تحميل محتوى النموذج هنا عبر AJAX -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري التحميل...</span>
+                        </div>
+                        <p class="mt-2">جاري تحميل النموذج...</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- تم إضافة رمز CSRF للاستخدام في عمليات الحذف -->
+    {% csrf_token %}
+</div>

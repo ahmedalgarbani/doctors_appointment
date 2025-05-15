@@ -1,6 +1,4 @@
-
-{% csrf_token %}
-
+<!-- Appointments Section -->
 <div class="col-md-7 col-lg-8 col-xl-9 appointments section d-none">
 <div class="row mb-4">
     <div class="col-xl-3 col-sm-6 col-12">
@@ -109,7 +107,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب، رقم الحوالة)..." onkeyup="filterAppointments()">
+                            <input type="text" id="search-input" class="form-control me-2" placeholder="ابحث عن حجز (اسم المريض، الطبيب)..." onkeyup="filterAppointments()">
                         </div>
                     </div>
 
@@ -122,7 +120,6 @@
                                     <th>التخصص</th>
                                     <th>موعد الحجز</th>
                                     <th>المبلغ</th>
-                                    <th>رقم الحوالة</th>
                                     <th>حالة الحجز</th>
                                     <th>الإجراءات</th>
                                 </tr>
@@ -161,13 +158,7 @@
                                     <td>
                                         <span class="text-primary fw-bold">{{ booking.amount }} ريال</span>
                                     </td>
-                                    <td>
-                                        {% if booking.transfer_number %}
-                                            <span class="badge bg-info">{{ booking.transfer_number }}</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">لم يتم التحويل</span>
-                                        {% endif %}
-                                    </td>
+
                                     <td>
                                         {% if booking.status == 'pending' %}
                                             <span class="badge rounded-pill bg-warning">قيد الانتظار</span>
@@ -187,6 +178,7 @@
                                                title="عرض التفاصيل">
                                                 <i class="far fa-eye"></i>
                                             </a>
+                                            
                                             {% if booking.status == 'pending' %}
                                                 <button type="button" 
                                                         class="btn btn-sm bg-success-light accept-booking" 
@@ -196,6 +188,7 @@
                                                     <i class="fas fa-check"></i>
                                                 </button>
                                             {% endif %}
+                                            
                                             {% if booking.status == 'confirmed' %}
                                                 <button type="button" 
                                                         class="btn btn-sm bg-info-light confirmed-booking" 
@@ -205,18 +198,16 @@
                                                     <i class="fas fa-check-double"></i>
                                                 </button>
                                             {% endif %}
+                                            
                                             <button class="btn btn-info history-btn" data-booking-id="{{ booking.id }}">
                                                 <i class="fas fa-history"></i> عرض الحالات
                                             </button>
-                                            <!-- <button class="btn btn-warning edit-booking" data-booking-id="{{ booking.id }}">
-                                                <i class="fas fa-edit"></i> تعديل
-                                            </button> -->
+                                            
                                             {% if booking.status != 'completed' and booking.status != 'cancelled' %}
                                                 <button class="btn btn-danger delete-booking" data-booking-id="{{ booking.id }}">
                                                     <i class="fas fa-trash"></i> الغاء
                                                 </button>
                                             {% endif %}
-
                                         </div>
                                     </td>
                                 </tr>
@@ -471,42 +462,93 @@
     });
 
 
-    // دالة لمعالجة تاكيد الحجز
-    document.querySelectorAll(".confirmed-booking").forEach(function(button) {
-        button.addEventListener("click", function() {
-            const bookingId = this.getAttribute("data-booking-id-confirmed");
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    // دالة لمعالجة قبول الحجز
+document.querySelectorAll(".accept-booking").forEach(function(button) {
+    button.addEventListener("click", function() {
+        if (!confirm('هل أنت متأكد من قبول هذا الحجز؟')) {
+            return;
+        }
 
-            fetch("{% url 'hospitals:completed_appointment' booking_id=0 %}".replace('0', bookingId), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrftoken
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'حدث خطأ أثناء قبول الحجز');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('تم قبول الحجز وتأكيد الدفع بنجاح');
-                    location.reload();
-                } else {
-                    throw new Error(data.message || 'حدث خطأ غير معروف');
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert(error.message || 'حدث خطأ أثناء قبول الحجز');
-            });
+        const bookingId = this.getAttribute("data-booking-id");
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'hospitals:accept_appointment' booking_id=0 %}".replace('0', bookingId), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'حدث خطأ أثناء قبول الحجز');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم قبول الحجز بنجاح');
+                location.reload();
+            } else {
+                throw new Error(data.message || 'حدث خطأ غير معروف');
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert(error.message || 'حدث خطأ أثناء قبول الحجز');
         });
     });
+});
+
+// دالة لمعالجة تاكيد اكتمال الحجز
+document.querySelectorAll(".confirmed-booking").forEach(function(button) {
+    button.addEventListener("click", function() {
+        if (!confirm('هل أنت متأكد من تأكيد اكتمال هذا الحجز؟')) {
+            return;
+        }
+
+        const bookingId = this.getAttribute("data-booking-id-confirmed");
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'hospitals:completed_appointment' booking_id=0 %}".replace('0', bookingId), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'حدث خطأ أثناء تأكيد الحجز');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                alert('تم تأكيد اكتمال الحجز بنجاح');
+                location.reload();
+            } else if (data.status === 'payment_required') {
+                // إذا كان الدفع غير مكتمل، توجيه المستخدم لصفحة التفاصيل
+                alert('لا يمكن تأكيد اكتمال الحجز لأن الدفع غير مكتمل');
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                }
+            } else {
+                throw new Error(data.message || 'حدث خطأ غير معروف');
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert(error.message || 'حدث خطأ أثناء تأكيد الحجز');
+        });
+    });
+});
 
     document.querySelectorAll('.history-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -858,4 +900,110 @@
     border-radius: 4px;
 }
 </style>
+
+<script>
+// دالة لتهيئة جدول الحجوزات
+function initAppointmentsTable() {
+    console.log("Initializing appointments table");
+    
+    // التحقق من وجود بيانات في الجدول
+    const appointmentsTable = $("#appointments-table tbody");
+    const rowCount = appointmentsTable.find("tr").length;
+    console.log("Appointments table row count:", rowCount);
+    
+    // إذا لم يكن هناك صفوف في الجدول (باستثناء صف "لا توجد حجوزات")
+    if (rowCount === 0 || (rowCount === 1 && appointmentsTable.find(".alert-info").length > 0)) {
+        console.log("No appointments found, showing message");
+        appointmentsTable.html(`
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="alert alert-info">
+                        لا توجد حجوزات متاحة حاليًا.
+                    </div>
+                </td>
+            </tr>
+        `);
+    }
+    
+    // تهيئة وظائف البحث والفلترة للجدول
+    $("#search-input").on("keyup", function() {
+        filterAppointments();
+    });
+    
+    $("#status-filter").on("change", function() {
+        filterAppointments();
+    });
+}
+
+// دالة لفلترة الحجوزات بناءً على البحث والحالة
+function filterAppointments() {
+    const searchInput = $("#search-input").val().toLowerCase();
+    const statusFilter = $("#status-filter").val();
+    
+    console.log("Filtering appointments - Search:", searchInput, "Status:", statusFilter);
+    
+    // الحصول على جميع صفوف الجدول باستثناء صف "لا توجد حجوزات"
+    const rows = $("#appointments-table tbody tr").not(".no-data-row");
+    
+    // إذا لم يكن هناك صفوف للفلترة
+    if (rows.length === 0) {
+        return;
+    }
+    
+    let visibleCount = 0;
+    
+    // فلترة كل صف
+    rows.each(function() {
+        const row = $(this);
+        const patientName = row.find("td:nth-child(1)").text().toLowerCase();
+        const doctorName = row.find("td:nth-child(2)").text().toLowerCase();
+        const bookingDate = row.find("td:nth-child(3)").text().toLowerCase();
+        const bookingStatus = row.find("td:nth-child(6)").text().toLowerCase();
+        const bookingStatusValue = row.find("td:nth-child(6) .badge").data("status");
+        
+        // التحقق من تطابق البحث
+        const matchesSearch = searchInput === "" || 
+                           patientName.includes(searchInput) || 
+                           doctorName.includes(searchInput) || 
+                           bookingDate.includes(searchInput);
+        
+        // التحقق من تطابق الحالة
+        const matchesStatus = statusFilter === "" || bookingStatusValue === statusFilter;
+        
+        // إظهار أو إخفاء الصف بناءً على الفلترة
+        if (matchesSearch && matchesStatus) {
+            row.show();
+            visibleCount++;
+        } else {
+            row.hide();
+        }
+    });
+    
+    // إذا لم يكن هناك نتائج مطابقة، عرض رسالة "لا توجد نتائج"
+    if (visibleCount === 0) {
+        // التحقق من وجود صف "لا توجد نتائج" بالفعل
+        if ($("#appointments-table tbody .no-results-row").length === 0) {
+            $("#appointments-table tbody").append(`
+                <tr class="no-results-row">
+                    <td colspan="7" class="text-center">
+                        <div class="alert alert-warning">
+                            لا توجد نتائج مطابقة للبحث.
+                        </div>
+                    </td>
+                </tr>
+            `);
+        } else {
+            $("#appointments-table tbody .no-results-row").show();
+        }
+    } else {
+        $("#appointments-table tbody .no-results-row").hide();
+    }
+}
+
+// تنفيذ الدالة عند تحميل الصفحة
+$(document).ready(function() {
+    console.log("Document ready, initializing appointments table");
+    initAppointmentsTable();
+});
+</script>
 {% endblock extra_js %}

@@ -1,179 +1,278 @@
 {% load static %}
 <div class="col-md-7 col-lg-8 col-xl-9 doctor_profile_settings section d-none">
-    <form method="POST" enctype="multipart/form-data" action="{% url 'hospitals:update_hospital_profile' %}">
+    <form id="profile-settings-form" method="POST" enctype="multipart/form-data" action="{% url 'hospitals:update_hospital_profile' %}" onsubmit="return validateForm()">
         {% csrf_token %}
-        <!-- Basic Information -->
-        <div>
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Basic Information</h4>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <div class="change-avatar">
-                                    <div class="profile-img">
-                                        {% if request.user.profile_picture %}
-                                        <img src="{{ request.user.profile_picture.url }}" alt="User Image">
-                                        {% else %}
-                                        <img src="{% static 'assets/img/doctors/doctor-thumb-02.jpg' %}"
-                                            alt="User Image">
-                                        {% endif %}
+
+        <!-- User Information Section -->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">بيانات المستخدم الأساسية</h4>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <div class="change-avatar">
+                                <div class="profile-img">
+                                    {% if request.user.profile_picture %}
+                                    <img src="{{ request.user.profile_picture.url }}" alt="User Image">
+                                    {% else %}
+                                    <img src="{% static 'assets/img/doctors/doctor-thumb-02.jpg' %}"
+                                        alt="User Image">
+                                    {% endif %}
+                                </div>
+                                <div class="upload-img">
+                                    <div class="change-photo-btn">
+                                        <span><i class="fa fa-upload"></i> تحميل صورة</span>
+                                        <input type="file" class="upload" name="profile_picture">
                                     </div>
-                                    <div class="upload-img">
-                                        <div class="change-photo-btn">
-                                            <span><i class="fa fa-upload"></i> Upload Photo</span>
-                                            <input type="file" class="upload" name="photo">
-                                        </div>
-                                        <small class="form-text text-muted">Allowed JPG, GIF or PNG. Max size of
-                                            2MB</small>
-                                    </div>
+                                    <small class="form-text text-muted">يسمح بصيغ JPG أو GIF أو PNG. الحد الأقصى 2 ميجابايت</small>
                                 </div>
                             </div>
                         </div>
-                        {% if request.user.user_type == 'admin' or request.user.user_type == 'hospital_manager' %}
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="mb-2">Username <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" value="{{ request.user.username }}" readonly>
-                            </div>
+                    </div>
+                    {% if request.user.user_type == 'admin' or request.user.user_type == 'hospital_manager' %}
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">اسم المستخدم <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="username" value="{{ request.user.username }}">
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="mb-2">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
-                            </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">البريد الإلكتروني <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" value="{{ request.user.email }}">
                         </div>
-                        {% endif %}
+                    </div>
+                    {% endif %}
 
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="mb-2">Phone Number</label>
-                                <input type="text" class="form-control" name="mobile_number"
-                                    value="{{ request.user.mobile_number }}">
-                            </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">رقم الهاتف</label>
+                            <input type="text" class="form-control" name="mobile_number"
+                                value="{{ request.user.mobile_number }}">
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
-        <!-- /Basic Information -->
 
-        <!-- About Me -->
+        <!-- User Location -->
         {% if request.user.user_type == 'hospital_manager' or request.user.user_type == 'patients' %}
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">About Me</h4>
-                <div class="mb-0">
-                    <label class="mb-2">Biography</label>
-                    <textarea class="form-control" rows="5" name="about">{{hospital.about}}</textarea>
+                <h4 class="card-title">موقع المستخدم</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="control-label">المدينة</label>
+                            <input type="text" class="form-control" name="user_city" value="{{ request.user.city|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="control-label">الولاية / المقاطعة</label>
+                            <input type="text" class="form-control" name="user_state" value="{{ request.user.state|default:'' }}">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endif %}
-        <!-- /About Me -->
 
-        <!-- Clinic Info -->
+        <!-- Hospital Information Section -->
         {% if request.user.user_type == 'hospital_manager' %}
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Clinic Info</h4>
+                <h4 class="card-title">بيانات المستشفى</h4>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="mb-2">Hospital Name</label>
-                            <input type="text" class="form-control" name="hospital_name" value="{{ hospital.name }}">
+                            <label class="mb-2">اسم المستشفى</label>
+                            <input type="text" class="form-control" name="name" value="{{ hospital.name }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">العنوان الفرعي</label>
+                            <input type="text" class="form-control" name="sub_title" value="{{ hospital.sub_title }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="mb-2">مدينة المستشفى</label>
+                            <select class="form-control" name="city_id">
+                                <option value="">اختر المدينة</option>
+                                {% for city in cities %}
+                                    <option value="{{ city.id }}" {% if hospital.city and hospital.city.id == city.id %}selected{% endif %}>
+                                        {{ city.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="mb-2">Hospital Address</label>
-                            <input type="text" class="form-control" name="hospital_location"
-                                value="{{ hospital.location }}">
-                        </div>
-                    </div>
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="mb-2">Hospital Images</label>
-                            <input type="file" class="form-control" name="photo" accept="image/*">
+                            <label class="mb-2">شعار المستشفى</label>
+                            <input type="file" class="form-control" name="logo" accept="image/*">
                         </div>
                         <div class="upload-wrap">
                             <div class="upload-images">
-                                {% if hospital.photo %}
-                                <img src="{{ hospital.photo.url }}" alt="Upload Image">
+                                {% if hospital.logo %}
+                                <img src="{{ hospital.logo.url }}" alt="شعار المستشفى" style="max-height: 150px; max-width: 100%;">
                                 {% else %}
-                                <img src="{% static 'assets/img/features/feature-01.jpg' %}" alt="Upload Image">
+                                <img src="{% static 'assets/img/features/feature-01.jpg' %}" alt="شعار المستشفى" style="max-height: 150px; max-width: 100%;">
                                 {% endif %}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+
+                    <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="mb-2">Description</label>
+                            <label class="mb-2">وصف المستشفى</label>
                             <textarea class="form-control" rows="5"
                                 name="description">{{hospital.description}}</textarea>
                         </div>
                     </div>
 
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="mb-2">نبذة عن المستشفى</label>
+                            <textarea class="form-control" rows="5" name="about">{{hospital.about}}</textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Phone Numbers -->
+
+        <!-- Hospital Phone Numbers -->
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Phone Numbers</h4>
+                <h4 class="card-title">أرقام هواتف المستشفى</h4>
                 <div class="row">
                     <div class="col-md-12">
                         {% if hospital.phone_numbers.all %}
                         {% for phone in hospital.phone_numbers.all %}
-                        <div class="mb-3">
-                            <label class="mb-2">Number {{forloop.counter}} : {{ phone.get_phone_type_display }}</label>
-                            <input type="text" class="form-control" value="{{ phone.number }}" readonly>
+                        <div class="mb-3 phone-number-entry">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <label class="mb-2">رقم {{forloop.counter}} : {{ phone.get_phone_type_display }}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="phone_number_{{ phone.id }}" value="{{ phone.number }}">
+                                        <select class="form-control" name="phone_type_{{ phone.id }}">
+                                            <option value="mobile" {% if phone.phone_type == 'mobile' %}selected{% endif %}>هاتف محمول</option>
+                                            <option value="landline" {% if phone.phone_type == 'landline' %}selected{% endif %}>هاتف أرضي</option>
+                                        </select>
+                                        <button type="button" class="btn btn-danger delete-phone" data-phone-id="{{ phone.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         {% endfor %}
                         {% else %}
-                        <p>No phone numbers available</p>
+                        <p>لا توجد أرقام هواتف متاحة</p>
                         {% endif %}
+
+                        <!-- Add new phone number -->
+                        <div class="mb-3" id="new-phone-container">
+                            <div id="new-phone-entries">
+                                <!-- New phone entries will be added here -->
+                            </div>
+                            <button type="button" class="btn btn-primary mt-2" id="add-phone-btn">
+                                <i class="fas fa-plus"></i> إضافة رقم هاتف جديد
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
-        <!-- /Clinic Info -->
-
-        <!-- Contact Details -->
-        {% if request.user.user_type == 'hospital_manager' or request.user.user_type == 'patients' %}
-
-        <div class="card ">
-            <div class="card-body">
-                <h4 class="card-title">Contact Details</h4>
-                <div class="row">
-                    <div class="col-md-6">
-
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="control-label">City</label>
-                                <input type="text" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="control-label">State / Province</label>
-                                <input type="text" class="form-control">
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        <!-- /Contact Details -->
 
         <div class="submit-section submit-btn-bottom">
-            <button type="submit" class="btn btn-primary prime-btn">Save Changes</button>
+            <button type="submit" class="btn btn-primary prime-btn">حفظ التغييرات</button>
         </div>
     </form>
 </div>
+
+<script>
+let newPhoneCounter = 0;
+
+function validateForm() {
+    console.log('Form submission started');
+
+    // Log form data
+    const formData = new FormData(document.getElementById('profile-settings-form'));
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+
+    // Add a small delay to ensure console logs are visible
+    setTimeout(function() {
+        console.log('Form submission completed');
+    }, 500);
+
+    return true;
+}
+
+function addNewPhoneField() {
+    newPhoneCounter++;
+    const newPhoneEntry = document.createElement('div');
+    newPhoneEntry.className = 'mb-3 new-phone-entry';
+    newPhoneEntry.innerHTML = `
+        <div class="input-group">
+            <input type="text" class="form-control" name="new_phone_number_${newPhoneCounter}" placeholder="رقم الهاتف">
+            <select class="form-control" name="new_phone_type_${newPhoneCounter}">
+                <option value="mobile">هاتف محمول</option>
+                <option value="landline">هاتف أرضي</option>
+            </select>
+            <button type="button" class="btn btn-danger remove-new-phone">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    document.getElementById('new-phone-entries').appendChild(newPhoneEntry);
+
+    // Add event listener to the remove button
+    newPhoneEntry.querySelector('.remove-new-phone').addEventListener('click', function() {
+        newPhoneEntry.remove();
+    });
+}
+
+// Add event listener to form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('profile-settings-form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            console.log('Form submit event triggered');
+        });
+    } else {
+        console.error('Profile settings form not found');
+    }
+
+    // Add event listener to the add phone button
+    const addPhoneBtn = document.getElementById('add-phone-btn');
+    if (addPhoneBtn) {
+        addPhoneBtn.addEventListener('click', addNewPhoneField);
+    }
+
+    // Add event listeners to delete phone buttons
+    document.querySelectorAll('.delete-phone').forEach(button => {
+        button.addEventListener('click', function() {
+            const phoneId = this.getAttribute('data-phone-id');
+            const phoneEntry = this.closest('.phone-number-entry');
+
+            // Add a hidden input to mark this phone for deletion
+            const deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = `delete_phone_${phoneId}`;
+            deleteInput.value = 'true';
+            form.appendChild(deleteInput);
+
+            // Hide the phone entry
+            phoneEntry.style.display = 'none';
+        });
+    });
+});
+</script>

@@ -8,9 +8,9 @@ User = get_user_model()
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'status')
-    prepopulated_fields = {'slug': ('name',)} 
-    list_filter = ('status',)  
-    search_fields = ('name', 'slug')  
+    prepopulated_fields = {'slug': ('name',)}
+    list_filter = ('status',)
+    search_fields = ('name', 'slug')
 
 @admin.register(HospitalAccountRequest)
 class HospitalAccountRequestAdmin(admin.ModelAdmin):
@@ -41,6 +41,9 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
 
     # دالة للموافقة على الطلبات
     def approve_requests(self, request, queryset):
+        from django.utils import timezone
+        from django.utils.text import slugify
+
         for hospital_request in queryset.filter(status='pending'):
             # إنشاء حساب مستخدم جديد لمدير المستشفى
             user = User.objects.create_user(
@@ -55,20 +58,36 @@ class HospitalAccountRequestAdmin(admin.ModelAdmin):
             user.save()
 
             # إنشاء سجل المستشفى
+            hospital_slug = slugify(hospital_request.hospital_name)
+            # التحقق من وجود slug مشابه وإضافة رقم تسلسلي إذا لزم الأمر
+            original_slug = hospital_slug
+            counter = 1
+            while Hospital.objects.filter(slug=hospital_slug).exists():
+                hospital_slug = f"{original_slug}-{counter}"
+                counter += 1
+
+            # إنشاء سجل المستشفى
             hospital = Hospital.objects.create(
+                user=user,  # ربط المستشفى بالمستخدم
                 name=hospital_request.hospital_name,
-                location=hospital_request.hospital_location,
-                hospital_manager_id=user.id
+                slug=hospital_slug,  # الرابط المختصر للمستشفى
+                logo=hospital_request.logo,
+                description=hospital_request.notes,
+                commercial_record=hospital_request.commercial_record,
+                medical_license=hospital_request.medical_license,
+                created_by=request.user,
+                created_at=timezone.now()
             )
 
             # تحديث حالة الطلب
             hospital_request.status = 'approved'
             hospital_request.reviewed_by = request.user
+            hospital_request.reviewed_at = timezone.now()
             hospital_request.save()
 
             # إرسال بريد إلكتروني بمعلومات تسجيل الدخول
             subject = 'تمت الموافقة على طلب تسجيل المستشفى'
-            message = f'''مرحباً {hospital_request.manager_full_name}، 
+            message = f'''مرحباً {hospital_request.manager_full_name}،
             تمت الموافقة على طلب تسجيل المستشفى الخاص بكم. يمكنكم الآن تسجيل الدخول باستخدام المعلومات التالية:
             اسم المستخدم: {user.username}
             كلمة المرور: {hospital_request.manager_password}
@@ -103,7 +122,7 @@ class HospitalUpdateRequestAdmin(admin.ModelAdmin):
     def approve_requests(self, request, queryset):
         for update_request in queryset.filter(status='pending'):
             update_request.approve_request(request.user)
-           
+
         self.message_user(request, f"تمت الموافقة على {queryset.count()} طلب/طلبات بنجاح")
     approve_requests.short_description = "الموافقة على الطلبات المحددة"
 

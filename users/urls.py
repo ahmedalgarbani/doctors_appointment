@@ -11,6 +11,7 @@ urlpatterns = [
 
     path('signup/', TemplateView.as_view(template_name='frontend/auth/signup.html'), name='signup'),
     path('hospital-signup/', views.hospital_account_request, name='hospital_account_request'),
+    path('hospital/account/request/success/', TemplateView.as_view(template_name='frontend/auth/hospital-request-success.html'), name='hospital_request_success'),
 
     path('patient-signup/', views.patient_signup, name='patient_signup'),
     path('register/step1/', views.register_step1, name='register_step1'),  

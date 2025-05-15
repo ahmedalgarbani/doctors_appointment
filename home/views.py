@@ -5,12 +5,12 @@ from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
 from .models import *
 from doctors.models import Specialty, Doctor, DoctorPricing, DoctorSchedules,DoctorShifts
-from hospitals.models import City
+from hospitals.models import City, Hospital
 from reviews.models import Review
 from blog.models import Post
 from datetime import datetime
 from datetime import timedelta
-from django.db.models import Min, Max, Avg
+from django.db.models import Min, Max, Avg, Count
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import logging
 from django.contrib.auth.hashers import make_password,check_password
@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def index(request):
-   
+
     try:
-        homeBanner = HomeBanner.objects.first()  
+        homeBanner = HomeBanner.objects.first()
         logger.info('Retrieved home banner')
     except Exception as e:
         logger.error(f'Failed to retrieve home banner: {str(e)}')
@@ -93,6 +93,34 @@ def index(request):
     except Exception as e:
         logger.error(f'Failed to retrieve city article section: {str(e)}')
 
+    try:
+        # الحصول على المستشفيات التي يجب عرضها في الصفحة الرئيسية
+        hospitals = Hospital.objects.filter(show_at_home=True, status=True).select_related('city')
+
+        # طباعة معلومات تصحيح
+        logger.info(f'Found {hospitals.count()} hospitals for home page')
+        for h in hospitals:
+            logger.info(f'Hospital: {h.name}, City: {h.city.name if h.city else "No city"}, Status: {h.status}, Show at home: {h.show_at_home}')
+
+        # إضافة عدد التخصصات وعدد جداول الأطباء لكل مستشفى
+        for hospital in hospitals:
+            hospital.specialties_count = hospital.doctors.values('specialty').distinct().count()
+            hospital.schedules_count = DoctorSchedules.objects.filter(hospital=hospital).count()
+            logger.info(f'Hospital {hospital.name}: {hospital.specialties_count} specialties, {hospital.schedules_count} schedules')
+
+        logger.info('Retrieved hospitals for home page')
+    except Exception as e:
+        logger.error(f'Failed to retrieve hospitals: {str(e)}')
+        hospitals = []
+
+    # التأكد من أن المستشفيات موجودة
+    if 'hospitals' not in locals() or hospitals is None:
+        hospitals = []
+        logger.warning('Hospitals variable not defined or is None, setting to empty list')
+
+    # طباعة معلومات تصحيح
+    logger.info(f'Context hospitals count: {len(hospitals)}')
+
     ctx = {
         'homeBanner': homeBanner,
         'specialities': specialities,
@@ -149,12 +177,27 @@ def doctor_profile(request, doctor_id):
             rating = request.POST.get('rating'),
             review = request.POST.get('review'),
             )
-    day_date = datetime.now()  
+    day_date = datetime.now()
     day_name = day_date.strftime("%A")
     day_date = day_date.strftime("%Y-%m-%d")
     patient = get_object_or_404(Patients,id=1)
     isFavorite = patient.favourites.filter(doctor=doctor)
-   
+    
+    # Get all hospitals for this doctor without filtering by status
+    all_hospitals = doctor.hospitals.all()
+    
+    # Create a hospitals list with prices
+    doctor_hospitals = []
+    for hospital in all_hospitals:
+        # Get price for this doctor at this hospital
+        pricing = doctor.pricing.filter(hospital=hospital).first()
+        price_amount = pricing.amount if pricing else "-"
+        
+        doctor_hospitals.append({
+            'hospital': hospital,
+            'price': price_amount
+        })
+
     ctx = {
         'doctor': doctor,
         'reviews': reviews,
@@ -163,7 +206,8 @@ def doctor_profile(request, doctor_id):
         'day_name':day_name,
         'hospitals': doctor.hospitals.all(),
         'day_date':day_date,
-        'isFavorite':isFavorite
+        'isFavorite':isFavorite,
+        'doctor_hospitals': doctor_hospitals
     }
 
     return render(request, 'frontend/home/pages/doctor_profile.html', ctx)
@@ -172,22 +216,36 @@ import json
 
 def add_to_favorites(request):
     try:
-        data = json.loads(request.body)  
-        doctor_id = data.get('doctor_id')  
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'يجب تسجيل الدخول لإضافة طبيب إلى المفضلة'})
+            
+        # Check if user is a patient
+        if request.user.user_type != 'patient':
+            return JsonResponse({'status': 'error', 'message': 'فقط المرضى يمكنهم إضافة أطباء إلى المفضلة'})
+            
+        data = json.loads(request.body)
+        doctor_id = data.get('doctor_id')
 
         if not doctor_id:
             return JsonResponse({'status': 'error', 'message': 'No doctor ID provided'})
 
         doctor = get_object_or_404(Doctor, id=doctor_id)
+        
+        # Get the current user's patient record
+        try:
+            patient = Patients.objects.get(user=request.user)
+        except Patients.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'لم يتم العثور على سجل المريض'})
 
-        favorite_entry = Favourites.objects.filter(patient=get_object_or_404(Patients,id=1), doctor=doctor).first()
+        favorite_entry = Favourites.objects.filter(patient=patient, doctor=doctor).first()
 
         if favorite_entry:
             favorite_entry.delete()
-            return JsonResponse({'status': 'success', 'message': 'Doctor removed from favorites'})
+            return JsonResponse({'status': 'success', 'message': 'تم إزالة الطبيب من المفضلة'})
         else:
-            Favourites.objects.create(patient=get_object_or_404(Patients,id=1), doctor=doctor)
-            return JsonResponse({'status': 'success', 'message': 'Doctor added to favorites'})
+            Favourites.objects.create(patient=patient, doctor=doctor)
+            return JsonResponse({'status': 'success', 'message': 'تم إضافة الطبيب إلى المفضلة'})
 
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
@@ -198,59 +256,68 @@ def add_to_favorites(request):
 def search_view(request):
     search_text = request.GET.get('search', '').strip()  
     city_slug = request.GET.get('city', '').strip()
-    date_str = request.GET.get('date', '').strip()
     gender = request.GET.get('gender')
     availability = request.GET.get('availability')
     fee_range = request.GET.get('fee_range')
-    experience = request.GET.get('experience')
+    experience_min = request.GET.get('experience_min', 0)
     rating = request.GET.get('rating')
     specialty = request.GET.get('specialty')
+    sort_by = request.GET.get('sort_by', 'default')
     page = request.GET.get('page', 1)
-    
+    date_str = request.GET.get('date', '')
+    experience = request.GET.get('experience', '')
+    doctor_name = request.GET.get('doctor_name', '')
+
     filters = {}
-    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, page: {page}")
+    logger.info(f"Received filters - gender: {gender}, fee_range: {fee_range}, rating: {rating}, specialty: {specialty}, doctor_name: {doctor_name}, page: {page}")
 
-    # قائمة الأطباء الأساسية
-    doctors = Doctor.objects.all()
-
+    # البدء بجميع الأطباء
+    doctors = Doctor.objects.all().distinct()
+    
+    # البحث باسم الطبيب
+    if doctor_name:
+        doctors = doctors.filter(full_name__icontains=doctor_name)
+        
     if search_text:
         filters['full_name__icontains'] = search_text
         filters['hospitals__name__icontains'] = search_text 
 
     if city_slug:
-        filters['hospitals__city__slug__in'] = [city_slug]
+        doctors = doctors.filter(hospitals__city__slug=city_slug)
 
     if specialty:
-        filters['specialty_id'] = specialty
+        doctors = doctors.filter(specialty_id=specialty)
 
     if gender:
         gender_map = {
-            'male': 1,    # Doctor.STATUS_MALE
-            'female': 0   # Doctor.STATUS_FAMEL
+            'male': 1,
+            'female': 0
         }
         gender_value = gender_map.get(gender.lower())
-        logger.info(f"Mapped gender value: {gender_value}")
         if gender_value is not None:
-            filters['gender'] = gender_value
+            doctors = doctors.filter(gender=gender_value)
 
-    # تطبيق فلتر نطاق السعر
+    # فلترة حسب نطاق السعر
     if fee_range:
         fee_ranges = {
-            'low': (0, 100),
-            'medium': (101, 200),
-            'high': (201, 500),
-            'very_high': (501, 999999)
+            'low': (0, 2000),
+            'medium': (2001, 5000),
+            'high': (5001, 7000),
+            'very_high': (7001, 999999)
         }
         if fee_range in fee_ranges:
             min_fee, max_fee = fee_ranges[fee_range]
-            # الحصول على معرفات الأطباء الذين لديهم أسعار في النطاق المحدد
             doctor_ids = DoctorPricing.objects.filter(
                 amount__gte=min_fee,
                 amount__lte=max_fee
             ).values_list('doctor_id', flat=True).distinct()
             doctors = doctors.filter(id__in=doctor_ids)
 
-    # تطبيق فلتر التقييم
+    # فلترة حسب سنوات الخبرة
+    if experience_min:
+        doctors = doctors.filter(experience_years__gte=int(experience_min))
+
+    # فلترة حسب التقييم
     if rating:
         rating_value = float(rating)
         # احصل على معرفات الأطباء الذين لديهم متوسط تقييم أعلى من أو يساوي القيمة المحددة
@@ -294,8 +361,8 @@ def search_view(request):
     # تطبيق الفلاتر الأساسية
     doctors = doctors.filter(**filters).distinct()
 
-    # تطبيق الترقيم
-    paginator = Paginator(doctors, 10)  # 10 أطباء في كل صفحة
+    # الترقيم
+    paginator = Paginator(doctors, 10)
     try:
         doctors_page = paginator.page(page)
     except PageNotAnInteger:
@@ -303,69 +370,70 @@ def search_view(request):
     except EmptyPage:
         doctors_page = paginator.page(paginator.num_pages)
 
-    cities = City.objects.all()
+    # إضافة بيانات إضافية لكل طبيب
+    for doctor in doctors_page:
+        doctor.avg_rating = doctor.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        doctor.review_count = doctor.reviews.count()
+        doctor.hospital_prices = DoctorPricing.objects.filter(
+            doctor=doctor
+        ).select_related('hospital')
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render(request, 'frontend/home/components/doctors_list.html', {
-            'doctors': doctors_page,
-            'page_obj': doctors_page,
-        })
-
-    # احصل على الحد الأدنى والأقصى للأسعار لعرضها في الواجهة
-    price_range = DoctorPricing.objects.aggregate(
-        min_price=Min('amount'),
-        max_price=Max('amount')
-    )
-
-    # احصل على متوسط التقييمات لكل طبيب
-    doctor_ratings = Review.objects.filter(
-        doctor__in=doctors_page,
-        status=True
-    ).values('doctor').annotate(
-        avg_rating=Avg('rating')
-    )
-    doctors_with_ratings = Doctor.objects.annotate(
-        avg_rating=Avg('reviews__rating')
-    )
-    ctx = {
+    context = {
         'doctors': doctors_page,
         'page_obj': doctors_page,
-        'cities': cities,
+        'cities': City.objects.all(),
         'specialities': Specialty.objects.all(),
         'selected_filters': {
-            'search': search_text,
+            'doctor_name': doctor_name,
             'city': city_slug,
-            'date': date_str,
             'gender': gender,
-            'availability': availability,
             'fee_range': fee_range,
-            'experience': experience,
+            'experience_min': experience_min,
             'rating': rating,
-            'specialty': specialty
+            'specialty': specialty,
+            'sort_by': sort_by
         },
-        'price_range': price_range,
-        'doctors_with_ratings':doctors_with_ratings,
-        'doctor_ratings': {r['doctor']: r['avg_rating'] for r in doctor_ratings}
+        'price_range': DoctorPricing.objects.aggregate(
+            min_price=Min('amount'),
+            max_price=Max('amount')
+        )
     }
 
-    return render(request, 'frontend/home/pages/search.html', ctx)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, 'frontend/home/components/doctors_list.html', context)
 
-
+    return render(request, 'frontend/home/pages/search.html', context)
 
 
 
 
 def booking_view(request, doctor_id):
+    # Check if user is logged in
+    if not request.user.is_authenticated:
+        # Store the doctor_id and hospital_id in session to redirect back after login
+        request.session['redirect_after_login'] = request.get_full_path()
+        # Add a message to the session to inform the user
+        request.session['login_required_message'] = 'يجب تسجيل الدخول أولاً لحجز موعد مع الطبيب'
+        # Redirect to login page
+        return redirect('users:login')
+    
+    # Check if user is a hospital manager
+    if request.user.user_type == 'hospital_manager' or request.user.user_type == 'hospital_staff':
+        # Store a message to inform the user
+        request.session['hospital_user_message'] = 'حسابك الحالي هو حساب مستشفى. يجب استخدام حساب مريض لحجز موعد.'
+        # Redirect to patient registration page
+        return redirect('users:patient_signup')
+    
     selected_doctor = get_object_or_404(Doctor, id=doctor_id)
     request.session['selected_doctor'] = selected_doctor.id
-    
+
     # Get hospital_id from query parameters
     hospital_id = request.GET.get('hospital_id')
-    
+
     # If no hospital is selected, use the first hospital
     if not hospital_id and selected_doctor.hospitals.exists():
         hospital_id = str(selected_doctor.hospitals.first().id)
-    
+
     # Filter schedules by hospital
     if hospital_id:
         dayes = selected_doctor.schedules.filter(hospital_id=hospital_id)
@@ -374,7 +442,7 @@ def booking_view(request, doctor_id):
     else:
         dayes = selected_doctor.schedules.all()
         doctor_price = None
-    
+
     if dayes.exists():
         sched = dayes[0]
         schedulesShift = sched.shifts.all()
@@ -382,7 +450,7 @@ def booking_view(request, doctor_id):
     else:
         sched = None
         grouped_slots = []
-  
+
     context = {
         'doctor': selected_doctor,
         'dayes': dayes,
@@ -390,7 +458,7 @@ def booking_view(request, doctor_id):
         'selected_day': sched.id if sched else None,
         'selected_hospital_id': hospital_id,
         'doctor_price': doctor_price,
-        'doctor_prices': selected_doctor.pricing.all(),  
+        'doctor_prices': selected_doctor.pricing.all(),
     }
 
     return render(request, 'frontend/home/pages/booking.html', context)
@@ -405,22 +473,24 @@ def get_time_slots(request,schedule_id,doctor_id,):
     try:
         doctor = get_object_or_404(Doctor, id=doctor_id)
         schedule = get_object_or_404(DoctorSchedules, id=schedule_id, doctor=doctor)
-        
+
         schedulesShift = schedule.shifts.all()
         grouped_slots = group_shifts_by_period(schedulesShift)
-        
+
         html = render_to_string('frontend/home/pages/time_slots.html', {
-            'schedules': grouped_slots, 
+            'schedules': grouped_slots,
             'doctor': doctor,
             'selected_day':schedule_id
         })
-        
+
         return JsonResponse({
             'html': html,
             'schedule_id': schedule_id
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'error': str(e)
         }, status=500)
+
+

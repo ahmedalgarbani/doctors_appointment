@@ -1,0 +1,76 @@
+{% load static %}
+<!-- Hospitals Section -->
+<section class="hospitals-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 aos" data-aos="fade-up">
+                <div class="section-header-one section-header-slider">
+                    <h2 class="section-title">أفضل المستشفيات</h2>
+                </div>
+            </div>
+            <div class="col-md-6 aos" data-aos="fade-up">
+                <div class="owl-nav slide-nav-3 text-end nav-control"></div>
+            </div>
+        </div>
+
+
+
+        <!-- Simple Hospital Cards -->
+        <div class="row">
+            {% for hospital in hospitals %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            {% if hospital.logo %}
+                            <img src="{{ hospital.logo.url }}" class="img-fluid" alt="{{ hospital.name }}" style="max-height: 100px;">
+                            {% else %}
+                            <img src="{% static 'img/logo.png' %}" class="img-fluid" alt="{{ hospital.name }}" style="max-height: 100px;">
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">{{ hospital.name }}</h5>
+                        {% if hospital.city %}
+                        <p class="card-text"><i class="feather-map-pin"></i> {{ hospital.city.name }}</p>
+                        {% endif %}
+                        <p class="card-text">
+                            <i class="feather-award"></i> {{ hospital.specialties_count }} تخصص
+                            <br>
+                            <i class="feather-clock"></i> {{ hospital.schedules_count }} موعد
+                        </p>
+                        <a href="/dashboard/hospitals/{{ hospital.slug }}/" class="btn btn-primary">عرض التفاصيل</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<!-- /Hospitals Section -->
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #272b41;
+        margin-bottom: 10px;
+    }
+
+    .card-text {
+        font-size: 14px;
+        color: #757575;
+        margin-bottom: 10px;
+    }
+</style>
+
+

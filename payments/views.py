@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts
@@ -11,7 +12,7 @@ from patients.models import Patients
 
 def payment_process(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    
+
     # Verify required values
     if request.method == 'POST':
         day_id = request.POST.get('day')
@@ -23,81 +24,79 @@ def payment_process(request, doctor_id):
         date_id = request.GET.get('date')
         booking_date = request.GET.get('booking_date')
         hospital_id = request.GET.get('hospital_id')
-    
+
     print("Day ID:", day_id)
     print("Date ID:", date_id)
     print("Booking Date:", booking_date)
     print("Hospital ID:", hospital_id)
-    
+
     if not all([day_id, date_id, booking_date, hospital_id]):
         return HttpResponseBadRequest('يرجى اختيار اليوم والوقت وتاريخ الحجز والمستشفى')
-    
+
     try:
         # Get hospital and validate it's associated with the doctor
         selected_hospital = get_object_or_404(Hospital, id=hospital_id)
         if not doctor.hospitals.filter(id=hospital_id).exists():
             return HttpResponseBadRequest('المستشفى المختار غير مرتبط بالطبيب')
-            
+
         # Get doctor's price for this hospital
-        doctor_price = DoctorPricing.objects.filter(DoctorPricing, doctor=doctor, hospital=selected_hospital)
-        
+        doctor_price = get_object_or_404(DoctorPricing, doctor=doctor, hospital=selected_hospital)
+
         # Validate schedule and shift IDs
         selected_schedule = get_object_or_404(DoctorSchedules, id=day_id, doctor=doctor)
         selected_shift = get_object_or_404(DoctorShifts, id=date_id, doctor_schedule=selected_schedule)
-        
+
         # Check if the appointment is available
         if not selected_shift.is_available:
             return HttpResponseBadRequest('عذراً، هذا الموعد غير متاح')
-            
+
     except (ValueError, TypeError):
         return HttpResponseBadRequest('معرف اليوم أو الوقت غير صالح')
-    
-    is_online = request.GET.get('type') == 'online'
-    
+
+
     # Get payment methods
     payment_methods = HospitalPaymentMethod.objects.filter(hospital=selected_hospital, is_active=True)
-    
+
     if request.method == 'POST':
         payment_method_id = request.POST.get('payment_method')
         payment_type = request.POST.get('payment_type')
         notes = request.POST.get('notes', '')
-        
+
         print("POST request received")
         print("Payment method:", payment_method_id)
         print("Payment type:", payment_type)
-        
+
         if not payment_method_id:
             return HttpResponseBadRequest('يرجى اختيار طريقة الدفع')
-        
-        transfer_number = None
-        account_image = None
-        
-        if payment_type == 'transfer':
-            transfer_number = request.POST.get('transfer_number')
-            if not transfer_number:
-                return HttpResponseBadRequest('يرجى إدخال رقم الحوالة')
-            if not transfer_number.isdigit() or len(transfer_number) < 5:
-                return HttpResponseBadRequest('رقم الحوالة يجب أن يكون 5 أرقام على الأقل')
-        else:  # payment_type == 'account'
-            if 'account_image' not in request.FILES:
-                return HttpResponseBadRequest('يرجى إرفاق صورة سند الحساب')
-            account_image = request.FILES['account_image']
-            
+
+        # Check for payment receipt
+        payment_receipt = None
+        if 'payment_receipt' in request.FILES:
+            payment_receipt = request.FILES['payment_receipt']
+        else:
+            return HttpResponseBadRequest('يرجى إرفاق صورة سند الدفع')
+
         try:
             payment_method = payment_methods.get(id=payment_method_id)
         except HospitalPaymentMethod.DoesNotExist:
             return HttpResponseBadRequest('طريقة الدفع غير صالحة')
-        
+
+        # We've removed the transfer_number and account_image fields, so we don't need to validate them anymore
+
         # Re-check appointment availability
         if not selected_shift.is_available:
             return HttpResponseBadRequest('عذراً، هذا الموعد لم يعد متاحاً')
-            
+
         # Get the patient
         try:
             patient = Patients.objects.get(user=request.user)
         except Patients.DoesNotExist:
             return HttpResponseBadRequest('عذراً، لم يتم العثور على بيانات المريض')
-            
+
+        # Payment method validation
+        if not payment_method:
+            return HttpResponseBadRequest('طريقة الدفع غير صالحة')
+
         # Create the booking
         booking = Booking.objects.create(
             doctor=doctor,
@@ -106,19 +105,17 @@ def payment_process(request, doctor_id):
             appointment_date=selected_schedule,
             appointment_time=selected_shift,
             booking_date=booking_date,
-            is_online=is_online,
             amount=doctor_price.amount,
-            status='pending',  
-            transfer_number=transfer_number,
+            status='pending',
             payment_method=payment_method,
-            account_image=account_image if payment_type == 'account' else None
+            payment_receipt=payment_receipt
         )
-        
+
         # Create the payment
         subtotal = float(request.POST.get('subtotal', doctor_price.amount))
         discount = float(request.POST.get('discount', 0))
         total = subtotal - discount
-        
+
         Payment.objects.create(
             booking=booking,
             payment_method=payment_method,
@@ -128,16 +125,38 @@ def payment_process(request, doctor_id):
             payment_totalamount=total,
             payment_currency=payment_method.payment_option.currency,
             payment_note=notes,
-            payment_type='e_pay' if is_online else 'cash'
         )
-        
+
+        # إرسال إشعار للمستشفى بوجود حجز جديد
+        from notifications.models import Notifications
+
+        # الحصول على مستخدم المستشفى (مدير المستشفى)
+        hospital_user = selected_hospital.user
+
+        # إنشاء رسالة الإشعار
+        message = f"🔔 *حجز جديد*\n\n"
+        message += f"تم إنشاء حجز جديد من قبل المريض: {patient.user.get_full_name()}\n"
+        message += f"للطبيب: {doctor.full_name}\n"
+        message += f"التاريخ: {booking_date}\n"
+        message += f"الوقت: {selected_shift.start_time.strftime('%H:%M')} - {selected_shift.end_time.strftime('%H:%M')}\n"
+        message += f"المبلغ: {doctor_price.amount} {payment_method.payment_option.currency}\n\n"
+        message += f"يرجى مراجعة تفاصيل الحجز والدفع من لوحة التحكم."
+
+        # إنشاء الإشعار
+        Notifications.objects.create(
+            sender=request.user,
+            user=hospital_user,
+            message=message,
+            notification_type='2'
+        )
+
         # # Update shift's booked slots
         # selected_shift.booked_slots += 1
         # selected_shift.save()
-        
+
         # Redirect to booking success page
         return redirect('bookings:booking_success', booking_id=booking.id,)
-    
+
     context = {
         'doctor': doctor,
         'hospital_id':hospital_id,
@@ -146,8 +165,85 @@ def payment_process(request, doctor_id):
         'selected_schedule': selected_schedule,
         'selected_shift': selected_shift,
         'booking_date': booking_date,
-        'is_online': is_online,
         'payment_methods': payment_methods
     }
-    
+
     return render(request, 'frontend/home/pages/payment.html', context)
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.db import transaction
+
+@require_POST
+@login_required
+def verify_payment(request, booking_id):
+    try:
+        # Use transaction to ensure data consistency
+        with transaction.atomic():
+            # Get booking with select_for_update to lock the record
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+            payment = booking.payments.first()
+
+            if not payment:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'لا يوجد سجل دفع لهذا الحجز',
+                    'toast_class': 'bg-danger'
+                }, status=404)
+
+            # Check if payment is already verified
+            if booking.payment_verified:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'تم التحقق من هذا الدفع مسبقاً',
+                    'toast_class': 'bg-warning'
+                }, status=400)
+
+            # Validate payment status
+            valid_statuses = [0, 2, 3]  # pending, failed, refunded
+            if payment.payment_status not in valid_statuses:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'لا يمكن تأكيد الدفع في هذه الحالة',
+                    'toast_class': 'bg-danger'
+                }, status=400)
+
+            # Update payment
+            payment.payment_status = 1  # completed
+            payment.payment_note = request.POST.get('notes', '')
+            payment.save()
+
+            # Update booking payment verification
+            booking.payment_verified = True
+            booking.payment_verified_at = timezone.now()
+            booking.payment_verified_by = request.user
+
+            # Update booking status if pending
+            if booking.status == 'pending':
+                booking.status = 'confirmed'
+
+            booking.save()
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم تأكيد الدفع بنجاح',
+                'toast_class': 'bg-success',
+                'verified_at': booking.payment_verified_at.strftime("%Y-%m-%d %H:%M"),
+                'verified_by': booking.payment_verified_by.get_full_name()
+            })
+
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود',
+            'toast_class': 'bg-danger'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'حدث خطأ أثناء معالجة الطلب',
+            'toast_class': 'bg-danger',
+            'debug_message': str(e)
+        }, status=500)

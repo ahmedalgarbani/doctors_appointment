@@ -1,0 +1,53 @@
+[33m802e33d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mabdullah_doc5[m[33m, [m[1;31morigin/abdullah_doc5[m[33m)[m HEAD@{0}: commit (merge): Merge branch 'yasser_22' into abdullah_doc5
+[33m05c2c4c[m HEAD@{1}: checkout: moving from yasser_22 to abdullah_doc5
+[33m51fc36e[m[33m ([m[1;31morigin/yasser_22[m[33m, [m[1;32myasser_22[m[33m)[m HEAD@{2}: checkout: moving from abdullah_doc5 to yasser_22
+[33m05c2c4c[m HEAD@{3}: checkout: moving from abdullah_doc5 to abdullah_doc5
+[33m05c2c4c[m HEAD@{4}: commit: rrm
+[33m80ead38[m HEAD@{5}: commit: www
+[33me63f296[m HEAD@{6}: commit (merge): www
+[33m3d2aa05[m[33m ([m[1;31morigin/abdullah_d4[m[33m, [m[1;32mabdullah_d4[m[33m)[m HEAD@{7}: checkout: moving from abdullah_doc5 to abdullah_doc5
+[33m3d2aa05[m[33m ([m[1;31morigin/abdullah_d4[m[33m, [m[1;32mabdullah_d4[m[33m)[m HEAD@{8}: checkout: moving from abdullah_doc5 to abdullah_doc5
+[33m3d2aa05[m[33m ([m[1;31morigin/abdullah_d4[m[33m, [m[1;32mabdullah_d4[m[33m)[m HEAD@{9}: checkout: moving from abdullah_d4 to abdullah_doc5
+[33m3d2aa05[m[33m ([m[1;31morigin/abdullah_d4[m[33m, [m[1;32mabdullah_d4[m[33m)[m HEAD@{10}: commit: ggg
+[33m863e852[m HEAD@{11}: commit (merge): ggg
+[33m81d38d0[m[33m ([m[1;31morigin/abdullah_doctor3[m[33m, [m[1;32mabdullah_doctor3[m[33m)[m HEAD@{12}: checkout: moving from abdullah_d4 to abdullah_d4
+[33m81d38d0[m[33m ([m[1;31morigin/abdullah_doctor3[m[33m, [m[1;32mabdullah_doctor3[m[33m)[m HEAD@{13}: checkout: moving from abdullah_doctor3 to abdullah_d4
+[33m81d38d0[m[33m ([m[1;31morigin/abdullah_doctor3[m[33m, [m[1;32mabdullah_doctor3[m[33m)[m HEAD@{14}: checkout: moving from abdullah_d4 to abdullah_doctor3
+[33m81d38d0[m[33m ([m[1;31morigin/abdullah_doctor3[m[33m, [m[1;32mabdullah_doctor3[m[33m)[m HEAD@{15}: checkout: moving from abdullah_doctor3 to abdullah_d4
+[33m81d38d0[m[33m ([m[1;31morigin/abdullah_doctor3[m[33m, [m[1;32mabdullah_doctor3[m[33m)[m HEAD@{16}: commit: kll
+[33m708facd[m[33m ([m[1;31morigin/yasser_ahmed_alonaiss[m[33m, [m[1;32myasser_ahmed_alonaiss[m[33m)[m HEAD@{17}: checkout: moving from yasser_ahmed_alonaiss to abdullah_doctor3
+[33m708facd[m[33m ([m[1;31morigin/yasser_ahmed_alonaiss[m[33m, [m[1;32myasser_ahmed_alonaiss[m[33m)[m HEAD@{18}: checkout: moving from abdullah_doctor2 to yasser_ahmed_alonaiss
+[33m3103893[m[33m ([m[1;31morigin/abdullah_doctor[m[33m, [m[1;32mabdullah_doctor2[m[33m, [m[1;32mabdullah_doctor[m[33m)[m HEAD@{19}: checkout: moving from yasser_hospital to abdullah_doctor2
+[33m391c93c[m[33m ([m[1;31morigin/yasser_hospital[m[33m, [m[1;32myasser_hospital[m[33m)[m HEAD@{20}: checkout: moving from abdullah_doctor2 to yasser_hospital
+[33m3103893[m[33m ([m[1;31morigin/abdullah_doctor[m[33m, [m[1;32mabdullah_doctor2[m[33m, [m[1;32mabdullah_doctor[m[33m)[m HEAD@{21}: checkout: moving from abdullah_doctor to abdullah_doctor2
+[33m3103893[m[33m ([m[1;31morigin/abdullah_doctor[m[33m, [m[1;32mabdullah_doctor2[m[33m, [m[1;32mabdullah_doctor[m[33m)[m HEAD@{22}: commit: auth
+[33mfc3c41a[m HEAD@{23}: commit: ok
+[33m391c93c[m[33m ([m[1;31morigin/yasser_hospital[m[33m, [m[1;32myasser_hospital[m[33m)[m HEAD@{24}: checkout: moving from yasser_hospital to abdullah_doctor
+[33m391c93c[m[33m ([m[1;31morigin/yasser_hospital[m[33m, [m[1;32myasser_hospital[m[33m)[m HEAD@{25}: checkout: moving from abdullah4 to yasser_hospital
+[33m79ae7e2[m[33m ([m[1;31morigin/abdullah4[m[33m, [m[1;32mabdullah4[m[33m)[m HEAD@{26}: commit: mm
+[33m04643cb[m HEAD@{27}: commit: ll
+[33m85a1756[m HEAD@{28}: commit: fd
+[33m62e108c[m[33m ([m[1;32mmain[m[33m)[m HEAD@{29}: checkout: moving from main to abdullah4
+[33m62e108c[m[33m ([m[1;32mmain[m[33m)[m HEAD@{30}: pull --tags origin main: Fast-forward
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{31}: checkout: moving from abdullah3 to main
+[33md4db687[m[33m ([m[1;31morigin/abdullah3[m[33m, [m[1;32mabdullah3[m[33m)[m HEAD@{32}: commit: tm
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{33}: checkout: moving from main to abdullah3
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{34}: checkout: moving from main to main
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{35}: checkout: moving from abdullah2 to main
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{36}: checkout: moving from main to abdullah2
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{37}: checkout: moving from abdullah to main
+[33m55266e9[m[33m ([m[1;31morigin/abdullah[m[33m, [m[1;32mabdullah[m[33m)[m HEAD@{38}: checkout: moving from main to abdullah
+[33meb36bf6[m[33m ([m[1;32mabdullah2[m[33m)[m HEAD@{39}: pull --tags origin main: Fast-forward
+[33m7ae034a[m HEAD@{40}: checkout: moving from abdullah to main
+[33m55266e9[m[33m ([m[1;31morigin/abdullah[m[33m, [m[1;32mabdullah[m[33m)[m HEAD@{41}: checkout: moving from abd to abdullah
+[33m4fc317e[m[33m ([m[1;32mabd[m[33m)[m HEAD@{42}: commit: jj
+[33m55266e9[m[33m ([m[1;31morigin/abdullah[m[33m, [m[1;32mabdullah[m[33m)[m HEAD@{43}: checkout: moving from abdullah to abd
+[33m55266e9[m[33m ([m[1;31morigin/abdullah[m[33m, [m[1;32mabdullah[m[33m)[m HEAD@{44}: commit: hhhh
+[33m7ae034a[m HEAD@{45}: checkout: moving from main to abdullah
+[33m7ae034a[m HEAD@{46}: commit (merge): hhhhhh
+[33m4d3e8fd[m HEAD@{47}: commit: vvvv
+[33md98b5c9[m HEAD@{48}: pull --tags origin main: Fast-forward
+[33md973a74[m HEAD@{49}: pull --tags origin main: Fast-forward
+[33m17a6cc3[m[33m ([m[1;31morigin/feature/doctor_profile[m[33m)[m HEAD@{50}: checkout: moving from main to main
+[33m17a6cc3[m[33m ([m[1;31morigin/feature/doctor_profile[m[33m)[m HEAD@{51}: commit: add py ammar and abdaluha
+[33m4f00302[m HEAD@{52}: clone: from https://github.com/ahmedalgarbani/doctors_appointment.git

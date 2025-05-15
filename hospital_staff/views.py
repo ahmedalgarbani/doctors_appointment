@@ -87,7 +87,7 @@ def add_staff(request):
                     كلمة المرور: {form.cleaned_data['password']}
                     """
                     messages.success(request, success_message)
-                    return redirect('/hospital/?section=staff_list')
+                    return redirect('/hospitals/?section=staff_list')
 
             except Exception as e:
                 messages.error(request, f"{_('حدث خطأ أثناء إضافة الموظف')}: {str(e)}")
@@ -148,7 +148,7 @@ def edit_staff(request, staff_id):
                             )
 
                     messages.success(request, _("تم تحديث بيانات الموظف بنجاح"))
-                    return redirect('/hospital/?section=staff_list')
+                    return redirect('/hospitals/?section=staff_list')
 
             except Exception as e:
                 messages.error(request, f"{_('حدث خطأ أثناء تحديث بيانات الموظف')}: {str(e)}")
@@ -203,7 +203,7 @@ def delete_staff(request, staff_id):
                 user.delete()
 
                 messages.success(request, _("تم حذف الموظف بنجاح"))
-                return redirect('/hospital/?section=staff_list')
+                return redirect('/hospitals/?section=staff_list')
 
         except Exception as e:
             messages.error(request, f"{_('حدث خطأ أثناء حذف الموظف')}: {str(e)}")
@@ -279,7 +279,7 @@ def add_role(request):
                     StaffRole.objects.filter(hospital=hospital, is_default=True).exclude(id=role.id).update(is_default=False)
 
                 messages.success(request, _("تم إضافة الدور الوظيفي بنجاح"))
-                return redirect('/hospital/?section=staff_list')
+                return redirect('http://127.0.0.1:8000/hospital/staff/roles/')
         except Exception as e:
             messages.error(request, f"{_('حدث خطأ أثناء إضافة الدور الوظيفي')}: {str(e)}")
 
@@ -333,7 +333,7 @@ def edit_role(request, role_id):
                         StaffRole.objects.filter(hospital=hospital, is_default=True).exclude(id=role.id).update(is_default=False)
 
                     messages.success(request, _("تم تحديث الدور الوظيفي بنجاح"))
-                    return redirect('/hospital/?section=staff_list')
+                    return redirect('http://127.0.0.1:8000/hospital/staff/roles/')
 
             except Exception as e:
                 messages.error(request, f"{_('حدث خطأ أثناء تحديث الدور الوظيفي')}: {str(e)}")
@@ -370,17 +370,17 @@ def delete_role(request, role_id):
     # التحقق من عدم وجود موظفين مرتبطين بهذا الدور
     if HospitalStaff.objects.filter(role=role).exists():
         messages.error(request, _("لا يمكن حذف الدور الوظيفي لأنه مرتبط بموظفين"))
-        return redirect('/hospital/?section=staff_list')
+        return redirect('http://127.0.0.1:8000/hospital/staff/roles/')
 
     if request.method == 'POST':
         try:
             role.delete()
             messages.success(request, _("تم حذف الدور الوظيفي بنجاح"))
-            return redirect('/hospital/?section=staff_list')
+            return redirect('http://127.0.0.1:8000/hospital/staff/roles/')
 
         except Exception as e:
             messages.error(request, f"{_('حدث خطأ أثناء حذف الدور الوظيفي')}: {str(e)}")
-            return redirect('/hospital/?section=staff_list')
+            return redirect('http://127.0.0.1:8000/hospital/staff/roles/')
 
     context = {
         'role': role,

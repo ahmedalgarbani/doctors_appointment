@@ -40,7 +40,7 @@ class Doctor(BaseModel):
     email = models.EmailField(unique=True, verbose_name="البريد الإلكتروني")
     experience_years = models.PositiveIntegerField(default=0, verbose_name="سنوات الخبرة")
     sub_title = models.CharField(max_length=255, verbose_name="العنوان الفرعي")
-    slug = models.SlugField(max_length=200, unique=True, verbose_name="رابط الطبيب")
+    slug = models.SlugField(max_length=200, unique=True, blank=True, null=True, verbose_name="رابط الطبيب")
     about = RichTextField(verbose_name="عن الطبيب")
     status = models.BooleanField(default=True, verbose_name="الحالة")
     show_at_home = models.BooleanField(default=True, verbose_name="عرض في الصفحة الرئيسية")
@@ -49,22 +49,32 @@ class Doctor(BaseModel):
         return self.full_name
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.full_name)
-
-        # Handle slug duplication
-        from django.db.models import Q
-        unique_slug = self.slug
-        counter = 1
-        while Doctor.objects.filter(slug=unique_slug).exclude(pk=self.pk).exists():
-            unique_slug = f"{self.slug}-{counter}"
-            counter += 1
-        self.slug = unique_slug
+        # Set show_at_home to True for all new doctors
+        if not self.pk:  # This is a new doctor being created
+            self.show_at_home = True
+            
+        if not self.slug and self.full_name:
+            base_slug = slugify(self.full_name)
+            if not base_slug:  # If name doesn't generate valid slug
+                base_slug = f'doctor-{self.pk or "new"}'
+            
+            # Handle slug duplication
+            unique_slug = base_slug
+            counter = 1
+            while Doctor.objects.filter(slug=unique_slug).exclude(pk=self.pk).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = unique_slug
 
         super().save(*args, **kwargs)
+        
+        # If we still don't have a slug after saving (in case of new doctor)
+        if not self.slug:
+            self.slug = f'doctor-{self.pk}'
+            self.save(update_fields=['slug'])
 
     def get_absolute_url(self):
-        return reverse('home:blog:post_detail', args=[self.slug])
+        return reverse('doctor:doctor_detail', args=[self.slug])
 
     class Meta:
         verbose_name = "الطبيب"
@@ -91,8 +101,8 @@ class DoctorSchedules(models.Model):
 
     class Meta:
         ordering = ['day', 'doctor']
-        verbose_name = "جدول الطبيب"
-        verbose_name_plural = "جداول الأطباء"
+        verbose_name = "جدول ايام الطبيب"
+        verbose_name_plural = "ايام الأطباء"
 
 
 class DoctorShifts(models.Model):
@@ -121,6 +131,59 @@ class DoctorShifts(models.Model):
         # التحقق من أن المستشفى مرتبط بالطبيب
         if not self.doctor_schedule.doctor.hospitals.filter(id=self.hospital.id).exists():
             raise ValidationError('هذا الطبيب لا يعمل في هذا المستشفى')
+
+        # التحقق من عدم وجود تعارض في مواعيد الطبيب بين المستشفيات المختلفة
+        doctor = self.doctor_schedule.doctor
+        day = self.doctor_schedule.day
+        
+        # التحقق من عدم وجود تعارض في نفس المستشفى
+        if self.pk:  # إذا كان هذا تحديثًا لموعد موجود
+            same_hospital_conflicts = DoctorShifts.objects.filter(
+                doctor_schedule__doctor=doctor,
+                doctor_schedule__day=day,
+                hospital=self.hospital,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            ).exclude(pk=self.pk)
+        else:  # إذا كان هذا موعدًا جديدًا
+            same_hospital_conflicts = DoctorShifts.objects.filter(
+                doctor_schedule__doctor=doctor,
+                doctor_schedule__day=day,
+                hospital=self.hospital,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            )
+            
+        if same_hospital_conflicts.exists():
+            conflicting_shift = same_hospital_conflicts.first()
+            shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+            raise ValidationError(
+                f'يوجد تعارض في المواعيد: الطبيب لديه موعد بالفعل في نفس المستشفى '
+                f'في نفس اليوم من الساعة {shift_time}'
+            )
+
+        # البحث عن جميع مواعيد الطبيب في نفس اليوم في المستشفيات الأخرى
+        conflicting_schedules = DoctorSchedules.objects.filter(
+            doctor=doctor,
+            day=day
+        ).exclude(hospital=self.hospital)
+
+        # التحقق من كل جدول للتأكد من عدم وجود تداخل في الأوقات
+        for schedule in conflicting_schedules:
+            conflicting_shifts = DoctorShifts.objects.filter(
+                doctor_schedule=schedule,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            )
+
+            if conflicting_shifts.exists():
+                conflicting_shift = conflicting_shifts.first()
+                hospital_name = conflicting_shift.hospital.name
+                shift_time = f"{conflicting_shift.start_time.strftime('%H:%M')} - {conflicting_shift.end_time.strftime('%H:%M')}"
+                raise ValidationError(
+                    f'يوجد تعارض في المواعيد: الطبيب لديه موعد في مستشفى {hospital_name} '
+                    f'في نفس اليوم من الساعة {shift_time}'
+                )
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -185,7 +248,7 @@ class DoctorPricing(models.Model):
 
     class Meta:
         verbose_name = "جدول اسعار الطبيب"
-        verbose_name_plural = "جداول اسعار الأطباء"
+        verbose_name_plural = " اسعار الأطباء"
 
 
 class DoctorPricingHistory(BaseModel):

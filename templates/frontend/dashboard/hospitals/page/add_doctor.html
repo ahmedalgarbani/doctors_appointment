@@ -44,6 +44,42 @@
                         <h4 class="card-title">إضافة طبيب جديد</h4>
                     </div>
                     <div class="card-body">
+                        <!-- قسم البحث عن الأطباء -->
+                        <div class="search-doctor mb-4">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <input type="text" id="doctor-search" class="form-control" placeholder="ابحث عن طبيب بالاسم أو التخصص...">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" id="search-doctor-btn" class="btn btn-primary">بحث</button>
+                                </div>
+                            </div>
+                            
+                            <!-- نتائج البحث -->
+                            <div id="search-results" class="mt-3" style="display: none;">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-center mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>الطبيب</th>
+                                                <th>التخصص</th>
+                                                <th>المستشفى الحالي</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="doctors-list">
+                                            <!-- سيتم ملء هذا الجزء عن طريق JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- نهاية قسم البحث عن الأطباء -->
+
+                        <hr>
+
                         <form action="{% url 'hospitals:add_doctor' %}" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="row">
@@ -143,4 +179,109 @@
     </div>
 </div>
 <!-- /Page Content -->
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // البحث عن الأطباء
+    $('#search-doctor-btn').click(function() {
+        var query = $('#doctor-search').val();
+        if (query) {
+            $.ajax({
+                url: '{% url "hospitals:search_doctors" %}',
+                data: { 'query': query },
+                success: function(response) {
+                    var doctors = response.doctors;
+                    var tbody = $('#doctors-list');
+                    tbody.empty();
+                    
+                    if (doctors.length > 0) {
+                        doctors.forEach(function(doctor) {
+                            var row = $('<tr>');
+                            var doctorCell = $('<td>');
+                            if (doctor.photo_url) {
+                                doctorCell.append($('<img>').attr('src', doctor.photo_url).addClass('avatar-sm mr-2'));
+                            }
+                            doctorCell.append(doctor.full_name);
+                            
+                            row.append(doctorCell);
+                            row.append($('<td>').text(doctor.specialty));
+                            row.append($('<td>').text(doctor.current_hospitals.join(', ')));
+                            
+                            var actionCell = $('<td>');
+                            var addForm = $('<form>').addClass('d-inline');
+                            addForm.append($('<input>').attr({
+                                type: 'number',
+                                placeholder: 'سعر الكشف',
+                                class: 'form-control d-inline-block mr-2',
+                                style: 'width: 120px',
+                                required: true
+                            }));
+                            addForm.append($('<button>').attr({
+                                type: 'button',
+                                class: 'btn btn-sm btn-primary add-doctor-btn',
+                                'data-doctor-id': doctor.id
+                            }).text('إضافة'));
+                            
+                            actionCell.append(addForm);
+                            row.append(actionCell);
+                            
+                            tbody.append(row);
+                        });
+                        $('#search-results').show();
+                    } else {
+                        tbody.append($('<tr>').append(
+                            $('<td>').attr('colspan', '4').text('لا توجد نتائج')
+                        ));
+                        $('#search-results').show();
+                    }
+                },
+                error: function() {
+                    alert('حدث خطأ أثناء البحث');
+                }
+            });
+        }
+    });
+
+    // إضافة طبيب موجود
+    $(document).on('click', '.add-doctor-btn', function() {
+        var doctorId = $(this).data('doctor-id');
+        var amount = $(this).closest('form').find('input[type="number"]').val();
+        
+        if (!amount) {
+            alert('الرجاء إدخال سعر الكشف');
+            return;
+        }
+        
+        $.ajax({
+            url: '{% url "hospitals:add_existing_doctor" %}',
+            method: 'POST',
+            data: {
+                'doctor_id': doctorId,
+                'amount': amount,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert('تم إضافة الطبيب بنجاح');
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('حدث خطأ أثناء إضافة الطبيب');
+            }
+        });
+    });
+
+    // البحث عند الضغط على Enter
+    $('#doctor-search').keypress(function(e) {
+        if (e.which == 13) {
+            $('#search-doctor-btn').click();
+        }
+    });
+});
+</script>
+{% endblock %}
+
 {% endblock %}

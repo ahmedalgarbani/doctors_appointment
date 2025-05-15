@@ -20,7 +20,7 @@ class Booking(models.Model):
         ('completed', 'مكتمل'),
         ('cancelled', 'ملغي')
     ]
-    
+
     doctor = models.ForeignKey(
         Doctor,
         on_delete=models.CASCADE,
@@ -66,7 +66,7 @@ class Booking(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
-    
+
     # حقول الدفع
     payment_method = models.ForeignKey(
         HospitalPaymentMethod,
@@ -75,13 +75,7 @@ class Booking(models.Model):
         related_name='bookings',
         verbose_name="طريقة الدفع"
     )
-    transfer_number = models.CharField(
-    max_length=50, 
-    blank=True, 
-    null=True, 
-    verbose_name="رقم الحوالة",
-    validators=[MinLengthValidator(5, 'رقم الحوالة يجب أن يكون 5 أرقام على الأقل')]
-)
+ 
     payment_verified = models.BooleanField(default=False, verbose_name="تم التحقق من الدفع")
     payment_verified_at = models.DateTimeField(
         null=True,
@@ -101,22 +95,26 @@ class Booking(models.Model):
         null=True,
         verbose_name="ملاحظات الدفع"
     )
-    
-    account_image = models.ImageField(
-        upload_to='booking_images/',
-        verbose_name="صورة سند الحساب",
+
+  
+
+    payment_receipt = models.ImageField(
+        upload_to='payment_receipts/',
+        verbose_name="صورة سند الدفع",
         null=True,
-        blank=True
+        blank=False
     )
+
     
+
     def __str__(self):
         return f"{self.patient} - {self.doctor} - {self.booking_date}"
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = "حجز"
         verbose_name_plural = "الحجوزات"
-        
+
     def save(self, *args, **kwargs):
         # إذا تم التحقق من الدفع، قم بتحديث حالة الحجز إلى مؤكد
         if self.payment_verified and self.status == 'pending':

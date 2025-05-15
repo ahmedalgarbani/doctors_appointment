@@ -49,7 +49,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-2">
                                                     <i class="fas fa-check-circle mr-2"></i>
-                                                    <span>الحالة: 
+                                                    <span>الحالة:
                                                     {% if doctor.status %}
                                                         <span class="badge badge-success">نشط</span>
                                                     {% else %}
@@ -63,7 +63,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- نبذة عن الطبيب -->
                         <div class="card mt-4">
                             <div class="card-header">
@@ -79,11 +79,7 @@
                             <a href="{% url 'hospitals:index' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-right ml-2"></i>عودة للقائمة
                             </a>
-                        </a>
-                        {% if doctor.id %}
-                            <a href="{% url 'hospitals:edit_doctor' doctor.id %}" class="btn btn-primary">
-                                <i class="fas fa-edit ml-2"></i> تعديل البيانات
-                            </a>
+                         
                         </div>
                     </div>
                 </div>

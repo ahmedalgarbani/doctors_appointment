@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <title>Doccure</title>
@@ -27,19 +27,19 @@
       property="og:image"
       content="{{setting.footer_logo.url}}"
     />
-    
+
     <link rel="icon" href="{% static 'images/favicon.png' %}" />
 
     <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" />
-  
+
 
    <!-- Favicon -->
 		<link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
-		
+
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}">
-				
+
 		<!-- Fontawesome CSS -->
 		<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
 		<link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
@@ -58,9 +58,11 @@
 
 		<!-- Animation CSS -->
 		<link rel="stylesheet" href="{% static 'css/aos.css' %}">
-		
+
 		<!-- Main CSS -->
 		<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/blog-comments.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hospital-slider.css' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="/resources/demos/style.css">
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
@@ -94,7 +96,7 @@
 
       <!-- Page Content -->
       {% block content %}
-      
+
       {% endblock content %}
       <!-- /Page Content -->
 
@@ -123,12 +125,12 @@
     <script src="{% static 'modules/codemirror/lib/codemirror.js' %}"></script>
     <script src="{% static 'modules/codemirror/mode/javascript/javascript.js' %}"></script>
     <script src="{% static 'modules/jquery-selectric/jquery.selectric.min.js' %}"></script>
-  
+
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
-		
+
   <!-- Bootstrap Bundle JS -->
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-  
+
   <!-- Feather Icon JS -->
   <script src="{% static 'js/feather.min.js' %}"></script>
 
@@ -158,6 +160,6 @@
 
   <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
 
-  
+
   </body>
 </html>
