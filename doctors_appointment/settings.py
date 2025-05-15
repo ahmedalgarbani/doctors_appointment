@@ -158,7 +158,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'notifications.context_processors.notifications',  # إضافة معالج السياق للإشعارات
+                'notifications.context_processors.notifications',
+                'users.context_processors.admin_user_context',
             ],
         },
     },
@@ -253,6 +254,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NAV_MENU_TOP = [
     {
+        "name": "الرئيسية",
+        "url": "/",
+    },
+    {
+        "name": "المستشفيات",
+        "url": "/hospitals/all/",
+    },
+    {
+        "name": "الدكاترة",
+        "url": "/search/",
+    },
+     {
+        "name": "المدونة",
+        "url": "/blog/",
+    },
+    {
         "name": "الأسئلة الشائعة",
         "url": "/faq",
     },
@@ -260,24 +277,21 @@ NAV_MENU_TOP = [
         "name": "عن الموقع",
         "url": "/about",
     },
+    
     {
-        "name": "خطط الأسعار",
-        "url": "/about",
-    },
-    {
-        "name": "الصفحات",
+        "name": "المزيد",
         "url": "/",
 
         "submenu": [
             {
-                "name": "من نحن",
-                "url": "/",
-            },
-            {
-                "name": "اتصل بنا",
-                "url": "/",
+            "name": "من نحن",
+            "url": "/about/",
+        },
+            # {
+            #     "name": "اتصل بنا",
+            #     "url": "/",
 
-            },
+            # },
             {
                 "name": "الشروط والأحكام",
                 "url": "/terms-condition",
@@ -289,15 +303,9 @@ NAV_MENU_TOP = [
 
             }
         ],
+        
     },
-    {
-        "name": "المستشفيات",
-        "url": "/hospitals/all/",
-    },
-    {
-        "name": "المدونة",
-        "url": "/blog/",
-    },
+   
 ]
 
 

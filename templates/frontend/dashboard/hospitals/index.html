@@ -200,6 +200,7 @@
                     <span>الفواتير</span>
                   </a>
                 </li>
+               
 
                 <li>
                   <a href="{% url 'hospitals:blog_list' %}">
@@ -248,6 +249,13 @@
                     <span>ارسال اشعار</span>
                   </a>
                 </li>
+             
+                <li>
+                  <a href="javascript:;" data-method="reports_dashboard" data-section="reports_dashboard">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>التقارير</span>
+                  </a>
+                </li>
                 <li>
                   <a href="javascript:;" data-method="doctor_change_password" data-section="doctor_change_password">
                     <i class="fas fa-lock"></i>
@@ -269,6 +277,8 @@
 
       <!-- Include Sections -->
       
+      {% include "frontend/dashboard/hospitals/sections/reports-dashboard.html" %}
+      {% include "frontend/dashboard/hospitals/sections/booking-reports.html" %}
       {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_list.html" %}
       {% include "frontend/dashboard/hospitals/sections/advertisements/advertisement_form.html" %}
       {% include "frontend/dashboard/hospitals/sections/staff/staff-list.html" %}
@@ -285,8 +295,8 @@
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
-
-
+      
+    
 
     </div>
   </div>
@@ -459,6 +469,7 @@
         staff_list: "إدارة الموظفين",
         advertisements_list: "إدارة الإعلانات",
         advertisement_form: "إضافة/تعديل إعلان",
+        
       };
       
       const title = sectionTitles[sectionName] || "لوحة التحكم";
@@ -597,6 +608,7 @@
       all_doctors_page: "جميع الأطباء",
       schedule_timings: "جدولة المواعيد",
       appointments: "الحجوزات",
+      reports_dashboard: "التقارير",
       my_patient: "المرضى",
       invoices_table: "الفواتير",
       payment_settings: "إعدادات الدفع",

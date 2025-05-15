@@ -10,6 +10,8 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
                         <li class="breadcrumb-item" aria-current="page">{% if is_online %}استشارة عبر الإنترنت{% else %}الحجز{% endif %}</li>
+                        <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                        <li class="breadcrumb-item" aria-current="page">{% if is_online %}استشارة عبر الإنترنت{% else %}الحجز{% endif %}</li>
                     </ol>
                 </nav>
             </div>
@@ -21,7 +23,7 @@
 <!-- Page Content -->
 <div class="content content-space">
     <div class="container">
-       <!-- Booking -->
+       <!-- حجز -->
        <div class="row">
            <div class="col-lg-8 col-md-12">
                <div class="booking-header">
@@ -36,7 +38,7 @@
                                             {% if hospital.logo %}
                                                 <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" loading="lazy">
                                             {% else %}
-                                                <img src="{% static 'img/logo.png' %}" alt="Hospital Icon" loading="lazy">
+                                                <img src="{% static 'img/logo.png' %}" alt="مستشفى Icon" loading="lazy">
                                             {% endif %}
                                         </div>
                                         <div class="hospital-name">{{ hospital.name }}</div>
@@ -81,14 +83,14 @@
                                {% endfor %}
                            </ul>
                        </div>
-                       <!-- Time Details Display -->
+                       <!-- عرض التفاصيل الزمنية -->
                        <div id="time-details" class="time-details mt-3">
                            {% include "frontend/home/pages/time_slots.html" %}
                        </div>
                    </div>
                </div>
 
-               <!-- Form for next step -->
+               <!-- نموذج للخطوة التالية -->
                <form id="booking-form" action="{% url 'payments:process' doctor.id %}" method="GET">
                    <input type="hidden" name="day" id="day_id" value="{{ selected_day }}">
                    <input type="hidden" name="date" id="date_id">
@@ -97,6 +99,7 @@
                    <div class="booking-btn">
                        <button type="submit" id="next-btn" class="btn btn-primary prime-btn justify-content-center align-items-center" disabled>
                            التالي <i class="feather-arrow-right-circle"></i>
+                        
                        </button>
                    </div>
                </form>
@@ -105,6 +108,7 @@
            <div class="col-lg-4 col-md-12">
                <div class="booking-header">
                    <h4 class="booking-title">ملخص الحجز</h4>
+                  
                </div>
                <div class="card booking-card">
                    <div class="card-body booking-card-body">
@@ -114,11 +118,12 @@
                                    {% if doctor.image %}
                                    <img src="{{ doctor.image.url }}" class="img-fluid" alt="{{ doctor.full_name }}">
                                    {% else %}
-                                   <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="Doctor Image">
+                                   <img src="{% static 'img/doctors/doctor-thumb-02.jpg' %}" class="img-fluid" alt="صورة الطبيب">
                                    {% endif %}
                                </div>
                                <div class="booking-doctor-info">
                                    <h4><a href="{% url 'doctors:doctor_detail' doctor.id %}">د. {{ doctor.full_name }}</a></h4>
+                                   
                                    <p>{{ doctor.specialty.name }}</p>
                                    {% if doctor_price %}
                                     <div class="booking-price">

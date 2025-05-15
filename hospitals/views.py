@@ -1221,10 +1221,34 @@ def cancel_appointment(request, booking_id):
             created_by=request.user,
             notes='تم إلغاء الحجز'
         )
+        
+        # إرسال إشعار للمريض بإلغاء الحجز
+        patient_user = booking.patient.user
+        hospital_name = booking.hospital.name
+        doctor_name = booking.doctor.name
+        appointment_date = booking.booking_date.strftime('%Y-%m-%d')
+        
+        # تحديد وقت الموعد إذا كان متاحًا
+        appointment_time = ''
+        if booking.appointment_time:
+            if hasattr(booking.appointment_time, 'start_time') and hasattr(booking.appointment_time, 'end_time'):
+                appointment_time = f" من {booking.appointment_time.start_time.strftime('%H:%M')} إلى {booking.appointment_time.end_time.strftime('%H:%M')}"
+        
+        # إنشاء نص الإشعار
+        notification_message = f"تم إلغاء موعدك مع الدكتور {doctor_name} في {hospital_name} بتاريخ {appointment_date}{appointment_time}. يرجى التواصل مع المستشفى للمزيد من المعلومات."
+        
+        # إنشاء الإشعار
+        Notifications.objects.create(
+            sender=request.user,
+            user=patient_user,
+            message=notification_message,
+            notification_type='1',  # تحذير
+            status='0'  # غير مقروء
+        )
 
         return JsonResponse({
             'status': 'success',
-            'message': 'تم إلغاء الحجز بنجاح',
+            'message': 'تم إلغاء الحجز بنجاح وإرسال إشعار للمريض',
             'toast_class': 'bg-success'
         })
 

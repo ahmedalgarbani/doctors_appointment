@@ -3,6 +3,15 @@
 {% get_menu "NAV_MENU_TOP" as top_menu %}
 
 <style>
+    /* User dropdown menu styles */
+    .dropdown-menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 1000 !important;
+        position: absolute !important;
+    }
+    
     /* تحسين وضوح النص */
     .text-dark {
         color: #212529 !important;
@@ -310,6 +319,31 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Initialize user dropdown menu manually
+        const userDropdownToggle = document.querySelector('.logged-item .dropdown-toggle');
+        if (userDropdownToggle) {
+            userDropdownToggle.addEventListener('click', function(event) {
+                event.preventDefault();
+                const dropdownMenu = this.nextElementSibling;
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                } else {
+                    // Close any open dropdowns first
+                    document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                        menu.classList.remove('show');
+                    });
+                    dropdownMenu.classList.add('show');
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.logged-item')) {
+                    document.querySelector('.logged-item .dropdown-menu')?.classList.remove('show');
+                }
+            });
+        }
+        
         const notificationList = document.getElementById("notification-list");
         const notificationContainer = document.querySelector(".noti-content");
         

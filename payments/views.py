@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from doctors.models import Doctor, DoctorPricing, DoctorSchedules, DoctorShifts
 from hospitals.models import Hospital
+from notifications.models import Notifications
 from .models import HospitalPaymentMethod, Payment
 from bookings.models import Booking
 from django.http import HttpResponseBadRequest
@@ -234,6 +235,89 @@ def verify_payment(request, booking_id):
                 'verified_by': booking.payment_verified_by.get_full_name()
             })
 
+    except Booking.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'الحجز غير موجود',
+            'toast_class': 'bg-danger'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'حدث خطأ أثناء معالجة الطلب',
+            'toast_class': 'bg-danger',
+            'debug_message': str(e)
+        }, status=500)
+    
+
+
+@require_POST
+@login_required
+def reject_payment(request, booking_id):
+    try:
+        with transaction.atomic():
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+            payment = booking.payments.first()
+            
+            if not payment:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'لا يوجد سجل دفع لهذا الحجز',
+                    'toast_class': 'bg-danger'
+                }, status=404)
+            
+            # Check if payment is already verified
+            if booking.payment_verified:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'لا يمكن رفض دفعة تم التحقق منها مسبقاً',
+                    'toast_class': 'bg-warning'
+                }, status=400)
+            
+            # Validate payment status
+            if payment.payment_status == 2:  # already failed
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'هذا الدفع تم رفضه مسبقاً',
+                    'toast_class': 'bg-warning'
+                }, status=400)
+            
+            # Update payment
+            payment.payment_status = 2  # failed
+            payment.payment_note = request.POST.get('notes', '')
+            payment.save()
+            
+            # Update booking status to cancelled
+            booking.status = 'cancelled'
+            booking.save()
+            
+            # Send notification to patient
+            patient_user = booking.patient.user
+            doctor_name = booking.doctor.full_name
+            message = (
+                f"⚠️ *تم رفض الدفع*\n\n"
+                f"عزيزي المريض،\n"
+                f"نأسف لإبلاغك أنه تم رفض الدفع الخاص بحجزك مع الدكتور {doctor_name}.\n"
+                f"📅 التاريخ: {booking.booking_date}\n"
+                f"🕒 الوقت: {booking.appointment_time.start_time.strftime('%H:%M')}\n\n"
+                f"سبب الرفض: {payment.payment_note or 'غير محدد'}\n\n"
+                f"يرجى التواصل مع إدارة المستشفى لمزيد من المعلومات."
+            )
+            
+            Notifications.objects.create(
+                sender=request.user,
+                user=patient_user,
+                message=message,
+                notification_type='7'  # Payment rejected
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'تم رفض الدفع بنجاح',
+                'toast_class': 'bg-success',
+                'payment_status_display': payment.get_status_display()
+            })
+            
     except Booking.DoesNotExist:
         return JsonResponse({
             'status': 'error',
