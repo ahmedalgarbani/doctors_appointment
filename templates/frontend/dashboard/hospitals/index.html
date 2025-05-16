@@ -4,6 +4,191 @@
 
 {% block extra_css %}
 <style>
+  /* تنسيقات عامة للقائمة الجانبية */
+  .profile-sidebar {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .profile-sidebar:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* تنسيقات صورة البروفايل */
+  .profile-info-widget {
+    padding: 25px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  }
+
+  .booking-doc-img img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .booking-doc-img img:hover {
+    transform: scale(1.05);
+  }
+
+  /* تنسيقات معلومات المستخدم */
+  .profile-det-info h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 15px 0 5px;
+  }
+
+  .patient-details h5 {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  /* تنسيقات القائمة الجانبية */
+  .dashboard-menu {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .dashboard-menu li {
+    position: relative;
+    margin: 3px 0;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #555;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-menu li a i {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    margin-left: 10px;
+    font-size: 1rem;
+    color: #7f8c8d;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-menu li a small.unread-msg {
+    margin-right: auto;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 0.7rem;
+  }
+
+  /* تأثيرات hover */
+  .dashboard-menu li:hover {
+    background: rgba(32, 192, 243, 0.1);
+  }
+
+  .dashboard-menu li:hover a {
+    color: #20c0f3;
+    transform: translateX(5px);
+  }
+
+  .dashboard-menu li:hover a i {
+    color: #20c0f3;
+  }
+
+  /* العنصر النشط */
+  .dashboard-menu li.active {
+    background: rgba(32, 192, 243, 0.15);
+    border-right: 3px solid #20c0f3;
+  }
+
+  .dashboard-menu li.active a {
+    color: #20c0f3;
+    font-weight: 600;
+  }
+
+  .dashboard-menu li.active a i {
+    color: #20c0f3;
+  }
+
+  /* تأثيرات للعناصر المهمة */
+  .dashboard-menu li:has(a[data-method="logout"]) {
+    margin-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 10px;
+  }
+
+  .dashboard-menu li:has(a[data-method="logout"]):hover {
+    background: rgba(231, 76, 60, 0.1);
+  }
+
+  .dashboard-menu li:has(a[data-method="logout"]):hover a {
+    color: #e74c3c;
+  }
+
+  .dashboard-menu li:has(a[data-method="logout"]):hover a i {
+    color: #e74c3c;
+  }
+
+  /* تنسيقات للشريط الجانبي الثابت */
+  .theiaStickySidebar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #20c0f3 transparent;
+  }
+
+  .theiaStickySidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .theiaStickySidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .theiaStickySidebar::-webkit-scrollbar-thumb {
+    background-color: #20c0f3;
+    border-radius: 6px;
+  }
+
+  /* تنسيقات للهواتف */
+  @media (max-width: 991px) {
+    .profile-sidebar {
+      margin-bottom: 30px;
+    }
+    
+    .theiaStickySidebar {
+      position: static;
+      height: auto;
+    }
+    
+    .dashboard-menu li a {
+      padding: 10px 15px;
+    }
+  }
+</style>
+<style>
   /* تنسيقات القائمة الجانبية */
   .dashboard-menu li.active {
     background-color: #f8f9fa;
@@ -136,8 +321,12 @@
             <div class="profile-info-widget">
               {% if request.user.profile_picture %}
               <a href="#" class="booking-doc-img">
-                <img src="{{request.user.profile_picture.url}}" alt="User Image" />
+                <img src="{{request.user.profile_picture.url}}" alt="صورة المستخدم" />
               </a>
+              {% else %}
+              <div class="booking-doc-img">
+                <i class="fas fa-hospital-user fa-4x text-muted"></i>
+              </div>
               {% endif %}
               <div class="profile-det-info">
                 <h3>{{hospital.name}}</h3>
@@ -163,22 +352,18 @@
           <div class="dashboard-widget">
             <nav class="dashboard-menu">
               <ul>
+                <!-- 1. قسم الإدارة العامة -->
                 <li>
                   <a href="javascript:;" data-method="hospital_dashboard" data-section="hospital_dashboard">
-                    <i class="fas fa-columns"></i>
-                    <span>لوحة التحكم</span>
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>لوحة التحكم الرئيسية</span>
                   </a>
                 </li>
-                <li>
-                  <a href="javascript:;" data-method="all_doctors_page" data-section="all_doctors_page">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>الاطباء</span>
-                  </a>
-                </li>
-
+          
+                <!-- 2. قسم المواعيد والحجوزات -->
                 <li>
                   <a href="javascript:;" data-method="schedule_timings" data-section="schedule_timings">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-calendar-alt"></i>
                     <span>جدولة المواعيد</span>
                   </a>
                 </li>
@@ -186,82 +371,102 @@
                   <a href="javascript:;" data-method="appointments" data-section="appointments">
                     <i class="fas fa-calendar-check"></i>
                     <span>الحجوزات</span>
+                    <small class="unread-msg">5</small>
                   </a>
                 </li>
+          
+                <!-- 3. قسم إدارة الكوادر الطبية -->
                 <li>
-                  <a href="javascript:;" data-method="my_patient" data-section="my_patient">
-                    <i class="fas fa-user-injured"></i>
-                    <span>المرضى</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:;" data-method="invoices_table" data-section="invoices_table">
-                    <i class="fas fa-file-invoice"></i>
-                    <span>الفواتير</span>
-                  </a>
-                </li>
-               
-
-                <li>
-                  <a href="{% url 'hospitals:blog_list' %}">
-                    <i class="fas fa-comments"></i>
-                    <span>المدونة</span>
-                  </a>
-                </li>
-                {% if request.user.user_type == 'hospital_manager' %}
-                <li>
-                  <a href="javascript:;" data-method="advertisements_list" data-section="advertisements_list">
-                    <i class="fas fa-ad"></i>
-                    <span>إدارة الإعلانات</span>
-                  </a>
-                </li>
-                {% endif %}
-                <li>
-                  <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
-                    <i class="fas fa-credit-card"></i>
-                    <span> اعدادات طرق الدفع</span>
+                  <a href="javascript:;" data-method="all_doctors_page" data-section="all_doctors_page">
+                    <i class="fas fa-user-md"></i>
+                    <span>إدارة الأطباء</span>
                   </a>
                 </li>
                 {% if request.user.user_type == 'hospital_manager' %}
                 <li>
                   <a href="javascript:;" data-method="staff_list" data-section="staff_list">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-users-cog"></i>
                     <span>إدارة الموظفين</span>
                   </a>
                 </li>
                 {% endif %}
+          
+                <!-- 4. قسم إدارة المرضى -->
                 <li>
-                  <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
-                    <i class="fas fa-user-cog"></i>
-                    <span>إعدادات الملف الشخصي</span>
+                  <a href="javascript:;" data-method="my_patient" data-section="my_patient">
+                    <i class="fas fa-procedures"></i>
+                    <span>إدارة المرضى</span>
+                  </a>
+                </li>
+          
+                <!-- 5. قسم المالية والفواتير -->
+                <li>
+                  <a href="javascript:;" data-method="invoices_table" data-section="invoices_table">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>الفواتير</span>
                   </a>
                 </li>
                 <li>
+                  <a href="javascript:;" data-method="payment_settings" data-section="payment_settings">
+                    <i class="fas fa-credit-card"></i>
+                    <span>إعدادات الدفع</span>
+                  </a>
+                </li>
+          
+                <!-- 6. قسم التسويق والمحتوى -->
+                {% if request.user.user_type == 'hospital_manager' %}
+                <li>
+                  <a href="javascript:;" data-method="advertisements_list" data-section="advertisements_list">
+                    <i class="fas fa-ad"></i>
+                    <span>الإعلانات</span>
+                  </a>
+                </li>
+                {% endif %}
+                <li>
+                  <a href="{% url 'hospitals:blog_list' %}">
+                    <i class="fas fa-blog"></i>
+                    <span>المدونة</span>
+                  </a>
+                </li>
+          
+                <!-- 7. قسم التقارير والإحصائيات -->
+                <li>
+                  <a href="javascript:;" data-method="reports_dashboard" data-section="reports_dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>التقارير والإحصائيات</span>
+                  </a>
+                </li>
+          
+                <!-- 8. قسم الإشعارات -->
+                <li>
                   <a href="javascript:;" data-method="notifications_list">
-                    <i class="fas fa-comments"></i>
-                    <span>الأشعارات</span>
+                    <i class="fas fa-bell"></i>
+                    <span>الإشعارات</span>
                     <small class="unread-msg">{{ notifications.count }}</small>
                   </a>
                 </li>
                 <li>
                   <a href="javascript:;" data-method="notifications_forms">
-                    <i class="fas fa-comments"></i>
-                    <span>ارسال اشعار</span>
+                    <i class="fas fa-paper-plane"></i>
+                    <span>إرسال إشعار</span>
                   </a>
                 </li>
-             
+          
+                <!-- 9. قسم الإعدادات الشخصية -->
                 <li>
-                  <a href="javascript:;" data-method="reports_dashboard" data-section="reports_dashboard">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>التقارير</span>
+                  <a href="javascript:;" data-method="doctor_profile_settings" data-section="doctor_profile_settings">
+                    <i class="fas fa-user-cog"></i>
+                    <span>إعدادات الحساب</span>
                   </a>
                 </li>
                 <li>
                   <a href="javascript:;" data-method="doctor_change_password" data-section="doctor_change_password">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-key"></i>
                     <span>تغيير كلمة المرور</span>
                   </a>
                 </li>
+          
+                <!-- 10. قسم الخروج -->
                 <li>
                   <a href="{% url 'hospitals:logout' %}">
                     <i class="fas fa-sign-out-alt"></i>
@@ -294,7 +499,6 @@
       {% include "frontend/dashboard/hospitals/sections/hospitals-password.html" %}
       {% include "frontend/dashboard/hospitals/sections/hospitals-dashboard.html" %}
       {% include "frontend/dashboard/hospitals/sections/appointments.html" %}
-      {% include "frontend/dashboard/hospitals/sections/hospitals-pending-blog.html" %}
       
     
 
@@ -1454,5 +1658,54 @@
         });
     });
   });
+  // إضافة هذا الكود داخل document.ready
+$(document).ready(function() {
+  // تأثيرات القائمة الجانبية
+  $('.dashboard-menu li a').hover(
+    function() {
+      $(this).parent().css('transform', 'translateX(5px)');
+    },
+    function() {
+      $(this).parent().css('transform', 'translateX(0)');
+    }
+  );
+
+  // إضافة تأثير النقر على العناصر
+  $('.dashboard-menu li a').on('click', function(e) {
+    if ($(this).attr('href') === 'javascript:;') {
+      e.preventDefault();
+      // إزالة النشاط من جميع العناصر
+      $('.dashboard-menu li').removeClass('active');
+      // إضافة النشاط للعنصر الحالي
+      $(this).parent().addClass('active');
+      
+      // تأثير النقر
+      $(this).css('transform', 'scale(0.95)');
+      setTimeout(() => {
+        $(this).css('transform', 'scale(1)');
+      }, 200);
+    }
+  });
+
+  // تأثير التمرير السلس للقائمة الجانبية
+  $('.theiaStickySidebar').on('scroll', function() {
+    const scrollTop = $(this).scrollTop();
+    if (scrollTop > 10) {
+      $(this).addClass('scrolled');
+    } else {
+      $(this).removeClass('scrolled');
+    }
+  });
+
+  // إضافة تأثير للصورة الشخصية
+  $('.booking-doc-img').hover(
+    function() {
+      $(this).find('img, i').css('transform', 'scale(1.05)');
+    },
+    function() {
+      $(this).find('img, i').css('transform', 'scale(1)');
+    }
+  );
+});
 </script>
 {% endblock %}

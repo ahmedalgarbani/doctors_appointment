@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from datetime import datetime
+from advertisements.models import Advertisement
 from home.helpers import group_shifts_by_period
 from patients.models import Favourites, Patients
 from .models import *
@@ -20,6 +21,14 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def index(request):
+
+    try:
+        advertisements = Advertisement.objects.filter(status='active').select_related('hospital')
+        logger.info('Retrieved active advertisements')
+    except Exception as e:
+        logger.error(f'Failed to retrieve advertisements: {str(e)}')
+        advertisements = []
+
 
     try:
         homeBanner = HomeBanner.objects.first()
@@ -133,7 +142,8 @@ def index(request):
         'socialMediaLinks': socialMediaLinks,
         'posts': posts,
         'setting': setting,
-        'cities': cities
+        'cities': cities,
+    'advertisements': advertisements,
     }
     logger.info('Context created successfully')
     return render(request, 'frontend/home/index.html', ctx)
