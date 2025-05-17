@@ -128,7 +128,7 @@ class RegisterView(APIView):
             try:
                 user = serializer.save()
 
-                required_fields = ["birth_date", "gender", "weight", "height", "age", "blood_group"]
+                required_fields = ["birth_date", "gender"]
                 missing_fields = [field for field in required_fields if not request.data.get(field, None)]
 
                 if missing_fields:
@@ -152,10 +152,6 @@ class RegisterView(APIView):
                         user=user,
                         birth_date=birth_date,  
                         gender=request.data["gender"],
-                        weight=float(request.data["weight"]),
-                        height=float(request.data["height"]),
-                        age=int(request.data["age"]),
-                        blood_group=request.data["blood_group"],
                         notes=request.data.get("notes", "")
                     )
                 except ValueError as ve:
@@ -203,19 +199,15 @@ class LoginView(APIView):
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
-                    "mobile_number": 781270655,
+                    "mobile_number": user.mobile_number,
                     "birth_date":patient.birth_date,
                     "gender":patient.gender,
-                    "weight":patient.weight,
-                    "height":patient.height,
-                    "age":patient.age,
-                    "blood_group":patient.blood_group,
                     "first_name":user.first_name,
                     "last_name":user.last_name,
                     "address":user.address,
                     "city":user.city,
                     "state":user.state,
-                    'join_date':patient.created_at
+                    
                 },
                 'tokens': tokens
                 }
@@ -527,7 +519,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
             payment_method=payment_method,
             payment_subtotal=data['payment_subtotal'],
             payment_discount=data.get('payment_discount', 0),
-            payment_currency=data['payment_currency'],
+            payment_currency="RYL",
             payment_type=data['payment_type'],
             payment_note=data.get('payment_note', ''),
             payment_status=0  

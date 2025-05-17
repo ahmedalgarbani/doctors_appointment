@@ -185,7 +185,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "id", "doctor", "doctorimg", "doctor_name", "patient", "patient_name",
             "hospital", "hospital_name", "appointment_date", "appointment_time",
             "booking_date", "amount", "status", "created_at", "updated_at",
-            "payment_method", "transfer_number", "payment_verified", "payment_notes"
+            "payment_method",  "payment_verified", "payment_notes",            
+            "payment_receipt"
         ]
         read_only_fields = ["status", "created_at", "updated_at"]
 
@@ -276,7 +277,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
 
         extra_kwargs = {
-            'transfer_image': {'required': False, 'allow_null': True},
             'payment_date': {'read_only': True},
             'payment_status': {'read_only': True}
         }
