@@ -18,6 +18,7 @@ urlpatterns = [
     path('reviews/', include(('reviews.urls', 'reviews'), namespace='reviews')),  # رابط المراجعات
     path('api/', include('api.urls')),
     path('notifications/', include('notifications.urls')),
+    path('reports/', include(('reports.urls', 'reports'), namespace='reports')),  # تقارير
     path('advertisements/', include(('advertisements.urls', 'advertisements'), namespace='advertisements')),
 
     # صفحة ثابتة لتفاصيل المستشفى

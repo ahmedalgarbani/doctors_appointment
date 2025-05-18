@@ -1,0 +1,200 @@
+<!-- صفحة قسم التقارير -->
+<div class="col-md-7 col-lg-8 col-xl-9 reports_dashboard section d-none">
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title mb-4 text-center">تقارير المستشفى</h4>
+    
+    <div class="row">
+      <!-- بطاقة تقارير الحجوزات -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-calendar-check fa-3x text-primary"></i>
+            </div>
+            <h5 class="card-title">تقارير الحجوزات</h5>
+            <p class="card-text">إحصائيات وتحليلات مفصلة عن حجوزات المستشفى</p>
+            <a href="javascript:;" data-method="booking_reports" data-section="booking_reports" class="btn btn-primary mt-2">
+              <i class="fas fa-chart-line me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- بطاقة تقارير الأطباء -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-user-md fa-3x text-success"></i>
+            </div>
+            <h5 class="card-title">تقارير الأطباء</h5>
+            <p class="card-text">أداء الأطباء وتقييمات المرضى والإيرادات</p>
+            <a href="javascript:;" data-method="doctor_reports" class="btn btn-success mt-2">
+              <i class="fas fa-chart-bar me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- بطاقة التقارير المالية -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-file-invoice-dollar fa-3x text-warning"></i>
+            </div>
+            <h5 class="card-title">التقارير المالية</h5>
+            <p class="card-text">المدفوعات والإيرادات والمصاريف الشهرية</p>
+            <a href="javascript:;" data-method="financial_reports" class="btn btn-warning mt-2">
+              <i class="fas fa-chart-pie me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- بطاقة تقارير المرضى -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-hospital-user fa-3x text-info"></i>
+            </div>
+            <h5 class="card-title">تقارير المرضى</h5>
+            <p class="card-text">بيانات المرضى وزياراتهم والتشخيصات</p>
+            <a href="javascript:;" data-method="patient_reports" class="btn btn-info mt-2">
+              <i class="fas fa-chart-area me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- بطاقة تقارير التخصصات -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-stethoscope fa-3x text-danger"></i>
+            </div>
+            <h5 class="card-title">تقارير التخصصات</h5>
+            <p class="card-text">تحليل الأقسام الطبية والتخصصات بالمستشفى</p>
+            <a href="javascript:;" data-method="specialization_reports" class="btn btn-danger mt-2">
+              <i class="fas fa-chart-bar me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- بطاقة تقارير الإشغال -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="fas fa-procedures fa-3x text-secondary"></i>
+            </div>
+            <h5 class="card-title">تقارير الإشغال</h5>
+            <p class="card-text">معدلات إشغال الغرف والعيادات والمواعيد</p>
+            <a href="javascript:;" data-method="occupancy_reports" class="btn btn-secondary mt-2">
+              <i class="fas fa-chart-line me-2"></i>عرض التقارير
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Custom CSS -->
+<style>
+  .hover-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+  
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .card-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  
+  .card-text {
+    color: #777;
+  }
+  
+  /* تطبيق عرض كامل للصفحة */
+  .content .container-fluid {
+    width: 100%;
+    max-width: none;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+</style>
+
+<!-- Custom Script -->
+<script>
+  $(document).ready(function() {
+    // هذه الدالة تُنفذ فقط عند عرض صفحة التقارير
+    function setupReportsPage() {
+      console.log("تهيئة صفحة التقارير");
+      
+      // تعديل Layout الصفحة لتكون بعرض كامل
+      $(".content .container").removeClass("container").addClass("container-fluid");
+      
+      // إخفاء السايد بار فقط عندما تكون صفحة التقارير مرئية
+      $(".theiaStickySidebar").parent().hide();
+      
+      // إضافة تأثيرات انتقالية للبطاقات
+      $(".hover-card").hover(
+        function() {
+          $(this).find("i.fas").addClass("fa-bounce");
+        },
+        function() {
+          $(this).find("i.fas").removeClass("fa-bounce");
+        }
+      );
+      
+      // معالجة النقر على أزرار التقارير
+      $(".reports_dashboard [data-method]").click(function() {
+        const method = $(this).data("method");
+        console.log("تم النقر على تقرير: " + method);
+      });
+    }
+    
+    // التحقق مما إذا كانت صفحة التقارير هي المعروضة حالياً
+    function checkIfReportsVisible() {
+      if (!$(".reports_dashboard").hasClass("d-none")) {
+        setupReportsPage();
+      } else {
+        // إعادة السايد بار وتنسيق الصفحة العادي
+        $(".theiaStickySidebar").parent().show();
+        $(".content .container-fluid").removeClass("container-fluid").addClass("container");
+      }
+    }
+    
+    // تنفيذ الفحص عند تحميل الصفحة
+    checkIfReportsVisible();
+    
+    // إضافة مراقب للتبديل بين الأقسام
+    const originalShowSection = window.showSection;
+    if (originalShowSection) {
+      window.showSection = function(sectionName) {
+        originalShowSection(sectionName);
+        
+        // تحقق من الصفحة المعروضة بعد تشغيل الدالة الأصلية
+        if (sectionName === "reports_dashboard") {
+          setTimeout(checkIfReportsVisible, 100);
+        } else {
+          // إعادة السايد بار وتنسيق الصفحة العادي
+          $(".theiaStickySidebar").parent().show();
+          $(".content .container-fluid").removeClass("container-fluid").addClass("container");
+        }
+      };
+    }
+  });
+</script>

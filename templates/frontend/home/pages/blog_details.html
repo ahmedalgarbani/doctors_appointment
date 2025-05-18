@@ -1,24 +1,24 @@
 {% extends "frontend/layouts/master.html" %}
 {% block content %}
-<!-- Breadcrumb -->
+<!-- شريط التنقل -->
 <div class="breadcrumb-bar-two">
     <div class="container">
         <div class="row align-items-center inner-banner">
             <div class="col-md-12 col-12 text-center">
-                <h2 class="breadcrumb-title">Blog Details</h2>
+                <h2 class="breadcrumb-title">تفاصيل المدونة</h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Blog Details</li>
+                        <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                        <li class="breadcrumb-item" aria-current="page">تفاصيل المدونة</li>
                     </ol>
                 </nav>
             </div>
         </div>
     </div>
 </div>
-<!-- /Breadcrumb -->
+<!-- /شريط التنقل -->
 
-<!-- Page Content -->
+<!-- محتوى الصفحة -->
 <div class="content">
     <div class="container">
 
@@ -39,94 +39,94 @@
                                         </div>
                                     </li>
                                     <li><i class="far fa-calendar"></i>{{ post.created_at|date:"F j, Y" }}</li>
-                                    <li><i class="far fa-comments"></i>{{post.comments.count}} Comments</li>
-                                    <li><i class="far fa-eye"></i>{{post.views_count}} Views</li>
+                                    <li><i class="far fa-comments"></i>{{post.comments.count}} تعليق</li>
+                                    <li><i class="far fa-eye"></i>{{post.views_count}} مشاهدة</li>
                                     <li><i class="fa fa-tags"></i>{{ post.categories }}</li>
                                 </ul>
                             </div>
                         </div>
                         <div class="blog-content">
-                        <p>
-                            {{ post.content }}
-                        </p>
+                            <p>
+                                {{ post.content }}
+                            </p>
                         </div>
                     </div>
 
                     <div class="card blog-share clearfix">
                         <div class="card-header">
-                            <h4 class="card-title">Share the post</h4>
+                            <h4 class="card-title">مشاركة المقال</h4>
                         </div>
                         <div class="card-body">
                             <ul class="social-share">
-                                <li><a href="#" title="Facebook"><i class="fab fa-facebook"></i></a></li>
-                                <li><a href="#" title="Twitter"><i class="fab fa-twitter"></i></a></li>
-                                <li><a href="#" title="Linkedin"><i class="fab fa-linkedin"></i></a></li>
-                                <li><a href="#" title="Google Plus"><i class="fab fa-google-plus"></i></a></li>
-                                <li><a href="#" title="Youtube"><i class="fab fa-youtube"></i></a></li>
+                                <li><a href="#" title="فيسبوك"><i class="fab fa-facebook"></i></a></li>
+                                <li><a href="#" title="تويتر"><i class="fab fa-twitter"></i></a></li>
+                                <li><a href="#" title="لينكدإن"><i class="fab fa-linkedin"></i></a></li>
+                                <li><a href="#" title="جوجل بلس"><i class="fab fa-google-plus"></i></a></li>
+                                <li><a href="#" title="يوتيوب"><i class="fab fa-youtube"></i></a></li>
                             </ul>
                         </div>
                     </div>
+
                     <div class="card author-widget clearfix">
-                    <div class="card-header">
-                        <h4 class="card-title">About Author</h4>
+                        <div class="card-header">
+                            <h4 class="card-title">عن الكاتب</h4>
                         </div>
-                    <div class="card-body">
-                        <div class="about-author">
-                            <div class="about-author-img">
-                                <div class="author-img-wrap">
-                                    <a href="doctor-profile.html"><img class="img-fluid rounded-circle" alt="Darren Elder" src="assets/img/doctors/doctor-thumb-02.jpg"></a>
+                        <div class="card-body">
+                            <div class="about-author">
+                                <div class="about-author-img">
+                                    <div class="author-img-wrap">
+                                        <a href="doctor-profile.html"><img class="img-fluid rounded-circle" alt="Darren Elder" src="assets/img/doctors/doctor-thumb-02.jpg"></a>
+                                    </div>
+                                </div>
+                                <div class="author-details">
+                                    <a href="doctor-profile.html" class="blog-author-name">{{post.author.username}}</a>
+                                    <p class="mb-0">وصف الكاتب</p>
                                 </div>
                             </div>
-                            <div class="author-details">
-                                <a href="doctor-profile.html" class="blog-author-name">{{post.author.username}}</a>
-                                <p class="mb-0">auther desc</p>
-                            </div>
                         </div>
                     </div>
-                    </div>
+
                     <div class="card blog-comments clearfix">
                         <div class="card-header">
-                            <h4 class="card-title">Comments ({{post.comments.count}})</h4>
+                            <h4 class="card-title">التعليقات ({{post.comments.count}})</h4>
                         </div>
                         {% if post.comments %}
                         <div class="card-body pb-0">
-                        <ul class="comments-list">
-                            {% for comment in post.comments.all %}
-                            <li>
-                                <div class="comment">
-                                    <div class="comment-author">
-                                        <img class="avatar" alt="Michelle Fairfax" src="assets/img/patients/patient4.jpg">
+                            <ul class="comments-list">
+                                {% for comment in post.comments.all %}
+                                <li>
+                                    <div class="comment">
+                                        <div class="comment-author">
+                                            <img class="avatar" alt="Michelle Fairfax" src="assets/img/patients/patient4.jpg">
+                                        </div>
+                                        <div class="comment-block">
+                                            <span class="comment-by">
+                                                <span class="blog-author-name">{{ comment.user }}</span>
+                                            </span>
+                                            <p>{{comment.content}}</p>
+                                            <p class="blog-date">{{ post.created_at|date:"F j, Y" }}</p>
+                                        </div>
                                     </div>
-                                    <div class="comment-block">
-                                        <span class="comment-by">
-                                            <span class="blog-author-name">{{ comment.user }}</span>
-                                        </span>
-                                        <p>{{comment.content}}</p>
-                                        <p class="blog-date">{{ post.created_at|date:"F j, Y" }}</p>
-
-                                    </div>
-                                </div>
-
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="card new-comment clearfix">
                         <div class="card-header">
-                            <h4 class="card-title">Leave Comment</h4>
+                            <h4 class="card-title">اترك تعليقاً</h4>
                         </div>
                         <div class="card-body">
                             <form method="POST" action="{% url 'home:blog:post_detail' post.slug %}">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <label class="mb-2">Comments</label>
+                                    <label class="mb-2">التعليق</label>
                                     <textarea rows="4" name='content' class="form-control"></textarea>
                                 </div>
                                 <div class="submit-section">
-                                    <button class="btn btn-primary submit-btn" type="submit">Submit</button>
+                                    <button class="btn btn-primary submit-btn" type="submit">إرسال</button>
                                 </div>
                             </form>
                         </div>
@@ -135,27 +135,27 @@
                 </div>
             </div>
 
-            <!-- Blog Sidebar -->
+            <!-- الشريط الجانبي للمدونة -->
             <div class="col-lg-4 col-md-12 sidebar-right theiaStickySidebar">
 
-                <!-- Search -->
+                <!-- البحث -->
                 <div class="card search-widget">
                     <div class="card-body">
                         <form class="search-form">
                             <div class="input-group">
-                                <input type="text" placeholder="Search..." class="form-control">
+                                <input type="text" placeholder="بحث..." class="form-control">
                                 <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                             </div>
                         </form>
                     </div>
                 </div>
-                <!-- /Search -->
+                <!-- /البحث -->
 
                 {% if posts %}
-                <!-- Latest Posts -->
+                <!-- أحدث المقالات -->
                 <div class="card post-widget">
                     <div class="card-header">
-                        <h4 class="card-title">Latest Posts</h4>
+                        <h4 class="card-title">أحدث المقالات</h4>
                     </div>
                     <div class="card-body">
                         <ul class="latest-posts">
@@ -174,62 +174,55 @@
                                 </div>
                             </li>
                             {% endfor %}
-
-
                         </ul>
                     </div>
                 </div>
-                <!-- /Latest Posts -->
+                <!-- /أحدث المقالات -->
                 {% endif %}
 
-               <!-- Categories -->
-               {% if categories %}
+                <!-- التصنيفات -->
+                {% if categories %}
+                <div class="card category-widget">
+                    <div class="card-header">
+                        <h4 class="card-title">تصنيفات المدونة</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="categories">
+                            {% for category in categories %}
+                            <li><a href="{{ category.get_absolute_url }}">{{ category.name }} <span>
+                                {% with category.posts.count as total_cate %}
+                                ( {{ total_cate }} )
+                                {% endwith %}
+                            </span></a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <!-- /التصنيفات -->
+                {% endif %}
 
-               <div class="card category-widget">
-                   <div class="card-header">
-                       <h4 class="card-title">Blog Categories</h4>
-                   </div>
-                   <div class="card-body">
-                       <ul class="categories">
-                           {% for category in categories %}
-                           <li><a href="{{ category.get_absolute_url }}">{{ category.name }} <span>
-                               {% with category.posts.count as total_cate %}
-                               ( {{ total_cate }} )
-
-                               {% endwith %}
-                           </span></a></li>
-                           {% endfor %}
-
-                       </ul>
-                   </div>
-               </div>
-               <!-- /Categories -->
-               {% endif %}
-
-               {% if tags %}
-               <!-- Tags -->
-               <div class="card tags-widget">
-                   <div class="card-header">
-                       <h4 class="card-title">Tags</h4>
-                   </div>
-                   <div class="card-body">
-                       <ul class="tags">
-                           {% for tag in tags %}
-                           <li><a href="{{ tag.get_absolute_url }}" class="tag">{{tag}}</a></li>
-                           {% endfor %}
-
-                       </ul>
-                   </div>
-               </div>
-               <!-- /Tags -->
-               {% endif %}
+                {% if tags %}
+                <!-- الوسوم -->
+                <div class="card tags-widget">
+                    <div class="card-header">
+                        <h4 class="card-title">الوسوم</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="tags">
+                            {% for tag in tags %}
+                            <li><a href="{{ tag.get_absolute_url }}" class="tag">{{tag}}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <!-- /الوسوم -->
+                {% endif %}
 
             </div>
-            <!-- /Blog Sidebar -->
+            <!-- /الشريط الجانبي للمدونة -->
 
+        </div>
     </div>
-    </div>
-
 </div>
-<!-- /Page Content -->
+<!-- /محتوى الصفحة -->
 {% endblock %}

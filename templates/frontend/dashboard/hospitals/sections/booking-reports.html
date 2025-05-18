@@ -1,0 +1,881 @@
+<!-- صفحة تقارير الحجوزات -->
+<div class="col-md-7 col-lg-8 col-xl-9 booking_reports section d-none">
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title mb-0">تقارير الحجوزات</h4>
+    </div>
+    <div class="card-body">
+      <!-- نموذج البحث والتصفية -->
+      <form id="booking-report-form" class="mb-4">
+        <div class="row">
+          <div class="col-md-5 mb-3">
+            <div class="form-group">
+              <label for="date_from" class="fw-bold">التاريخ من</label>
+              <div class="input-group">
+                <input type="date" class="form-control" id="date_from" name="date_from" required>
+                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-5 mb-3">
+            <div class="form-group">
+              <label for="date_to" class="fw-bold">التاريخ إلى</label>
+              <div class="input-group">
+                <input type="date" class="form-control" id="date_to" name="date_to" required>
+                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2 mb-3">
+            <div class="form-group">
+              <label for="status" class="fw-bold">حالة الحجز</label>
+              <select class="form-control" id="status" name="status">
+                <option value="">الكل</option>
+                <option value="pending">قيد الانتظار</option>
+                <option value="confirmed">مؤكد</option>
+                <option value="completed">مكتمل</option>
+                <option value="cancelled">ملغي</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search me-2"></i> إنشاء التقرير
+          </button>
+          <button type="button" class="btn btn-outline-secondary ms-2" id="reset-report-form">
+            <i class="fas fa-redo me-2"></i> إعادة ضبط
+          </button>
+        </div>
+      </form>
+
+      <!-- منطقة نتائج التقرير -->
+      <div id="report-result" class="d-none">
+        <!-- ملخص التقرير -->
+        <div class="report-summary mb-4">
+          <div class="alert alert-info">
+            <div class="row">
+              <div class="col-md-6">
+                <h5><i class="fas fa-info-circle me-2"></i> ملخص التقرير</h5>
+                <p class="mb-1"><strong>الفترة:</strong> <span id="report-period"></span></p>
+                <p class="mb-1"><strong>حالة الحجز:</strong> <span id="report-status"></span></p>
+              </div>
+              <div class="col-md-6 text-md-end">
+                <p class="mb-1"><strong>إجمالي الحجوزات:</strong> <span id="total-appointments" class="badge bg-primary"></span></p>
+                <p class="mb-1"><strong>إجمالي الإيرادات:</strong> <span id="total-revenue" class="badge bg-success"></span></p>
+                <button id="export-pdf" class="btn btn-sm btn-danger mt-2">
+                  <i class="fas fa-file-pdf me-1"></i> تصدير PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- رسومات بيانية -->
+        <div class="row mb-4">
+          <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="card-title mb-0">توزيع الحجوزات حسب الحالة</h5>
+              </div>
+              <div class="card-body">
+                <canvas id="status-chart" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="card-title mb-0">عدد الحجوزات اليومية</h5>
+              </div>
+              <div class="card-body">
+                <canvas id="daily-chart" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- جدول الحجوزات -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">قائمة الحجوزات</h5>
+            <div class="input-group" style="max-width: 300px;">
+              <input type="text" id="table-search" class="form-control" placeholder="بحث...">
+              <button class="btn btn-outline-secondary" type="button">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col">رقم الحجز</th>
+                    <th scope="col">اسم المريض</th>
+                    <th scope="col">اسم الطبيب</th>
+                    <th scope="col">التخصص</th>
+                    <th scope="col">التاريخ</th>
+                    <th scope="col">التوقيت</th>
+                    <th scope="col">الحالة</th>
+                    <th scope="col">المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody id="appointments-table">
+                  <!-- ستملأ البيانات ديناميكياً -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer bg-light">
+            <div class="row align-items-center">
+              <div class="col-md-6 text-md-start">
+                <p class="mb-0 text-muted" id="results-info">
+                  <!-- سيتم تحديثها ديناميكيًا -->
+                </p>
+              </div>
+              <div class="col-md-6">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-md-end justify-content-center mb-0" id="report-pagination">
+                    <!-- ستملأ الصفحات ديناميكياً -->
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- رسالة التحميل -->
+      <div id="loading-message" class="d-none text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+        <p class="mt-3">جاري إنشاء التقرير، يرجى الانتظار...</p>
+      </div>
+      
+      <!-- رسالة عدم وجود بيانات -->
+      <div id="no-data-message" class="d-none">
+        <div class="alert alert-warning text-center">
+          <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <h5>لا توجد بيانات</h5>
+          <p>لم يتم العثور على أي حجوزات في الفترة المحددة. يرجى تغيير معايير البحث والمحاولة مرة أخرى.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- عنصر مخفي لشعار المستشفى (سيستخدم في PDF) -->
+<div id="hospital-logo-container" class="d-none">
+  <img id="hospital-logo" src="/static/img/logo.png" alt="شعار المستشفى" />
+  <h3 id="hospital-name">اسم المستشفى</h3>
+</div>
+
+<!-- نموذج لتصدير PDF الذي سيتم تصديره - مخفي بشكل افتراضي -->
+<div id="pdf-content" class="position-absolute" dir="rtl" style="font-family: 'Cairo', sans-serif; visibility: hidden; z-index: -9999; width: 800px; left: -9999px; top: 0;">
+  <div class="pdf-header" style="text-align: center; margin-bottom: 20px;">
+    <img id="pdf-logo" src="/static/img/logo.png" alt="شعار المستشفى" style="max-width: 150px; margin-bottom: 10px;" />
+    <h2 id="pdf-hospital-name" style="color: #0066cc; margin: 10px 0;">اسم المستشفى</h2>
+    <h3 id="pdf-title" style="margin: 5px 0;">تقرير الحجوزات</h3>
+    <p id="pdf-period" style="margin: 5px 0;">الفترة: <span></span></p>
+    <hr style="border: 1px solid #ddd; margin: 15px 0;" />
+  </div>
+  
+  <div class="pdf-summary" style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <div class="row" style="display: flex; justify-content: space-between;">
+      <div class="col" style="flex: 1;">
+        <p><strong>حالة الحجز:</strong> <span id="pdf-status"></span></p>
+      </div>
+      <div class="col" style="flex: 1;">
+        <p><strong>عدد الحجوزات:</strong> <span id="pdf-total-appointments"></span></p>
+      </div>
+      <div class="col" style="flex: 1;">
+        <p><strong>إجمالي الإيرادات:</strong> <span id="pdf-total-revenue"></span></p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="pdf-charts" style="margin-bottom: 20px;">
+    <h4 style="margin-bottom: 10px;">الرسوم البيانية</h4>
+    <div class="row" style="display: flex; justify-content: space-between;">
+      <div class="col" style="flex: 1;">
+        <div id="pdf-status-chart" style="height: 200px; background-color: #f5f5f5; border-radius: 5px;"></div>
+      </div>
+      <div class="col" style="flex: 1;">
+        <div id="pdf-daily-chart" style="height: 200px; background-color: #f5f5f5; border-radius: 5px;"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="pdf-appointments" style="margin-top: 30px;">
+    <h4 style="margin-bottom: 10px;">قائمة الحجوزات</h4>
+    <table id="pdf-table" style="width: 100%; border-collapse: collapse; text-align: right;">
+      <thead style="background-color: #20c0f3; color: white;">
+        <tr>
+          <th style="padding: 8px; border: 1px solid #ddd;">رقم الحجز</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">اسم المريض</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">اسم الطبيب</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">التخصص</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">التاريخ</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">التوقيت</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">الحالة</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">المبلغ</th>
+        </tr>
+      </thead>
+      <tbody id="pdf-appointments-body">
+        <!-- سيتم ملؤها ديناميكيا -->
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="pdf-footer" style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
+    <p>تم إنشاء هذا التقرير في: <span id="pdf-date"></span></p>
+  </div>
+</div>
+
+<!-- سكريبت خاص بتقارير الحجوزات -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- مكتبة html2canvas لالتقاط الرسوم البيانية -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- مكتبة html2pdf لتصدير HTML إلى PDF مع دعم العربية -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- خط عربي للصفحة -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<script>
+  $(document).ready(function() {
+    // تعيين تاريخ افتراضي (الشهر الحالي)
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    $("#date_from").val(formatDate(firstDayOfMonth));
+    $("#date_to").val(formatDate(lastDayOfMonth));
+    
+    // معالج إعادة ضبط النموذج
+    $("#reset-report-form").on("click", function() {
+      $("#date_from").val(formatDate(firstDayOfMonth));
+      $("#date_to").val(formatDate(lastDayOfMonth));
+      $("#status").val("");
+      $("#report-result").addClass("d-none");
+      $("#no-data-message").addClass("d-none");
+    });
+    
+    // معالج تقديم النموذج
+    $("#booking-report-form").submit(function(e) {
+      e.preventDefault();
+      
+      // عرض رسالة التحميل
+      $("#report-result").addClass("d-none");
+      $("#no-data-message").addClass("d-none");
+      $("#loading-message").removeClass("d-none");
+      
+      // الحصول على بيانات النموذج
+      const dateFrom = $("#date_from").val();
+      const dateTo = $("#date_to").val();
+      const status = $("#status").val();
+      
+      // تحديث ملخص التقرير
+      $("#report-period").text(dateFrom + " إلى " + dateTo);
+      $("#report-status").text(status ? getStatusText(status) : "الكل");
+      
+      // الحصول على CSRF token
+      const csrftoken = getCookie('csrftoken');
+      
+      // إرسال طلب AJAX للحصول على البيانات الحقيقية
+      $.ajax({
+        url: "/reports/booking-reports-data/",
+        type: "GET",
+        data: {
+          date_from: dateFrom,
+          date_to: dateTo,
+          status: status
+        },
+        headers: {
+          "X-CSRFToken": csrftoken
+        },
+        success: function(response) {
+          // إخفاء رسالة التحميل
+          $("#loading-message").addClass("d-none");
+          
+          if (!response.appointments || response.appointments.length === 0) {
+            // عرض رسالة عدم وجود بيانات
+            $("#no-data-message").removeClass("d-none");
+          } else {
+            // تحديث البيانات الإحصائية
+            $("#total-appointments").text(response.total_appointments);
+            $("#total-revenue").text(response.total_revenue + " ر.ي");
+            
+            // عرض البيانات في الجدول
+            updateAppointmentsTable(response.appointments);
+            
+            // إنشاء الرسوم البيانية
+            createStatusChart(response.status_distribution);
+            createDailyChart(response.daily_distribution);
+            
+            // عرض النتائج
+            $("#report-result").removeClass("d-none");
+          }
+        },
+        error: function(xhr, status, error) {
+          // إخفاء رسالة التحميل
+          $("#loading-message").addClass("d-none");
+          
+          // عرض رسالة خطأ
+          const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'حدث خطأ أثناء تحميل البيانات';
+          $("#no-data-message .alert").removeClass("alert-warning").addClass("alert-danger");
+          $("#no-data-message h5").text("خطأ");
+          $("#no-data-message p").text(errorMsg);
+          $("#no-data-message").removeClass("d-none");
+          console.error("Error loading report data:", error);
+        }
+      });
+    });
+    
+    // وظيفة للحصول على CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    
+    // معالج تصدير PDF
+    $("#export-pdf").click(function() {
+      // تنفيذ تصدير PDF
+      exportReportToPDF();
+    });
+    
+    // وظيفة البحث في الجدول
+    $("#table-search").on("keyup", function() {
+      const searchText = $(this).val().toLowerCase();
+      $("#appointments-table tr").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(searchText) > -1);
+      });
+    });
+  });
+  
+  // وظيفة تنسيق التاريخ للملف
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  // وظيفة للحصول على نص الحالة بالعربية
+  function getStatusText(status) {
+    const statusMap = {
+      'pending': 'قيد الانتظار',
+      'confirmed': 'مؤكد',
+      'completed': 'مكتمل',
+      'cancelled': 'ملغي',
+      'all': 'الكل'
+    };
+    return statusMap[status] || status;
+  }
+  
+  // وظيفة للحصول على لون الحالة
+  function getStatusClass(status) {
+    switch (status) {
+      case 'pending': return "badge bg-warning";
+      case 'confirmed': return "badge bg-success";
+      case 'completed': return "badge bg-info";
+      case 'cancelled': return "badge bg-danger";
+      default: return "badge bg-secondary";
+    }
+  }
+  
+  // المتغيرات العامة للصفحات
+  let currentPage = 1;
+  let appointmentsPerPage = 10;
+  let allAppointments = [];
+
+  // وظيفة تحديث جدول الحجوزات مع تصفحها
+  function updateAppointmentsTable(appointments) {
+    // تخزين كل الحجوزات في متغير عام
+    allAppointments = appointments;
+    
+    // عرض الصفحة الأولى افتراضياً
+    showAppointmentsPage(1);
+    
+    // تحديث أزرار التصفح
+    updatePaginationControls();
+  }
+  
+  // وظيفة عرض صفحة محددة من الحجوزات
+  function showAppointmentsPage(pageNumber) {
+    // حساب نطاق العناصر للصفحة الحالية
+    const startIndex = (pageNumber - 1) * appointmentsPerPage;
+    const endIndex = Math.min(startIndex + appointmentsPerPage, allAppointments.length);
+    
+    // الحصول على العناصر للصفحة الحالية
+    const currentAppointments = allAppointments.slice(startIndex, endIndex);
+    
+    // تحديث الجدول بالبيانات
+    const tableBody = $("#appointments-table");
+    tableBody.empty();
+    
+    if (currentAppointments.length === 0) {
+      tableBody.append(`
+        <tr>
+          <td colspan="8" class="text-center">
+            <div class="alert alert-info m-0">
+              لا توجد حجوزات لعرضها.
+            </div>
+          </td>
+        </tr>
+      `);
+    } else {
+      currentAppointments.forEach(function(app) {
+        tableBody.append(`
+          <tr>
+            <td>${app.id}</td>
+            <td>${app.patient_name}</td>
+            <td>${app.doctor_name}</td>
+            <td>${app.speciality}</td>
+            <td>${app.date}</td>
+            <td>${app.time}</td>
+            <td><span class="${getStatusClass(app.status)}">${getStatusText(app.status)}</span></td>
+            <td>${app.amount} ر.ي</td>
+          </tr>
+        `);
+      });
+    }
+    
+    // تحديث المؤشر الحالي
+    currentPage = pageNumber;
+    
+    // تحديث عدد النتائج
+    const start = allAppointments.length > 0 ? startIndex + 1 : 0;
+    const end = endIndex;
+    const total = allAppointments.length;
+    $("#results-info").text(`عرض ${start} إلى ${end} من ${total} حجز`);
+  }
+  
+  // وظيفة تحديث أزرار التصفح
+  function updatePaginationControls() {
+    const totalPages = Math.ceil(allAppointments.length / appointmentsPerPage);
+    const paginationEl = $("#report-pagination");
+    paginationEl.empty();
+    
+    // إذا كان عدد الصفحات ≤ 1، لا داعي لأزرار التنقل
+    if (totalPages <= 1) {
+      return;
+    }
+    
+    // زر الصفحة السابقة
+    paginationEl.append(`
+      <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" aria-label="Previous" data-page="${currentPage - 1}">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+    `);
+    
+    // أزرار الصفحات
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    // تعديل البداية إذا كانت النهاية قريبة من الحد الأقصى
+    if (endPage === totalPages) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    // إضافة أزرار الصفحات
+    for (let i = startPage; i <= endPage; i++) {
+      paginationEl.append(`
+        <li class="page-item ${i === currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>
+      `);
+    }
+    
+    // زر الصفحة التالية
+    paginationEl.append(`
+      <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+        <a class="page-link" href="#" aria-label="Next" data-page="${currentPage + 1}">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    `);
+    
+    // إضافة معالج النقر على زر الصفحة
+    $(".page-link").on("click", function(e) {
+      e.preventDefault();
+      const pageNum = parseInt($(this).data("page"));
+      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+        showAppointmentsPage(pageNum);
+        updatePaginationControls();
+      }
+    });
+  }
+  
+  // وظيفة إنشاء الرسم البياني لتوزيع الحالات
+  function createStatusChart(data) {
+    const ctx = document.getElementById('status-chart');
+    
+    // إذا كان الرسم البياني موجودًا بالفعل، قم بتدميره
+    if (window.statusChart) {
+      window.statusChart.destroy();
+    }
+    
+    window.statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['قيد الانتظار', 'مؤكد', 'مكتمل', 'ملغي'],
+        datasets: [{
+          data: [data.pending, data.confirmed, data.completed, data.cancelled],
+          backgroundColor: ['#ffc107', '#28a745', '#17a2b8', '#dc3545'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            rtl: true,
+            labels: {
+              font: {
+                family: 'Tajawal, sans-serif'
+              }
+            }
+          },
+          tooltip: {
+            rtl: true,
+            titleFont: {
+              family: 'Tajawal, sans-serif'
+            },
+            bodyFont: {
+              family: 'Tajawal, sans-serif'
+            },
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw + ' حجز';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // وظيفة إنشاء الرسم البياني اليومي
+  function createDailyChart(data) {
+    const ctx = document.getElementById('daily-chart');
+    
+    // إذا كان الرسم البياني موجودًا بالفعل، قم بتدميره
+    if (window.dailyChart) {
+      window.dailyChart.destroy();
+    }
+    
+    window.dailyChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.dates,
+        datasets: [{
+          label: 'عدد الحجوزات',
+          data: data.counts,
+          borderColor: '#20c0f3',
+          backgroundColor: 'rgba(32, 192, 243, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            rtl: true,
+            titleFont: {
+              family: 'Tajawal, sans-serif'
+            },
+            bodyFont: {
+              family: 'Tajawal, sans-serif'
+            },
+            callbacks: {
+              label: function(context) {
+                return 'عدد الحجوزات: ' + context.raw;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // وظيفة تصدير التقرير كملف PDF
+  function exportReportToPDF() {
+    // إضافة عنصر لعرض رسالة التحميل
+    $("body").append('<div id="pdf-loading" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5); z-index: 9999;"><div class="bg-white p-4 rounded shadow"><div class="spinner-border text-primary me-3" role="status"></div><span class="fs-5">جاري إنشاء التقرير...</span></div></div>');
+    
+    setTimeout(function() {
+      try {
+        // إنشاء عنصر لعرض تقرير PDF
+        let reportElement = document.createElement('div');
+        reportElement.id = 'pdf-report';
+        reportElement.style.width = '800px';
+        reportElement.style.fontFamily = 'Cairo, sans-serif';
+        reportElement.style.direction = 'rtl';
+        reportElement.style.position = 'absolute';
+        reportElement.style.left = '-9999px';
+        reportElement.style.top = '0';
+        reportElement.style.backgroundColor = '#ffffff';
+        reportElement.style.padding = '20px';
+        document.body.appendChild(reportElement);
+        
+        // الحصول على معلومات التقرير
+        const today = new Date();
+        const hospitalName = document.getElementById('hospital-name').textContent || 'المستشفى';
+        const period = $("#report-period").text();
+        const status = $("#report-status").text();
+        const totalAppointments = $("#total-appointments").text();
+        const totalRevenue = $("#total-revenue").text();
+        
+        // تهيئة محتوى التقرير
+        let reportContent = `
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #0066cc; margin: 10px 0;">${hospitalName}</h2>
+            <h3 style="margin: 5px 0;">تقرير الحجوزات - ${period}</h3>
+            <div style="font-size: 12px; color: #666;">
+              تاريخ التقرير: ${today.toLocaleDateString('ar')}
+            </div>
+            <hr style="border: 1px solid #ddd; margin: 15px 0;" />
+          </div>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="padding: 5px; width: 33%;"><strong>حالة الحجز:</strong> ${status}</td>
+                <td style="padding: 5px; width: 33%;"><strong>عدد الحجوزات:</strong> ${totalAppointments}</td>
+                <td style="padding: 5px; width: 33%;"><strong>إجمالي الإيرادات:</strong> ${totalRevenue}</td>
+              </tr>
+            </table>
+          </div>
+        `;
+        
+        // إضافة محتوى التقرير إلى العنصر
+        reportElement.innerHTML = reportContent;
+        
+        // التقاط الرسوم البيانية
+        Promise.all([
+          html2canvas(document.getElementById('status-chart')),
+          html2canvas(document.getElementById('daily-chart'))
+        ]).then(function(canvases) {
+          const statusChartCanvas = canvases[0];
+          const dailyChartCanvas = canvases[1];
+          
+          // تحويل الكانفاس إلى صور
+          const statusChartImg = statusChartCanvas.toDataURL('image/png');
+          const dailyChartImg = dailyChartCanvas.toDataURL('image/png');
+          
+          // إنشاء قسم الرسوم البيانية
+          const chartsSection = document.createElement('div');
+          chartsSection.innerHTML = `
+            <h3 style="margin-top: 20px; margin-bottom: 10px;">الرسوم البيانية</h3>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+              <div style="flex: 1; margin: 0 10px; text-align: center;">
+                <p style="font-weight: bold; margin-bottom: 5px;">توزيع الحجوزات حسب الحالة</p>
+                <img src="${statusChartImg}" style="max-width: 100%;" />
+              </div>
+              <div style="flex: 1; margin: 0 10px; text-align: center;">
+                <p style="font-weight: bold; margin-bottom: 5px;">عدد الحجوزات اليومية</p>
+                <img src="${dailyChartImg}" style="max-width: 100%;" />
+              </div>
+            </div>
+          `;
+          reportElement.appendChild(chartsSection);
+          
+          // إضافة قسم جدول البيانات
+          const tableSection = document.createElement('div');
+          tableSection.innerHTML = `<h3 style="margin-top: 20px; margin-bottom: 10px;">قائمة الحجوزات</h3>`;
+          reportElement.appendChild(tableSection);
+          
+          // إنشاء جدول بيانات الحجوزات
+          const table = document.createElement('table');
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          table.style.marginBottom = '20px';
+          
+          // إنشاء رأس الجدول
+          let tableHTML = `
+            <thead>
+              <tr>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">رقم الحجز</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">اسم المريض</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">اسم الطبيب</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">التخصص</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">التاريخ</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">التوقيت</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">الحالة</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd; background-color: #20c0f3; color: white;">المبلغ</th>
+              </tr>
+            </thead>
+            <tbody>
+          `;
+          
+          // إضافة صفوف الجدول (أقصى 20 حجز)
+          const maxRows = Math.min(allAppointments.length, 20);
+          for (let i = 0; i < maxRows; i++) {
+            const app = allAppointments[i];
+            const rowColor = i % 2 === 0 ? '#f9f9f9' : 'white';
+            
+            tableHTML += `
+              <tr style="background-color: ${rowColor};">
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.id}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.patient_name}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.doctor_name}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.speciality}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.date}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.time}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${getStatusText(app.status)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${app.amount} ر.ي</td>
+              </tr>
+            `;
+          }
+          
+          tableHTML += '</tbody>';
+          table.innerHTML = tableHTML;
+          tableSection.appendChild(table);
+          
+          // إضافة تذييل التقرير
+          const footer = document.createElement('div');
+          footer.innerHTML = `
+            <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
+              ${hospitalName} - تقرير الحجوزات - تم إنشاؤه بتاريخ ${today.toLocaleDateString('ar')}
+            </div>
+          `;
+          reportElement.appendChild(footer);
+          
+          // انتظر لحظة للتأكد من تحميل جميع العناصر
+          setTimeout(function() {
+            // إعدادات تصدير PDF
+            const opt = {
+              margin: [10, 10, 10, 10],
+              filename: `تقرير_الحجوزات_${formatDate(today)}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true, logging: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+              fontFaces: [
+                { family: 'Cairo', style: 'normal', src: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap' }
+              ]
+            };
+          
+            // تنفيذ التصدير
+            html2pdf()
+              .from(reportElement)
+              .set(opt)
+              .save()
+              .then(function() {
+                // إزالة عناصر التقرير والتحميل
+                reportElement.remove();
+                $("#pdf-loading").remove();
+                console.log('PDF generated successfully');
+              });
+          }, 500);
+        }).catch(function(error) {
+          console.error('Error capturing charts:', error);
+          $("#pdf-loading").remove();
+          alert("حدث خطأ أثناء إنشاء ملف PDF: " + error.message);
+        });
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        $("#pdf-loading").remove();
+        alert("حدث خطأ أثناء إنشاء ملف PDF: " + error.message);
+      }
+    }, 500); // انتظر 500 مللي ثانية قبل البدء لضمان تحميل جميع العناصر
+  }
+  
+  // وظيفة لإنشاء بيانات وهمية للعرض التوضيحي
+  function getMockData(dateFrom, dateTo, statusFilter) {
+    // بيانات افتراضية للعرض
+    const startDate = new Date(dateFrom);
+    const endDate = new Date(dateTo);
+    const daysDiff = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
+    
+    // بيانات الرسم البياني اليومي
+    const dates = [];
+    const counts = [];
+    for (let i = 0; i < daysDiff; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+      dates.push(formatDate(currentDate));
+      counts.push(Math.floor(Math.random() * 8) + 1); // عدد عشوائي من 1-8
+    }
+    
+    // توزيع الحالات
+    const pending = Math.floor(Math.random() * 20) + 5;
+    const confirmed = Math.floor(Math.random() * 30) + 10;
+    const completed = Math.floor(Math.random() * 40) + 15;
+    const cancelled = Math.floor(Math.random() * 10) + 2;
+    
+    const total = pending + confirmed + completed + cancelled;
+    
+    // قائمة الحجوزات
+    const appointments = [];
+    const statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+    const specialities = ['طب عام', 'طب أسنان', 'طب العيون', 'طب الأطفال', 'طب القلب', 'طب النساء والتوليد'];
+    
+    for (let i = 0; i < total; i++) {
+      const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      // تجاهل الحالات التي لا تتطابق مع المرشح
+      if (statusFilter && randomStatus !== statusFilter) continue;
+      
+      appointments.push({
+        id: "BOOK-" + (1000 + i),
+        patient_name: "مريض " + (i + 1),
+        doctor_name: "د. أحمد " + (Math.floor(Math.random() * 5) + 1),
+        speciality: specialities[Math.floor(Math.random() * specialities.length)],
+        date: formatDate(randomDate),
+        time: `${Math.floor(Math.random() * 12) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} ${Math.random() > 0.5 ? 'ص' : 'م'}`,
+        status: randomStatus,
+        amount: (Math.floor(Math.random() * 20) + 5) * 50
+      });
+    }
+    
+    // ترتيب الحجوزات حسب التاريخ
+    appointments.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    return {
+      total_appointments: appointments.length,
+      total_revenue: appointments.reduce((sum, app) => sum + app.amount, 0),
+      appointments: appointments,
+      daily_distribution: {
+        dates,
+        counts
+      },
+      status_distribution: {
+        pending,
+        confirmed,
+        completed,
+        cancelled
+      }
+    };
+  }
+</script>

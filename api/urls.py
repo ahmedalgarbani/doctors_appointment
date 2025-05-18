@@ -19,6 +19,7 @@ router.register(r'reviews', ReviewViewSet, basename='review')
 router.register(r'payment', PaymentViewSet, basename='payment')
 
 
+router.register(r'posts', PostViewSet, basename='post')
 
 urlpatterns = [
     
@@ -40,4 +41,6 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'), 
     path('login/', LoginView.as_view(), name='login'),  
     path('logout/', LogoutView.as_view(), name='logout'),  
+
+
 ]

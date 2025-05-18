@@ -406,6 +406,56 @@ class HospitalDetailSerializer(serializers.ModelSerializer):
 
 
 
+# blog/api/serializers.py
+from rest_framework import serializers
+from blog.models import Post, Category, Tag, Comment
+from hospitals.models import Hospital
+
+
+class HospitalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hospital
+        fields = ['id', 'name', 'logo']
+
+
+
+class PostSerializer(serializers.ModelSerializer):
+    author = HospitalSerializer()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ['id', 'title', 'slug', 'content', 'excerpt', 'image', 'author', 'views_count', 'created_at']
+
+    def get_image(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
+
+
+
+class PostListSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField()
+    excerpt = serializers.SerializerMethodField() 
+    image = serializers.SerializerMethodField()
+    content = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ['id', 'title', 'slug', 'excerpt', 'content', 'image', 'author', 'views_count']
+
+    def get_excerpt(self, obj):
+        return obj.content[:150] + '...' if len(obj.content) > 150 else obj.content
+
+    def get_content(self, obj):
+        return obj.content 
+
+    def get_image(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
+
+
 
 
 

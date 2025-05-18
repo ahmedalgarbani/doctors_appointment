@@ -93,20 +93,13 @@
                                                 </tr>
                                                 <tr>
                                                     <td><strong>نوع الدفع:</strong></td>
-                                                    <td>{{ payment.get_payment_type_display }}</td>
+                                                    <td>الكتروني</td>
                                                 </tr>
                                                 <tr>
-                                                    <td><strong>المبلغ الفرعي:</strong></td>
+                                                    <td><strong>المبلغ :</strong></td>
                                                     <td>{{ payment.payment_currency }} {{ payment.payment_subtotal }}</td>
                                                 </tr>
-                                                <tr>
-                                                    <td><strong>الخصم:</strong></td>
-                                                    <td>{{ payment.payment_currency }} {{ payment.payment_discount }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>المبلغ الإجمالي:</strong></td>
-                                                    <td><strong>{{ payment.payment_currency }} {{ payment.payment_totalamount }}</strong></td>
-                                                </tr>
+                                                
                                             </tbody>
                                         </table>
                                     </div>

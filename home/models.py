@@ -228,3 +228,19 @@ class Setting(models.Model):
 
     def __str__(self):
         return f"setting {self.site_name}"
+
+
+
+class AboutUsPage(models.Model):
+    title = models.CharField(_("العنوان"), max_length=255)
+    subtitle = models.CharField(_("العنوان الفرعي"), max_length=255)
+    content = RichTextField(_("المحتوى"))
+    phone_number = models.CharField(_("رقم الهاتف"), max_length=20, blank=True, null=True)
+    image1 = models.ImageField(_("الصورة 1"), upload_to='about/', blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("صفحة من نحن")
+        verbose_name_plural = _("صفحات من نحن")
+
+    def __str__(self):
+        return self.title

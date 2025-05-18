@@ -17,9 +17,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-v$zu3k_g_p2dp_!2*hw!m1w2%dsl@q#&uld&7ad(wzdv#u=#*^'
 DEBUG = True
-ALLOWED_HOSTS = ["0.0.0.0","127.0.0.1", "localhost", "10.0.2.2", "192.168.1.151","192.168.8.167","192.168.8.177","192.168.8.178","192.168.0.102"]
+ALLOWED_HOSTS = ["0.0.0.0","127.0.0.1", "localhost", "10.0.2.2", "192.168.1.151","192.168.8.167","192.168.8.177","192.168.8.178","192.168.8.175"]
 
 INSTALLED_APPS = [
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -158,7 +159,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'notifications.context_processors.notifications',  # إضافة معالج السياق للإشعارات
+                'notifications.context_processors.notifications',
+                'users.context_processors.admin_user_context',
             ],
         },
     },
@@ -253,31 +255,44 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NAV_MENU_TOP = [
     {
+        "name": "الرئيسية",
+        "url": "/",
+    },
+    {
+        "name": "المستشفيات",
+        "url": "/hospitals/all/",
+    },
+    {
+        "name": "الأطباء",
+        "url": "/search/",
+    },
+     {
+        "name": "المدونة",
+        "url": "/blog/",
+    },
+    {
         "name": "الأسئلة الشائعة",
         "url": "/faq",
     },
     {
-        "name": "عن الموقع",
+        "name": "من نحن",
         "url": "/about",
     },
+    
     {
-        "name": "خطط الأسعار",
-        "url": "/about",
-    },
-    {
-        "name": "الصفحات",
+        "name": "المزيد",
         "url": "/",
 
         "submenu": [
-            {
-                "name": "من نحن",
-                "url": "/",
-            },
-            {
-                "name": "اتصل بنا",
-                "url": "/",
+        #     {
+        #     "name": "من نحن",
+        #     "url": "/about/",
+        # },
+            # {
+            #     "name": "اتصل بنا",
+            #     "url": "/",
 
-            },
+            # },
             {
                 "name": "الشروط والأحكام",
                 "url": "/terms-condition",
@@ -289,15 +304,9 @@ NAV_MENU_TOP = [
 
             }
         ],
+        
     },
-    {
-        "name": "المستشفيات",
-        "url": "/hospitals/all/",
-    },
-    {
-        "name": "المدونة",
-        "url": "/blog/",
-    },
+   
 ]
 
 

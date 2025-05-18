@@ -1,16 +1,15 @@
-<div class="col-md-7 col-lg-8 col-xl-9 favourites section">
+<div class="col-md-7 col-lg-8 col-xl-9 favourites section d-none">
     <div class="row row-grid">
         {% for doctor in favourite_doctors %}
             <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="profile-widget">
                     <div class="doc-img">
                         <a href="{% url 'home:doctor_profile' doctor_id=doctor.id %}">
-							<img class="img-fluid" alt="User Image" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
+							<img class="img-fluid" alt="صورة الطبيب" src="{% if doctor.photo %}{{ doctor.photo.url }}{% else %}path/to/default-image.jpg{% endif %}">
                         </a>
                         <a href="javascript:void(0)" class="fav-btn" data-doctor-id="{{ doctor.id }}">
                             <i class="far fa-bookmark"></i>
                         </a>
-
                     </div>
                     <div class="pro-content">
                         <h3 class="title">
@@ -55,14 +54,14 @@
                     <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
                     <h4 class="text-muted">لا يوجد لديك أطباء مفضلين حتى الآن</h4>
                     <p class="text-muted">يمكنك إضافة الأطباء إلى قائمة المفضلة من صفحة الطبيب</p>
-                    <a href="{% url 'doctors:doctors_list' %}" class="btn btn-primary mt-3">استعرض الأطباء</a>
+                    <a href="{% url 'home:search_view' %}" class="btn btn-primary mt-3">استعرض الأطباء</a>
                 </div>
             </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- JavaScript section -->
+<!-- قسم الجافا سكربت -->
 <script>
 	document.querySelectorAll('.fav-btn').forEach(function(button) {
 		button.addEventListener('click', function() {
@@ -98,7 +97,7 @@
 				}
 			})
 			.catch(error => {
-				console.error('Error:', error);
+				console.error('خطأ:', error);
 			});
 		});
 	});

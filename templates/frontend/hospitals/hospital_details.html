@@ -2,14 +2,170 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* تحسينات التصميم */
+    .hospital-card {
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .hospital-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    
+    .stats-card:hover {
+        transform: scale(1.03);
+    }
+    
+    .stats-card i {
+        font-size: 1.75rem;
+    }
+    
+    .ad-card {
+        border-left: 4px solid #4e73df;
+        transition: all 0.3s ease;
+    }
+    
+    .ad-card:hover {
+        box-shadow: 0 5px 15px rgba(78, 115, 223, 0.15);
+    }
+    
+    .ad-images {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .doctor-card {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .doctor-card:hover {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-color: rgba(78, 115, 223, 0.3);
+    }
+    
+    .doctor-card img {
+        transition: transform 0.3s ease;
+    }
+    
+    .doctor-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    .review-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .review-item:hover {
+        background: #fff;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    
+    .rating-select .btn-outline-warning {
+        border-radius: 20px !important;
+        margin: 0 3px;
+    }
+    
+    .hover-effect {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-effect:hover {
+        transform: translateY(-3px);
+    }
+    
+    .bg-primary-soft {
+        background-color: rgba(78, 115, 223, 0.1) !important;
+    }
+    
+    .text-primary {
+        color: #4e73df !important;
+    }
+    
+    .border-primary {
+        border-color: #4e73df !important;
+    }
+    
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .section-title {
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .title-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: #4e73df;
+        border-radius: 3px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #6c757d;
+    }
+    
+    .avatar-wrapper {
+        position: relative;
+        width: fit-content;
+        margin: 0 auto;
+    }
+    
+    .avatar {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 3px solid #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+
 <!-- Breadcrumb -->
-<div class="breadcrumb-bar-two">
+<div class="breadcrumb-bar-two bg-primary-soft">
     <div class="container">
         <div class="row align-items-center inner-banner">
             <div class="col-md-12 col-12 text-center">
                 <h2 class="breadcrumb-title">{{ hospital.name }}</h2>
                 <nav aria-label="breadcrumb" class="page-breadcrumb">
-                    <ol class="breadcrumb">
+                    <ol class="breadcrumb justify-content-center">
                         <li class="breadcrumb-item"><a href="{% url 'home:home' %}">الرئيسية</a></li>
                         <li class="breadcrumb-item"><a href="{% url 'hospitals:all_hospitals' %}">المستشفيات</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{ hospital.name }}</li>
@@ -24,51 +180,59 @@
 <!-- Page Content -->
 <div class="content pt-5">
     <div class="container">
-        <div class="card">
+        <div class="card hospital-card mb-5">
             <div class="card-body">
                 <div class="row">
                     <!-- Hospital Logo -->
                     <div class="col-md-4 text-center mb-4">
-                        {% if hospital.logo %}
-                        <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" class="img-fluid rounded" style="max-height: 200px;">
-                        {% else %}
-                        <img src="{% static 'img/hospital-default.jpg' %}" alt="{{ hospital.name }}" class="img-fluid rounded" style="max-height: 200px;">
-                        {% endif %}
+                        <div class="hospital-logo-wrapper p-3">
+                            {% if hospital.logo %}
+                            <img src="{{ hospital.logo.url }}" alt="{{ hospital.name }}" class="img-fluid rounded hover-effect" style="max-height: 200px; border: 1px solid #eee;">
+                            {% else %}
+                            <img src="{% static 'img/hospital-default.jpg' %}" alt="{{ hospital.name }}" class="img-fluid rounded hover-effect" style="max-height: 200px; border: 1px solid #eee;">
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <!-- Hospital Information -->
                     <div class="col-md-8">
                         <h3 class="mb-3">{{ hospital.name }}</h3>
                         {% if hospital.sub_title %}
-                        <p class="text-muted">{{ hospital.sub_title }}</p>
+                        <p class="text-muted lead">{{ hospital.sub_title }}</p>
                         {% endif %}
                         
                         <!-- Hospital Stats Cards -->
-                        <div class="row mb-4">
+                        <div class="row mb-4 g-3">
                             <div class="col-md-4">
-                                <div class="card bg-primary text-white">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-user-md fa-2x mb-2"></i>
-                                        <h4 class="mb-0">{{ doctors_count }}</h4>
-                                        <p class="mb-0">طبيب</p>
+                                <div class="card stats-card bg-primary-soft border-primary text-primary">
+                                    <div class="card-body text-center py-4">
+                                        <div class="icon-circle bg-primary text-white mb-3 mx-auto">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                        <h3 class="mb-1">{{ doctors_count }}</h3>
+                                        <p class="mb-0 fw-bold">أطباء متخصصون</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card bg-success text-white">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-stethoscope fa-2x mb-2"></i>
-                                        <h4 class="mb-0">{{ specialties_count }}</h4>
-                                        <p class="mb-0">تخصص</p>
+                                <div class="card stats-card bg-success-soft border-success text-success">
+                                    <div class="card-body text-center py-4">
+                                        <div class="icon-circle bg-success text-white mb-3 mx-auto">
+                                            <i class="fas fa-stethoscope"></i>
+                                        </div>
+                                        <h3 class="mb-1">{{ specialties_count }}</h3>
+                                        <p class="mb-0 fw-bold">تخصصات طبية</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card bg-info text-white">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
-                                        <h4 class="mb-0">{{ hospital.city.name }}</h4>
-                                        <p class="mb-0">الموقع</p>
+                                <div class="card stats-card bg-info-soft border-info text-info">
+                                    <div class="card-body text-center py-4">
+                                        <div class="icon-circle bg-info text-white mb-3 mx-auto">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <h3 class="mb-1">{{ hospital.city.name }}</h3>
+                                        <p class="mb-0 fw-bold">موقع المستشفى</p>
                                     </div>
                                 </div>
                             </div>
@@ -76,16 +240,26 @@
 
                         <!-- Hospital Address -->
                         {% if hospital.address %}
-                        <div class="info-item mb-3">
-                            <i class="fas fa-location-dot text-primary"></i>
-                            <span class="ms-2">{{ hospital.address }}</span>
+                        <div class="info-item mb-3 p-3 bg-light rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-location-dot text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h5 class="mb-1">عنوان المستشفى</h5>
+                                    <p class="mb-0">{{ hospital.address }}</p>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
 
                         {% if hospital.about %}
                         <div class="mt-4">
-                            <h4 class="mb-3">نبذة عن المستشفى</h4>
-                            <p>{{ hospital.about }}</p>
+                            <h4 class="mb-3 position-relative">
+                                <span class="section-title">نبذة عن المستشفى</span>
+                                <span class="title-line"></span>
+                            </h4>
+                            <div class="p-3 bg-light rounded">
+                                <p class="lead">{{ hospital.about }}</p>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -93,20 +267,29 @@
 
                 <!-- Hospital Advertisements Section -->
                 {% if advertisements %}
-                <div class="row mt-4">
+                <div class="row mt-5">
                     <div class="col-12">
-                        <h4 class="mb-3">
-                            <i class="fas fa-ad text-primary me-2"></i>
-                            إعلانات المستشفى
-                        </h4>
-                        <div class="row">
+                        <div class="section-header mb-4">
+                            <h4 class="position-relative mb-0">
+                                <span class="section-title">إعلانات المستشفى</span>
+                                <span class="title-line"></span>
+                            </h4>
+                        </div>
+                        <div class="row g-4">
                             {% for ad in advertisements %}
-                            <div class="col-12 mb-4">
-                                <div class="card border-primary shadow" style="border-width: 2px; border-radius: 10px; overflow: hidden;">
-                                    <div class="card-header bg-primary text-white py-2">
+                            <div class="col-12">
+                                <div class="card ad-card border-0 shadow-sm">
+                                    <div class="card-header bg-primary text-white py-3">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <h5 class="mb-0">{{ ad.title }}</h5>
-                                            <span class="badge bg-light text-primary">إعلان رسمي</span>
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-bullhorn me-2"></i>
+                                                {{ ad.title }}
+                                            </h5>
+                                            <span class="badge bg-light text-primary">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                {% if ad.start_date %}{{ ad.start_date|date:"Y/m/d" }}{% endif %}
+                                                {% if ad.end_date %} - {{ ad.end_date|date:"Y/m/d" }}{% endif %}
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -117,26 +300,26 @@
                                                 <div class="ad-images">
                                                     {% if ad.image %}
                                                     <div class="mb-3">
-                                                        <img src="{{ ad.image.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; max-height: 250px; object-fit: cover;">
+                                                        <img src="{{ ad.image.url }}" class="img-fluid rounded hover-effect" alt="{{ ad.title }}" style="width: 100%; max-height: 250px; object-fit: cover;">
                                                     </div>
                                                     {% endif %}
                                                     
                                                     <div class="row g-2">
                                                         {% if ad.image2 %}
                                                         <div class="col-4">
-                                                            <img src="{{ ad.image2.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                            <img src="{{ ad.image2.url }}" class="img-fluid rounded hover-effect" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
                                                         </div>
                                                         {% endif %}
                                                         
                                                         {% if ad.image3 %}
                                                         <div class="col-4">
-                                                            <img src="{{ ad.image3.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                            <img src="{{ ad.image3.url }}" class="img-fluid rounded hover-effect" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
                                                         </div>
                                                         {% endif %}
                                                         
                                                         {% if ad.image4 %}
                                                         <div class="col-4">
-                                                            <img src="{{ ad.image4.url }}" class="img-fluid rounded" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                                            <img src="{{ ad.image4.url }}" class="img-fluid rounded hover-effect" alt="{{ ad.title }}" style="width: 100%; height: 100px; object-fit: cover;">
                                                         </div>
                                                         {% endif %}
                                                     </div>
@@ -152,23 +335,32 @@
                                             <!-- محتوى الإعلان -->
                                             <div class="col-md-6">
                                                 <div class="ad-content">
+                                                    <h5 class="text-primary mb-3">تفاصيل الإعلان</h5>
                                                     <p class="card-text">{{ ad.description }}</p>
                                                     
-                                                    <!-- تواريخ الإعلان -->
                                                     {% if ad.start_date or ad.end_date %}
-                                                    <div class="ad-dates mt-3">
-                                                        <h6 class="text-primary">مدة الإعلان:</h6>
-                                                        <div class="d-flex flex-wrap">
+                                                    <div class="ad-details mt-4 p-3 bg-light rounded">
+                                                        <div class="row">
                                                             {% if ad.start_date %}
-                                                            <div class="me-3 mb-2">
-                                                                <i class="fas fa-calendar-day me-1 text-primary"></i>
-                                                                <span class="text-muted">تاريخ البدء:</span> {{ ad.start_date|date:"Y/m/d" }}
+                                                            <div class="col-md-6 mb-2 mb-md-0">
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-calendar-day text-primary me-2"></i>
+                                                                    <div>
+                                                                        <small class="text-muted d-block">تاريخ البدء</small>
+                                                                        <strong>{{ ad.start_date|date:"Y/m/d" }}</strong>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                             {% endif %}
                                                             {% if ad.end_date %}
-                                                            <div class="mb-2">
-                                                                <i class="fas fa-calendar-check me-1 text-primary"></i>
-                                                                <span class="text-muted">تاريخ الانتهاء:</span> {{ ad.end_date|date:"Y/m/d" }}
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-calendar-check text-primary me-2"></i>
+                                                                    <div>
+                                                                        <small class="text-muted d-block">تاريخ الانتهاء</small>
+                                                                        <strong>{{ ad.end_date|date:"Y/m/d" }}</strong>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                             {% endif %}
                                                         </div>
@@ -185,7 +377,6 @@
                     </div>
                 </div>
                 {% endif %}
-
                 <!-- Doctors Section -->
                 <div class="row mt-5">
                     <div class="col-12">

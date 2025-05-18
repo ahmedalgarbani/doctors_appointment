@@ -1,15 +1,15 @@
 <div class="col-md-7 col-lg-8 col-xl-9 section notifications_forms d-none">
   <div class="container py-5">
-    <!-- Notification Header -->
+    <!-- رأس الإشعارات -->
     <div class="card mb-4 shadow-sm">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
           <h2 class="mb-0">
             <i class="bi bi-bell-fill text-primary me-2"></i>
-            Notification Center
+            مركز الإشعارات
           </h2>
           <button id="toggleNotificationForm" class="btn btn-primary">
-            <i class="bi bi-send-fill me-2"></i>Add Notification
+            <i class="bi bi-send-fill me-2"></i>إضافة إشعار
           </button>
         </div>
       </div>
@@ -23,15 +23,15 @@
         >
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">Recipients</label>
+            <label class="form-label">المستلمون</label>
             <select name="recipients" class="form-select" required>
-              <option value="single">Single User</option>
-              <option value="multiple">Multiple Users</option>
-              <option value="all">All Users</option>
+              <option value="single">مستخدم واحد</option>
+              <option value="multiple">عدة مستخدمين</option>
+              <option value="all">جميع المستخدمين</option>
             </select>
           </div>
           <div class="mb-3" id="userSelect">
-            <label class="form-label">Select Users</label>
+            <label class="form-label">اختيار المستخدمين</label>
             <select name="users" class="form-select" multiple>
               {% for user in users %}
               <option value="{{ user.id }}">{{ user.username }}</option>
@@ -39,16 +39,16 @@
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label">Notification Type</label>
+            <label class="form-label">نوع الإشعار</label>
             <select name="notification_type" class="form-select" required>
-              <option value="0">Information</option>
-              <option value="1">Warning</option>
-              <option value="2">Success</option>
-              <option value="3">Error</option>
+              <option value="0">معلومة</option>
+              <option value="1">تحذير</option>
+              <option value="2">نجاح</option>
+              <option value="3">خطأ</option>
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label">Message</label>
+            <label class="form-label">الرسالة</label>
             <textarea
               name="message"
               class="form-control"
@@ -62,10 +62,10 @@
               id="cancelNotificationForm"
               class="btn btn-secondary me-2"
             >
-              Cancel
+              إلغاء
             </button>
             <button type="submit" class="btn btn-primary">
-              Send Notification
+              إرسال الإشعار
             </button>
           </div>
         </form>
@@ -93,11 +93,11 @@
 
             <div class="flex-grow-1">
               <div class="d-flex justify-content-between">
-                <h6 class="mb-1">From: {{ notification.sender }}</h6>
-                <small>{{ notification.send_time|timesince }} ago</small>
+                <h6 class="mb-1">من: {{ notification.sender }}</h6>
+                <small>{{ notification.send_time|timesince }} مضت</small>
               </div>
               <p class="mb-1">{{ notification.message }}</p>
-              <small>To: {{ notification.user }}</small>
+              <small>إلى: {{ notification.user }}</small>
             </div>
 
             <div class="ms-3">
@@ -116,7 +116,7 @@
                       class="dropdown-item"
                       href="{% url 'hospitals:notifications:mark_as_read' notification.id %}"
                     >
-                      <i class="bi bi-check2 me-2"></i>Mark as Read
+                      <i class="bi bi-check2 me-2"></i>علامة كمقروء
                     </a>
                   </li>
                   {% else %}
@@ -125,7 +125,7 @@
                       class="dropdown-item"
                       href="{% url 'hospitals:notifications:mark_as_unread' notification.id %}"
                     >
-                      <i class="bi bi-circle me-2"></i>Mark as Unread
+                      <i class="bi bi-circle me-2"></i>علامة كغير مقروء
                     </a>
                   </li>
                   {% endif %}
@@ -137,7 +137,7 @@
           {% empty %}
           <div class="text-center py-5">
             <i class="bi bi-bell-slash fs-1 text-muted"></i>
-            <p class="mt-2 text-muted">No notifications found</p>
+            <p class="mt-2 text-muted">لا توجد إشعارات</p>
           </div>
           {% endfor %}
         </div>

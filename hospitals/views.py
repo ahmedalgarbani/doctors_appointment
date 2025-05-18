@@ -187,6 +187,22 @@ def index(request):
             doctor.average_rating = sum(review.rating for review in reviews) / len(reviews)
         else:
             doctor.average_rating = 0
+                # احصل على جدول الطبيب لليوم الحالي
+        today_weekday = today.weekday()  # 0 = الاثنين, 6 = الأحد
+
+        schedules = DoctorSchedules.objects.filter(
+            doctor=doctor,
+            day=today_weekday
+        ).prefetch_related('shifts')
+
+        total_available_slots = 0
+        for schedule in schedules:
+            for shift in schedule.shifts.all():
+                total_available_slots += shift.available_slots
+
+        doctor.available_slots = total_available_slots
+        doctor.booked_slots = doctor.today_appointments_count
+
 
     # Get latest payments
     latest_payments = Payment.objects.filter(
@@ -268,7 +284,11 @@ def index(request):
             total=Sum('payment_totalamount'))['total'] or 0,
     }
 
-    bookings = Booking.objects.filter(hospital=hospital)
+    bookings = Booking.objects.filter(hospital=hospital).prefetch_related('payments')
+
+    for booking in bookings:
+        booking.invoice = booking.payments.first() if booking.payments.exists() else None
+
 
     # معالجة طلب الحذف إذا كان الطلب POST وفيه notification_id
     if request.method == 'POST' and 'notification_id' in request.body.decode('utf-8'):
@@ -1046,14 +1066,10 @@ def accept_appointment(request, booking_id):
             }, status=403)
 
         # تحديث البيانات
-        doctor_shifts = booking.appointment_time
-        if doctor_shifts:
-            doctor_shifts.booked_slots += 1
-            doctor_shifts.save()
-
         booking.status = 'confirmed'
         booking.save()
 
+        # إنشاء سجل جديد لحالة الحجز
         BookingStatusHistory.objects.create(
             booking=booking,
             status='confirmed',
@@ -1063,9 +1079,7 @@ def accept_appointment(request, booking_id):
 
         return JsonResponse({
             'status': 'success',
-            'message': 'تم قبول الحجز بنجاح',
-            'toast_class': 'bg-success',
-            'booking_status': 'confirmed'
+            'booking_status': 'confirmed'  
         })
 
     except Booking.DoesNotExist:
@@ -1080,6 +1094,7 @@ def accept_appointment(request, booking_id):
             'message': f'حدث خطأ: {str(e)}',
             'toast_class': 'bg-danger'
         }, status=500)
+
 
 
 def completed_appointment(request, booking_id):
@@ -1206,10 +1221,34 @@ def cancel_appointment(request, booking_id):
             created_by=request.user,
             notes='تم إلغاء الحجز'
         )
+        
+        # إرسال إشعار للمريض بإلغاء الحجز
+        patient_user = booking.patient.user
+        hospital_name = booking.hospital.name
+        doctor_name = booking.doctor.name
+        appointment_date = booking.booking_date.strftime('%Y-%m-%d')
+        
+        # تحديد وقت الموعد إذا كان متاحًا
+        appointment_time = ''
+        if booking.appointment_time:
+            if hasattr(booking.appointment_time, 'start_time') and hasattr(booking.appointment_time, 'end_time'):
+                appointment_time = f" من {booking.appointment_time.start_time.strftime('%H:%M')} إلى {booking.appointment_time.end_time.strftime('%H:%M')}"
+        
+        # إنشاء نص الإشعار
+        notification_message = f"تم إلغاء موعدك مع الدكتور {doctor_name} في {hospital_name} بتاريخ {appointment_date}{appointment_time}. يرجى التواصل مع المستشفى للمزيد من المعلومات."
+        
+        # إنشاء الإشعار
+        Notifications.objects.create(
+            sender=request.user,
+            user=patient_user,
+            message=notification_message,
+            notification_type='1',  # تحذير
+            status='0'  # غير مقروء
+        )
 
         return JsonResponse({
             'status': 'success',
-            'message': 'تم إلغاء الحجز بنجاح',
+            'message': 'تم إلغاء الحجز بنجاح وإرسال إشعار للمريض',
             'toast_class': 'bg-success'
         })
 

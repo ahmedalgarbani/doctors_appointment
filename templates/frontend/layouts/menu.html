@@ -3,6 +3,15 @@
 {% get_menu "NAV_MENU_TOP" as top_menu %}
 
 <style>
+    /* User dropdown menu styles */
+    .dropdown-menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 1000 !important;
+        position: absolute !important;
+    }
+    
     /* تحسين وضوح النص */
     .text-dark {
         color: #212529 !important;
@@ -135,46 +144,29 @@
                 </div>
                 <ul class="main-nav">
                     <!-- Direct hospitals link -->
-                    <li>
-                        <a href="{% url 'hospitals:all_hospitals' %}">المستشفيات</a>
-                    </li>
-                    <!-- Other menu items -->
                     {% for item in top_menu %}
-                    {% if item.name != "المستشفيات" %}
                     <li {% if item.submenu %}class="has-submenu"{% endif %}>
-                        {% if item.name == "المستشفيات" %}
-                        <a href="{% url 'hospitals:all_hospitals' %}">{{ item.name }}</a>
-                        {% else %}
-                        <a href="{{ item.url }}">{{item.name}} 
-                        {% if item.submenu %}
-                        <i class="fas fa-chevron-down"></i>
-                        {% endif %}    
+                        <a href="{{ item.url }}">
+                            {{ item.name }}
+                            {% if item.submenu %}
+                                <i class="fas fa-chevron-down"></i>
+                            {% endif %}
                         </a>
-                        {% endif %}
                         {% if item.submenu %}
                         <ul class="submenu">
                             {% for menu in item.submenu %}
-                            <li><a href="{{ menu.url }}">{{menu.name}}</a></li>
+                            <li><a href="{{ menu.url }}">{{ menu.name }}</a></li>
                             {% endfor %}
                         </ul>
                         {% endif %}
                     </li>
-                    {% endif %}
                     {% endfor %}
-                    <li class="searchbar">
-                        <a href="javascript:void(0);"><i class="feather-search"></i></a>
-                        <div class="togglesearch">
-                            <form action="">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Search...">
-                                    <button type="submit" class="btn">Search</button>
-                                </div>
-                            </form>
-                        </div>
-                    </li>
+                    <li style="margin-bottom: 20px;"></li>
+
                     {% if request.user.is_authenticated %}
                   <!-- Notifications -->
                   <div>
+                    <br>
                     <li class="nav-item dropdown noti-nav me-3 pe-0 position-relative">
                         <a href="#" class="dropdown-toggle nav-link p-0" data-bs-toggle="dropdown" aria-expanded="false" id="notification-button">
                             <i class="fa-solid fa-bell"></i>
@@ -327,6 +319,31 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Initialize user dropdown menu manually
+        const userDropdownToggle = document.querySelector('.logged-item .dropdown-toggle');
+        if (userDropdownToggle) {
+            userDropdownToggle.addEventListener('click', function(event) {
+                event.preventDefault();
+                const dropdownMenu = this.nextElementSibling;
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                } else {
+                    // Close any open dropdowns first
+                    document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                        menu.classList.remove('show');
+                    });
+                    dropdownMenu.classList.add('show');
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.logged-item')) {
+                    document.querySelector('.logged-item .dropdown-menu')?.classList.remove('show');
+                }
+            });
+        }
+        
         const notificationList = document.getElementById("notification-list");
         const notificationContainer = document.querySelector(".noti-content");
         

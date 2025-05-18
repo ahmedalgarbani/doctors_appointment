@@ -1,11 +1,12 @@
 {% load static %}
+
 {% if workSection %}
 <section class="work-section">
   <div class="container">
     <div class="row">
       <div class="col-lg-4 col-md-12 work-img-info aos" data-aos="fade-up">
         <div class="work-img">
-          <img src="{{ workSection.main_image.url }}" class="img-fluid" alt="doctor-image" />
+          <img src="{{ workSection.main_image.url }}" class="img-fluid" alt="صورة الطبيب" />
         </div>
       </div>
       <div class="col-lg-8 col-md-12 work-details">
@@ -18,15 +19,13 @@
           {% if step.show_at_home %}
           <div class="col-lg-6 col-md-6 aos" data-aos="fade-up">
             <div class="work-info">
-{% if step.icon %}
-
-<div class="work-icon">
-  <span
-  ><img src="{{ step.icon.url }}" alt="calendar-icon"
-  /></span>
-  </div>
-{% endif %}
-
+              {% if step.icon %}
+              <div class="work-icon">
+                <span>
+                  <img src="{{ step.icon.url }}" alt="رمز التقويم" />
+                </span>
+              </div>
+              {% endif %}
               <div class="work-content">
                 <h5>{{ step.title }}</h5>
                 <p>
@@ -36,11 +35,10 @@
             </div>
           </div>
           {% endif %}
-{% endfor %}
+          {% endfor %}
         </div>
       </div>
     </div>
   </div>
 </section>
-
 {% endif %}
