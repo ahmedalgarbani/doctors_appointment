@@ -707,10 +707,11 @@ def hospital_delete(request, pk):
 def hospital_request_success(request):
     """صفحة نجاح تقديم الطلب"""
     # طباعة رسالة تأكيد للتحقق من وصول الطلب إلى هذه الوظيفة
-    print("\n\n*** تم الوصول إلى صفحة نجاح تقديم الطلب ***\n\n")
-    print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
-    print(f"\n\n*** المستخدم مسجل الدخول: {request.user.is_authenticated} ***\n\n")
+    # print("\n\n*** تم الوصول إلى صفحة نجاح تقديم الطلب ***\n\n")
+    # print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
+    # print(f"\n\n*** المستخدم مسجل الدخول: {request.user.is_authenticated} ***\n\n")
     return render(request, 'frontend/auth/hospital-request-success.html')
+
 
 def hospital_request_status(request, request_id):
     """عرض حالة الطلب"""

@@ -10,7 +10,7 @@ class RoleBasedAccessMiddleware:
 
     def __call__(self, request):
         # طباعة المسار الذي يتم الوصول إليه
-        print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
+        # print(f"\n\n*** المسار المطلوب: {request.path} ***\n\n")
 
         # استثناء صفحة تسجيل الدخول وصفحة نجاح طلب فتح حساب المستشفى
         if request.path == '/users/login/' or request.path == '/hospital/account/request/success/':

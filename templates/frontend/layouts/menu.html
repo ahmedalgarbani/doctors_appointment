@@ -258,7 +258,7 @@
                     <!-- User Menu -->
                                             
                     <li class="nav-item dropdown has-arrow logged-item">
-                        <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                        <a href="javascript:;" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
                             {% if request.user.profile_picture %} 
 
                             <span class="user-img">
@@ -281,10 +281,10 @@
                             </div>
                             {% if request.user.user_type == 'patient' %}
                                 <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">لوحة التحكم</a>
-                                <a class="dropdown-item" href="{% url 'patients:patient_dashboard' %}">إعدادات الملف الشخصي</a>
+                                <a class="dropdown-item" href='http://127.0.0.1:8000/patients/?section=profile_settings'>إعدادات الملف الشخصي</a>
                             {% elif request.user.user_type == 'hospital_manager' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
-                                <a class="dropdown-item" href="profile-settings.html">إعدادات الملف الشخصي</a>
+                                <a class="dropdown-item" href="{% url 'hospitals:update_hospital_profile' %}">إعدادات الملف الشخصي</a>
                             {% elif request.user.user_type == 'hospital_staff' %}
                                 <a class="dropdown-item" href="{% url 'hospitals:index' %}">لوحة التحكم</a>
                                 <a class="dropdown-item" href="profile-settings.html">إعدادات الملف الشخصي</a>

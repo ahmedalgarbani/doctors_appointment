@@ -154,6 +154,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         if profile_picture:
             user.profile_picture = profile_picture
+            user.user_type = 'patient'
             user.save()
 
         return user

@@ -147,8 +147,7 @@ class RegisterView(APIView):
                     )
 
                 try:
-                    user.user_type = 'patient'
-                    patient = Patients.objects.create(
+                    Patients.objects.create(
                         user=user,
                         birth_date=birth_date,  
                         gender=request.data["gender"],
@@ -156,7 +155,7 @@ class RegisterView(APIView):
                     )
                 except ValueError as ve:
                     return Response(
-                        {"error": "Invalid data type for weight, height, or age."},
+                        {"error": "Invalid data ."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
@@ -422,8 +421,7 @@ class UserProfileView(APIView):
             
             user.save()
 
-            patient_fields = ['mobile_number', 'birth_date', 'gender', 'weight', 
-                             'height', 'blood_group']
+            patient_fields = ['mobile_number', 'birth_date', 'gender']
             for field in patient_fields:
                 if field in data:
                     setattr(patient, field, data[field])
