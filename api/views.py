@@ -408,7 +408,6 @@ class UserProfileView(APIView):
                     "address":request.user.address,
                     "city":request.user.city,
                     "state":request.user.state,
-                    'join_date':patient.created_at
                 },
                 
             }, status=status.HTTP_200_OK)
